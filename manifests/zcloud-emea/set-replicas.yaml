@@ -1,0 +1,6 @@
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: event-management-service
+spec:
+  minReplicas: 2

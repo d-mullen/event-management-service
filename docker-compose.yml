@@ -1,0 +1,20 @@
+version: "3.3"
+services:
+  event-management-service:
+    image: ${SERVICE_IMAGE}:${IMAGE_TAG:-dev}
+    build:
+        context: .
+        labels:
+          zenoss.zing.commit-sha: ${COMMIT_SHA:-none}
+          zenoss.zing.pull-request: ${PULL_REQUEST:-none}
+          zenoss.zing.branch_name: ${GIT_BRANCH:-none}
+          zenoss.zing.build_number: ${BUILD_ID:-none}
+          zenoss.zing.build_url: ${BUILD_URL:-none}
+    ports:
+      - "8080:8080"
+    environment:
+      EVENT_MANAGEMENT_SERVICE_LOG_STACKDRIVER: 0
+      EVENT_MANAGEMENT_SERVICE_LOG_LEVEL: debug
+      EVENT_MANAGEMENT_SERVICE_GRPC_LISTEN_ADDR: ":8080"
+      EVENT_MANAGEMENT_SERVICE_TRACING_ENABLED: 0
+      EVENT_MANAGEMENT_SERVICE_AUTH_DISABLED: 1

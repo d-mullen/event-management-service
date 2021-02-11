@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: event-management-service
+  name: event-management-service
+spec:
+  selector:
+    matchLabels:
+      app: event-management-service
+  template:
+    metadata:
+      labels:
+        app: event-management-service
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - event-management-service
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: event-management-service
+        image: event-management-service
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 512
+        ports:
+          - containerPort: 8081
+        env:
+          - name: ZING_PRODUCT_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PRODUCT_NAME
+          - name: ZING_PRODUCT_VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PRODUCT_VERSION
+          - name: ZING_PRODUCT_COMPANY_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: COMPANY_NAME
+          - name: ZING_PRODUCT_OTHER_COMMENTS
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PROJECT_ID
+          - name: LISTEN_ADDR
+            value: "0.0.0.0:8080"
+          - name: EVENT_MANAGEMENT_SERVICE_GCLOUD_PROJECT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PROJECT_ID
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: "/run/credentials/event-management-service.json"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1000M
+          limits:
+            cpu: 1500m
+            memory: 1000M
+        volumeMounts:
+          - name: cred-secrets
+            mountPath: /run/credentials
+            readOnly: true
+      volumes:
+        - name: cred-secrets
+          secret:
+            secretName: event-management-service
