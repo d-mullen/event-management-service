@@ -33,7 +33,7 @@ func NewEventService(ctx context.Context) (proto.EventManagementServer, error) {
 }
 
 // SetStatus sets the staus of the event(s) passed in
-func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto.EventStatusRequest) (*proto.EventManagementResponse, error) {
+func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto.EventStatusRequest) (*proto.EventStatusResponse, error) {
 	var (
 		results *store.ActiveEvents
 		pi      *store.PageInput
@@ -49,14 +49,7 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 		return nil, err
 	}
 
-	response := new(proto.EventManagementResponse)
-
-	return response, nil
-}
-
-// SetAcknowledge sets acknowledge boolean value for events
-func (svc *EventManagementService) SetAcknowledge(ctx context.Context, request *proto.EventAcknowledgeRequest) (*proto.EventManagementResponse, error) {
-	response := new(proto.EventManagementResponse)
+	response := new(proto.EventStatusResponse)
 
 	return response, nil
 }
@@ -64,13 +57,6 @@ func (svc *EventManagementService) SetAcknowledge(ctx context.Context, request *
 // Annotate adds a annotation to the associated event
 func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.EventAnnotationRequest) (*proto.EventAnnotationResponse, error) {
 	response := new(proto.EventAnnotationResponse)
-
-	return response, nil
-}
-
-// GetAllowedStates returns a list of allowed stated for the tenant
-func (svc *EventManagementService) GetAllowedStates(ctx context.Context, request *proto.EventAllowedStatesRequest) (*proto.EventAllowedStatesResponse, error) {
-	response := new(proto.EventAllowedStatesResponse)
 
 	return response, nil
 }
