@@ -3,12 +3,10 @@ package service
 import (
 	"context"
 
+	//"github.com/pkg/errors"
 	"github.com/zenoss/event-context-svc/utils"
-
-	"github.com/pkg/errors"
-	"github.com/zenoss/event-context-svc/store"
 	"github.com/zenoss/zenkit/v5"
-	"github.com/zenoss/zing-proto/v11/go/cloud/common"
+	ecproto "github.com/zenoss/zing-proto/v11/go/cloud/event_context"
 	proto "github.com/zenoss/zing-proto/v11/go/cloud/event_management"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,34 +14,35 @@ import (
 
 // EventManagementService implements the interface proto.EventManagementServer
 type EventManagementService struct {
-	qryEventStore store.EventContextStore
+	eventCtxClient ecproto.EventContextQueryClient
 }
 
-// NewEventService returns implementation of proto.EventContextContextServer
-func NewEventService(ctx context.Context) (proto.EventManagementServer, error) {
+// NewEventManagementService returns implementation of proto.EventManagementServer
+func NewEventManagementService(ctx context.Context) (proto.EventManagementServer, error) {
+	log := zenkit.ContextLogger(ctx)
 	svc := &EventManagementService{}
-	if svc.qryEventStore == nil {
-		eventStore, err := store.DefaultEventsStore(ctx)
+	if svc.eventCtxClient == nil {
+		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "rbac-svc", zenkit.DefaultRetryOpts())
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get event context store for event management service")
+			log.WithError(err).Error("failed to connect to event-context-svc")
+			return nil, err
 		}
-		svc.qryEventStore = eventStore
+		svc.eventCtxClient = ecproto.NewEventContextQueryClient(ecConn)
+
+		log.Info("connected to event-context-svc")
 	}
 	return svc, nil
 }
 
 // SetStatus sets the staus of the event(s) passed in
 func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto.EventStatusRequest) (*proto.EventStatusResponse, error) {
-	var (
-		results *store.ActiveEvents
-		pi      *store.PageInput
-	)
+
 	log := zenkit.ContextLogger(ctx)
 	if request == nil || request.Tenant == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid set status request (need tenant")
 	}
 
-	tenant, err := utils.ValidateIdentity(ctx)
+	_, err := utils.ValidateIdentity(ctx)
 	if err != nil {
 		log.WithError(err).Error("SetStatus failed: unauthenticated")
 		return nil, err
