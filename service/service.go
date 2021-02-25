@@ -22,7 +22,7 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 	log := zenkit.ContextLogger(ctx)
 	svc := &EventManagementService{}
 	if svc.eventCtxClient == nil {
-		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "rbac-svc", zenkit.DefaultRetryOpts())
+		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-svc", zenkit.DefaultRetryOpts())
 		if err != nil {
 			log.WithError(err).Error("failed to connect to event-context-svc")
 			return nil, err
