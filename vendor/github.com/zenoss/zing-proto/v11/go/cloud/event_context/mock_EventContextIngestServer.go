@@ -58,3 +58,26 @@ func (_m *MockEventContextIngestServer) PutEventBulk(_a0 context.Context, _a1 *P
 
 	return r0, r1
 }
+
+// UpdateEvent provides a mock function with given fields: _a0, _a1
+func (_m *MockEventContextIngestServer) UpdateEvent(_a0 context.Context, _a1 *UpdateEventRequest) (*UpdateEventResponse, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *UpdateEventResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *UpdateEventRequest) *UpdateEventResponse); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateEventResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *UpdateEventRequest) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
