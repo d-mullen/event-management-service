@@ -35,6 +35,13 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 	return svc, nil
 }
 
+// NewEventManagementServiceFromParts returns implementation of proto.EventManagementServer with the passed in client for testing
+func NewEventManagementServiceFromParts(client ecproto.EventContextIngestClient) (proto.EventManagementServer, error) {
+	return &EventManagementService{
+		eventCtxClient: client,
+	}, nil
+}
+
 func getECStatus(status proto.EMStatus) eproto.Status {
 	switch status {
 	case proto.EMStatus_EM_STATUS_DEFAULT:
@@ -55,11 +62,11 @@ func getECStatus(status proto.EMStatus) eproto.Status {
 func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto.EventStatusRequest) (*proto.EventStatusResponse, error) {
 
 	log := zenkit.ContextLogger(ctx)
-	if request == nil || request.Tenant == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid set status request (need tenant)")
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid set status nil request")
 	}
 
-	tenant, err := utils.ValidateIdentity(ctx)
+	_, err := utils.ValidateIdentity(ctx)
 	if err != nil {
 		log.WithError(err).Error("SetStatus failed: unauthenticated")
 		return nil, err
@@ -70,7 +77,6 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 
 	for k, v := range request.StatusList {
 		ecRequest := ecproto.UpdateEventRequest{
-			Tenant:       tenant,
 			Id:           k,
 			Status:       getECStatus(v.Status),
 			Acknowledged: v.Acknowledge,
@@ -88,8 +94,8 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 // Annotate adds a annotation to the associated event
 func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.EventAnnotationRequest) (*proto.EventAnnotationResponse, error) {
 	log := zenkit.ContextLogger(ctx)
-	if request == nil || request.Tenant == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid annotate request (need tenant)")
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid annotate nil request")
 	}
 
 	_, err := utils.ValidateIdentity(ctx)
@@ -112,7 +118,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 		aresp := proto.AnnotationResponse{}
 		aresp.Success = resp.Status
 		if err == nil {
-			aresp.NoteId = resp.NoteId
+			aresp.Id = resp.NoteId
 		} else {
 			log.Error("Failed annotating", err)
 		}
