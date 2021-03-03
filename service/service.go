@@ -56,7 +56,7 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 
 	log := zenkit.ContextLogger(ctx)
 	if request == nil || request.Tenant == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid set status request (need tenant")
+		return nil, status.Error(codes.InvalidArgument, "invalid set status request (need tenant)")
 	}
 
 	tenant, err := utils.ValidateIdentity(ctx)
@@ -76,12 +76,9 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 			Acknowledged: v.Acknowledge,
 		}
 
-		// update never sends a response only error if any
-		_, err = svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
-		if err == nil {
-			response.SuccessList[k] = true
-		} else {
-			response.SuccessList[k] = false
+		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+		response.SuccessList[k] = resp.Status
+		if err != nil {
 			log.Error("Failed setting status", err)
 		}
 	}
@@ -90,7 +87,37 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 
 // Annotate adds a annotation to the associated event
 func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.EventAnnotationRequest) (*proto.EventAnnotationResponse, error) {
+	log := zenkit.ContextLogger(ctx)
+	if request == nil || request.Tenant == "" {
+		return nil, status.Error(codes.InvalidArgument, "invalid annotate request (need tenant)")
+	}
+
+	_, err := utils.ValidateIdentity(ctx)
+	if err != nil {
+		log.WithError(err).Error("Annotate failed: unauthenticated")
+		return nil, err
+	}
+
 	response := new(proto.EventAnnotationResponse)
+	response.AnnotationList = make(map[string]*proto.AnnotationResponse)
+
+	for k, v := range request.AnnotationList {
+		ecRequest := ecproto.UpdateEventRequest{
+			Id:     k,
+			NoteId: v.Id,
+			Note:   v.Annotation,
+		}
+
+		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+		aresp := proto.AnnotationResponse{}
+		aresp.Success = resp.Status
+		if err == nil {
+			aresp.NoteId = resp.NoteId
+		} else {
+			log.Error("Failed annotating", err)
+		}
+		response.AnnotationList[k] = &aresp
+	}
 
 	return response, nil
 }
