@@ -23,7 +23,7 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 	log := zenkit.ContextLogger(ctx)
 	svc := &EventManagementService{}
 	if svc.eventCtxClient == nil {
-		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-svc", zenkit.DefaultRetryOpts())
+		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest", zenkit.DefaultRetryOpts())
 		if err != nil {
 			log.WithError(err).Error("failed to connect to event-context-svc")
 			return nil, err
@@ -83,9 +83,11 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 		}
 
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
-		response.SuccessList[k] = resp.Status
 		if err != nil {
 			log.Error("Failed setting status", err)
+			response.SuccessList[k] = false
+		} else {
+			response.SuccessList[k] = resp.Status
 		}
 	}
 	return response, nil
@@ -116,10 +118,11 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 		aresp := proto.AnnotationResponse{}
-		aresp.Success = resp.Status
 		if err == nil {
+			aresp.Success = resp.Status
 			aresp.Id = resp.NoteId
 		} else {
+			aresp.Success = false
 			log.Error("Failed annotating", err)
 		}
 		response.AnnotationList[k] = &aresp
