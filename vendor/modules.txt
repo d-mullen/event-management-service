@@ -205,6 +205,7 @@ github.com/spf13/viper
 # github.com/stretchr/objx v0.2.0
 github.com/stretchr/objx
 # github.com/stretchr/testify v1.5.1
+## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
@@ -219,7 +220,7 @@ github.com/zenoss/event-context-svc/utils
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.9.3 => ../zing-proto
+# github.com/zenoss/zing-proto/v11 v11.9.15-0.20210308202645-d60411799f67
 ## explicit
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver
@@ -227,6 +228,7 @@ github.com/zenoss/zing-proto/v11/go/cloud/event_context
 github.com/zenoss/zing-proto/v11/go/cloud/event_management
 github.com/zenoss/zing-proto/v11/go/cloud/eventts
 github.com/zenoss/zing-proto/v11/go/cloud/feature_flags
+github.com/zenoss/zing-proto/v11/go/cloud/yamr
 github.com/zenoss/zing-proto/v11/go/event
 github.com/zenoss/zing-proto/v11/go/metric
 github.com/zenoss/zing-proto/v11/go/model
@@ -450,4 +452,3 @@ gopkg.in/square/go-jose.v2/jwt
 gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
-# github.com/zenoss/zing-proto/v11 => ../zing-proto

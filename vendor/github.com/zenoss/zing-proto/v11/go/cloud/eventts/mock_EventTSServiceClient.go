@@ -75,6 +75,36 @@ func (_m *MockEventTSServiceClient) GetEventCountsStream(ctx context.Context, in
 	return r0, r1
 }
 
+// GetEventFrequency provides a mock function with given fields: ctx, in, opts
+func (_m *MockEventTSServiceClient) GetEventFrequency(ctx context.Context, in *EventTSFrequencyRequest, opts ...grpc.CallOption) (*EventTSFrequencyResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *EventTSFrequencyResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *EventTSFrequencyRequest, ...grpc.CallOption) *EventTSFrequencyResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*EventTSFrequencyResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *EventTSFrequencyRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetEvents provides a mock function with given fields: ctx, in, opts
 func (_m *MockEventTSServiceClient) GetEvents(ctx context.Context, in *EventTSRequest, opts ...grpc.CallOption) (*EventTSResponse, error) {
 	_va := make([]interface{}, len(opts))

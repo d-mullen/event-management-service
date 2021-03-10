@@ -320,6 +320,10 @@ github.com/zenoss/zenoss-go-sdk v1.0.0/go.mod h1:ufzgnj1eOR6RyEDbIVawWh7xTmq4GHc
 github.com/zenoss/zenoss-protobufs v1.0.0/go.mod h1:vHQdAOpLdwaLjVUnk5jByyrW6LXZBaS0h/G+ttiFMac=
 github.com/zenoss/zing-proto/v11 v11.0.0 h1:jDtdY+WoBeZALxuaPKOMaslkFGvIb5a6u9as3C3Qdj4=
 github.com/zenoss/zing-proto/v11 v11.0.0/go.mod h1:zN9f3gKjvOyRHdpJ5/31SYy0LvqnUG//FgSjRj+mpeY=
+github.com/zenoss/zing-proto/v11 v11.6.0/go.mod h1:XU3OtrHJCbr2XbOFa34cmYXiyUTu/uBfg97OceVUv3M=
+github.com/zenoss/zing-proto/v11 v11.9.3/go.mod h1:XU3OtrHJCbr2XbOFa34cmYXiyUTu/uBfg97OceVUv3M=
+github.com/zenoss/zing-proto/v11 v11.9.15-0.20210308202645-d60411799f67 h1:nmoNxIHqybnnCojjTx4HAGGEzV90AK+dQBoeeu10gLQ=
+github.com/zenoss/zing-proto/v11 v11.9.15-0.20210308202645-d60411799f67/go.mod h1:XU3OtrHJCbr2XbOFa34cmYXiyUTu/uBfg97OceVUv3M=
 github.com/zenoss/zingo/v4 v4.1.6 h1:xV8p/+vQj6ZVR4JwjT2DExGgX6L/zyXxIDyWaqKk/zg=
 github.com/zenoss/zingo/v4 v4.1.6/go.mod h1:wbxGcM3iVzE/op3luiXNVCNHtJ1RBE9p9QYvaKbqCV4=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
