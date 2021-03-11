@@ -115,7 +115,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 	}
 
 	response := new(proto.EventAnnotationResponse)
-	response.AnnotationList = make(map[string]*proto.AnnotationResponse)
+	response.AnnotationResponseList = make(map[string]*proto.AnnotationResponse)
 
 	for k, v := range request.AnnotationList {
 		ecRequest := ecproto.UpdateEventRequest{
@@ -134,7 +134,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			aresp.Success = false
 			log.Error("Failed annotating", err)
 		}
-		response.AnnotationList[k] = &aresp
+		response.AnnotationResponseList[k] = &aresp
 	}
 
 	return response, nil
