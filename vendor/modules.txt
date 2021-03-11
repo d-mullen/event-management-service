@@ -220,7 +220,7 @@ github.com/zenoss/event-context-svc/utils
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.9.15-0.20210308202645-d60411799f67 => ../zing-proto
+# github.com/zenoss/zing-proto/v11 v11.10.3
 ## explicit
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver
@@ -452,4 +452,3 @@ gopkg.in/square/go-jose.v2/jwt
 gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
-# github.com/zenoss/zing-proto/v11 => ../zing-proto
