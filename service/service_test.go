@@ -43,16 +43,16 @@ var _ = Describe("Management Service", func() {
 		zenkit.InitConfig("event-management-service")
 		ctx, cancel = context.WithCancel(ctxlogrus.ToContext(context.Background(), log))
 		eStatus = proto.EMEventStatus{
-			Acknowledge: &wrappers.BoolValue{Value: true},
-			Status:      proto.EMStatus_EM_STATUS_OPEN,
+			Acknowledge:   &wrappers.BoolValue{Value: true},
+			StatusWrapper: &proto.EMEventStatus_Wrapper{Status: proto.EMStatus_EM_STATUS_OPEN},
 		}
 		annotation1 = proto.Annotation{
-			Id:         "",
-			Annotation: "this is a new note for testing",
+			AnnotationId: "",
+			Annotation:   "this is a new note for testing",
 		}
 		annotation2 = proto.Annotation{
-			Id:         "noteId1",
-			Annotation: "this is a new note for testing",
+			AnnotationId: "noteId1",
+			Annotation:   "this is a new note for testing",
 		}
 	})
 

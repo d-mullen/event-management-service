@@ -76,10 +76,18 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 	response.SuccessList = make(map[string]bool)
 
 	for k, v := range request.StatusList {
+
 		ecRequest := ecproto.UpdateEventRequest{
-			Id:           k,
-			Status:       getECStatus(v.Status),
+			OccurrenceId: k,
 			Acknowledged: v.Acknowledge,
+			EventId:      v.EventId,
+		}
+
+		if v.StatusWrapper != nil {
+			sw := ecproto.UpdateEventRequest_Wrapper{
+				Status: getECStatus(v.StatusWrapper.Status),
+			}
+			ecRequest.StatusWrapper = &sw
 		}
 
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
@@ -111,16 +119,17 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 
 	for k, v := range request.AnnotationList {
 		ecRequest := ecproto.UpdateEventRequest{
-			Id:     k,
-			NoteId: v.Id,
-			Note:   v.Annotation,
+			OccurrenceId: k,
+			NoteId:       v.AnnotationId,
+			Note:         v.Annotation,
+			EventId:      request.EventId,
 		}
 
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 		aresp := proto.AnnotationResponse{}
 		if err == nil {
 			aresp.Success = resp.Status
-			aresp.Id = resp.NoteId
+			aresp.AnnotationId = resp.NoteId
 		} else {
 			aresp.Success = false
 			log.Error("Failed annotating", err)
