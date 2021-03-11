@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: event-maangement-service-vs
+  name: event-management-service-vs
 spec:
   gateways:
     - zing-gateway
