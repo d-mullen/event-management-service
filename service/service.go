@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	//"github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"github.com/zenoss/event-context-svc/utils"
 	"github.com/zenoss/zenkit/v5"
 	ecproto "github.com/zenoss/zing-proto/v11/go/cloud/event_context"
@@ -63,7 +63,7 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 
 	log := zenkit.ContextLogger(ctx)
 	if request == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid set status nil request")
+		return nil, status.Error(codes.InvalidArgument, "Invalid set status nil request")
 	}
 
 	_, err := utils.ValidateIdentity(ctx)
@@ -76,7 +76,9 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 	response.SuccessList = make(map[string]bool)
 
 	for k, v := range request.StatusList {
-
+		if v.EventId == "" {
+			return nil, errors.Wrap(err, "Event id cannot be empty")
+		}
 		ecRequest := ecproto.UpdateEventRequest{
 			OccurrenceId: k,
 			Acknowledged: v.Acknowledge,
@@ -105,7 +107,7 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.EventAnnotationRequest) (*proto.EventAnnotationResponse, error) {
 	log := zenkit.ContextLogger(ctx)
 	if request == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid annotate nil request")
+		return nil, status.Error(codes.InvalidArgument, "Invalid annotate nil request")
 	}
 
 	_, err := utils.ValidateIdentity(ctx)
@@ -118,11 +120,14 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 	response.AnnotationResponseList = make(map[string]*proto.AnnotationResponse)
 
 	for k, v := range request.AnnotationList {
+		if v.Annotation == "" || v.EventId == "" {
+			return nil, errors.Wrap(err, "Event id, Annotation cannot be empty")
+		}
 		ecRequest := ecproto.UpdateEventRequest{
 			OccurrenceId: k,
 			NoteId:       v.AnnotationId,
 			Note:         v.Annotation,
-			EventId:      request.EventId,
+			EventId:      v.EventId,
 		}
 
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
