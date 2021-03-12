@@ -86,7 +86,6 @@ func main() {
 			}
 			proto.RegisterEventManagementServer(svr, svc)
 		}
-		// proto.RegisterEvent-Management-ServiceServiceServer(svr, NewEvent-Management-ServiceService())
 
 		return nil
 

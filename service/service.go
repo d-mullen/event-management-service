@@ -25,12 +25,12 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 	if svc.eventCtxClient == nil {
 		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest", zenkit.DefaultRetryOpts())
 		if err != nil {
-			log.WithError(err).Error("failed to connect to event-context-svc")
+			log.WithError(err).Error("failed to connect to event-context-ingest-svc")
 			return nil, err
 		}
 		svc.eventCtxClient = ecproto.NewEventContextIngestClient(ecConn)
 
-		log.Info("connected to event-context-svc")
+		log.Info("connected to event-context-ingest-svc")
 	}
 	return svc, nil
 }
