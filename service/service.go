@@ -115,10 +115,9 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 		log.WithError(err).Error("Annotate failed: unauthenticated")
 		return nil, err
 	}
-
 	response := new(proto.EventAnnotationResponse)
 	response.AnnotationResponseList = make(map[string]*proto.AnnotationResponse)
-
+	atleastOneSuccess := false
 	for k, v := range request.AnnotationList {
 		if v.Annotation == "" || v.EventId == "" {
 			return nil, errors.Wrap(err, "Event id, Annotation cannot be empty")
@@ -133,6 +132,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 		aresp := proto.AnnotationResponse{}
 		if err == nil {
+			atleastOneSuccess = true
 			aresp.Success = resp.Status
 			aresp.AnnotationId = resp.NoteId
 		} else {
@@ -141,7 +141,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 		}
 		response.AnnotationResponseList[k] = &aresp
 	}
-
+	response.Success = atleastOneSuccess
 	return response, nil
 }
 
