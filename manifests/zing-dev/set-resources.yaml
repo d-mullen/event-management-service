@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-management-service
+spec:
+  template:
+    spec:
+      containers:
+      - name: event-management-service
+        resources:
+          requests:
+            memory: 512M
+            cpu: 800m
+          limits:
+            memory: 1000M
+            cpu: 1500m

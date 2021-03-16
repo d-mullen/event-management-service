@@ -1,0 +1,29 @@
+# The binary itself
+shortlink
+event-management-service
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tools
+**/*.coverprofile
+*.out
+
+coverage/
+.idea
+*.iml
+.DS_Store
+._.DS_Store
+.vscode/
+
+# JUnit test output
+**/junit.xml
+
+# Swap files
+*.swp

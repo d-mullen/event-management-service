@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: event-management-service-vs
+spec:
+  gateways:
+    - zing-gateway
+  hosts:
+    - "*"
+  http:
+    - match:
+        - uri:
+            prefix: /v1/event-management/
+      route:
+        - destination:
+            host: event-management-service-public
+            port:
+              number: 80
