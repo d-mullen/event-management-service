@@ -65,8 +65,6 @@ spec:
                 key: PROJECT_ID
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: "/run/credentials/event-management-service.json"
-          - name: EVENT_CONTEXT_SVC_SERVICE_HOST
-            value: "event-context-ingest"
         resources:
           requests:
             cpu: 1000m
