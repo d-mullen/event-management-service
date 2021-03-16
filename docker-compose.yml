@@ -1,5 +1,9 @@
 version: "3.3"
 services:
+  event-context-svc:
+    image: gcr.io/zing-registry-188222/event-context-svc@sha256:522d5a47cae095b872abdc15d45189817abb20012b433013e3072f11c8c69f9c
+    ports:
+      - "8085:8085"
   event-management-service:
     image: ${SERVICE_IMAGE}:${IMAGE_TAG:-dev}
     build:
@@ -13,8 +17,12 @@ services:
     ports:
       - "8080:8080"
     environment:
+      EVENT_MANAGEMENT_SERVICE_GCLOUD_PROJECT_ID: "${PROJECT}"
       EVENT_MANAGEMENT_SERVICE_LOG_STACKDRIVER: 0
       EVENT_MANAGEMENT_SERVICE_LOG_LEVEL: debug
       EVENT_MANAGEMENT_SERVICE_GRPC_LISTEN_ADDR: ":8080"
       EVENT_MANAGEMENT_SERVICE_TRACING_ENABLED: 0
       EVENT_MANAGEMENT_SERVICE_AUTH_DISABLED: 1
+      EVENT_MANAGEMENT_SERVICE_METRICS_ENABLED: 0
+    depends_on:
+      - event-context-svc

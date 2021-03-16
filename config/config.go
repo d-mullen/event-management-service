@@ -11,5 +11,5 @@ const (
 
 // InitDefaults sets defaults values for this server's configuration
 func init() {
-	viper.SetDefault(EventManagementEnabledConfig, false)
+	viper.SetDefault(EventManagementEnabledConfig, true)
 }
