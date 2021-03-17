@@ -210,6 +210,19 @@ var _ = Describe("Management Service", func() {
 			Ω(resp).ShouldNot(BeNil())
 		})
 
+		It("annotate-add -fail", func() {
+			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
+				&ecproto.UpdateEventResponse{Status: false, NoteId: "newNoteId1"}, errors.New("just a bogus error")).Once()
+
+			resp, err := svc.Annotate(ctx, &proto.EventAnnotationRequest{
+				AnnotationList: map[string]*proto.Annotation{
+					"eocc1": &annotation1,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Ω(resp).ShouldNot(BeNil())
+		})
+
 		It("annotate-edit", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
 				&ecproto.UpdateEventResponse{Status: true, NoteId: "noteId1"}, nil).Once()
