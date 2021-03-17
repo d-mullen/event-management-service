@@ -77,7 +77,7 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 
 	for k, v := range request.StatusList {
 		if v.EventId == "" {
-			return nil, errors.Wrap(err, "Event id cannot be empty")
+			return response, errors.New("Aborting... Event id cannot be empty")
 		}
 		ecRequest := ecproto.UpdateEventRequest{
 			OccurrenceId: k,
@@ -120,7 +120,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 	atleastOneSuccess := false
 	for k, v := range request.AnnotationList {
 		if v.Annotation == "" || v.EventId == "" {
-			return nil, errors.Wrap(err, "Event id, Annotation cannot be empty")
+			return response, errors.New("Aborting... Event id, Annotation cannot be empty")
 		}
 		ecRequest := ecproto.UpdateEventRequest{
 			OccurrenceId: k,
