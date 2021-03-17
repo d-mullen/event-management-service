@@ -44,8 +44,22 @@ node('docker') {
                     onlyStable: false,
                     sourceEncoding: 'ASCII',
                     zoomCoverageChart: false,
-                    lineCoverageTargets: '100.0, 90.0, 50.0',
+                    lineCoverageTargets: '100.0, 25.0, 25.0',
                 ])
+            }
+
+            stage('Validate Manifests') {
+                build job: env.GLOBAL_KUSTOMIZE_PROOFING_JOB,
+                    wait: true,
+                    propagate: true,
+                    parameters: [
+                        text(name: 'SERVICE_NAME', value: "event-management-service"),
+                        text(name: 'SERVICE_GIT', value: "https://github.com/zenoss/event-management-service"),
+                        text(name: 'SERVICE_GIT_SHA', value: env.GIT_BRANCH),
+                        text(name: 'UPSTREAM_JOB_NAME', value: env.JOB_NAME),
+                        text(name: 'UPSTREAM_JOB_NUMBER', value: env.BUILD_NUMBER),
+                        text(name: 'UPSTREAM_JOB_URL', value: env.BUILD_URL),
+                    ]
             }
         } finally {
             stage ('Clean test environment') {
