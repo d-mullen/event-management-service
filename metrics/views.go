@@ -7,4 +7,8 @@ import (
 var AllViews = []*view.View{
 	// set status
 	SetStatusTimeMsView,
+	SetStatusCountView,
+	//annotate
+	AnnotateTimeMsView,
+	AnnotateCountView,
 }
