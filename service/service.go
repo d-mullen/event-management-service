@@ -109,6 +109,10 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 			ecRequest.StatusWrapper = &sw
 		}
 
+		if ecRequest.Acknowledged == nil && ecRequest.StatusWrapper == nil {
+			return response, errors.New("Aborting... Need status or acknowledged to be set")
+		}
+
 		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 		if err != nil {
 			log.Error("Failed setting status", err)

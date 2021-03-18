@@ -41,6 +41,7 @@ var _ = Describe("Management Service", func() {
 		eStatus2    proto.EMEventStatus
 		eStatus3    proto.EMEventStatus
 		eStatus4    proto.EMEventStatus
+		eStatus5    proto.EMEventStatus
 		annotation1 proto.Annotation
 		annotation2 proto.Annotation
 		annotation3 proto.Annotation
@@ -69,6 +70,11 @@ var _ = Describe("Management Service", func() {
 			EventId:       "eventId1",
 			Acknowledge:   nil,
 			StatusWrapper: &proto.EMEventStatus_Wrapper{Status: proto.EMStatus_EM_STATUS_CLOSED},
+		}
+		eStatus5 = proto.EMEventStatus{
+			EventId:       "eventId1",
+			Acknowledge:   nil,
+			StatusWrapper: nil,
 		}
 		annotation1 = proto.Annotation{
 			EventId:      "eventId1",
@@ -195,6 +201,19 @@ var _ = Describe("Management Service", func() {
 			resp, err := svc.SetStatus(ctx, nil)
 			Expect(err).Should(HaveOccurred())
 			Ω(resp).Should(BeNil())
+		})
+
+		It("set status -nothing set", func() {
+			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
+				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Once()
+
+			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
+				StatusList: map[string]*proto.EMEventStatus{
+					"eocc1": &eStatus5,
+				},
+			})
+			Expect(err).Should(HaveOccurred())
+			Ω(len(resp.SuccessList)).Should(BeZero())
 		})
 
 		It("annotate-add", func() {
