@@ -56,49 +56,11 @@ func (EMStatus) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_e190cb14ee571f53, []int{0}
 }
 
-type EventStatusRequest struct {
-	StatusList           map[string]*EMEventStatus `protobuf:"bytes,1,rep,name=status_list,json=statusList,proto3" json:"status_list,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
-	XXX_unrecognized     []byte                    `json:"-"`
-	XXX_sizecache        int32                     `json:"-"`
-}
-
-func (m *EventStatusRequest) Reset()         { *m = EventStatusRequest{} }
-func (m *EventStatusRequest) String() string { return proto.CompactTextString(m) }
-func (*EventStatusRequest) ProtoMessage()    {}
-func (*EventStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{0}
-}
-
-func (m *EventStatusRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EventStatusRequest.Unmarshal(m, b)
-}
-func (m *EventStatusRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EventStatusRequest.Marshal(b, m, deterministic)
-}
-func (m *EventStatusRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventStatusRequest.Merge(m, src)
-}
-func (m *EventStatusRequest) XXX_Size() int {
-	return xxx_messageInfo_EventStatusRequest.Size(m)
-}
-func (m *EventStatusRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventStatusRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EventStatusRequest proto.InternalMessageInfo
-
-func (m *EventStatusRequest) GetStatusList() map[string]*EMEventStatus {
-	if m != nil {
-		return m.StatusList
-	}
-	return nil
-}
-
 type EMEventStatus struct {
 	EventId              string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
-	Acknowledge          *wrappers.BoolValue    `protobuf:"bytes,2,opt,name=acknowledge,proto3" json:"acknowledge,omitempty"`
-	StatusWrapper        *EMEventStatus_Wrapper `protobuf:"bytes,3,opt,name=status_wrapper,json=statusWrapper,proto3" json:"status_wrapper,omitempty"`
+	OccurrenceId         string                 `protobuf:"bytes,2,opt,name=occurrence_id,json=occurrenceId,proto3" json:"occurrence_id,omitempty"`
+	Acknowledge          *wrappers.BoolValue    `protobuf:"bytes,3,opt,name=acknowledge,proto3" json:"acknowledge,omitempty"`
+	StatusWrapper        *EMEventStatus_Wrapper `protobuf:"bytes,4,opt,name=status_wrapper,json=statusWrapper,proto3" json:"status_wrapper,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
 	XXX_unrecognized     []byte                 `json:"-"`
 	XXX_sizecache        int32                  `json:"-"`
@@ -108,7 +70,7 @@ func (m *EMEventStatus) Reset()         { *m = EMEventStatus{} }
 func (m *EMEventStatus) String() string { return proto.CompactTextString(m) }
 func (*EMEventStatus) ProtoMessage()    {}
 func (*EMEventStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{1}
+	return fileDescriptor_e190cb14ee571f53, []int{0}
 }
 
 func (m *EMEventStatus) XXX_Unmarshal(b []byte) error {
@@ -132,6 +94,13 @@ var xxx_messageInfo_EMEventStatus proto.InternalMessageInfo
 func (m *EMEventStatus) GetEventId() string {
 	if m != nil {
 		return m.EventId
+	}
+	return ""
+}
+
+func (m *EMEventStatus) GetOccurrenceId() string {
+	if m != nil {
+		return m.OccurrenceId
 	}
 	return ""
 }
@@ -161,7 +130,7 @@ func (m *EMEventStatus_Wrapper) Reset()         { *m = EMEventStatus_Wrapper{} }
 func (m *EMEventStatus_Wrapper) String() string { return proto.CompactTextString(m) }
 func (*EMEventStatus_Wrapper) ProtoMessage()    {}
 func (*EMEventStatus_Wrapper) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{1, 0}
+	return fileDescriptor_e190cb14ee571f53, []int{0, 0}
 }
 
 func (m *EMEventStatus_Wrapper) XXX_Unmarshal(b []byte) error {
@@ -189,18 +158,120 @@ func (m *EMEventStatus_Wrapper) GetStatus() EMStatus {
 	return EMStatus_EM_STATUS_DEFAULT
 }
 
+type EventStatusRequest struct {
+	Statuses             []*EMEventStatus `protobuf:"bytes,1,rep,name=statuses,proto3" json:"statuses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *EventStatusRequest) Reset()         { *m = EventStatusRequest{} }
+func (m *EventStatusRequest) String() string { return proto.CompactTextString(m) }
+func (*EventStatusRequest) ProtoMessage()    {}
+func (*EventStatusRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e190cb14ee571f53, []int{1}
+}
+
+func (m *EventStatusRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EventStatusRequest.Unmarshal(m, b)
+}
+func (m *EventStatusRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EventStatusRequest.Marshal(b, m, deterministic)
+}
+func (m *EventStatusRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventStatusRequest.Merge(m, src)
+}
+func (m *EventStatusRequest) XXX_Size() int {
+	return xxx_messageInfo_EventStatusRequest.Size(m)
+}
+func (m *EventStatusRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventStatusRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventStatusRequest proto.InternalMessageInfo
+
+func (m *EventStatusRequest) GetStatuses() []*EMEventStatus {
+	if m != nil {
+		return m.Statuses
+	}
+	return nil
+}
+
+type EMEventStatusResponse struct {
+	EventId              string   `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	OccurrenceId         string   `protobuf:"bytes,2,opt,name=occurrence_id,json=occurrenceId,proto3" json:"occurrence_id,omitempty"`
+	Success              bool     `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	Error                string   `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EMEventStatusResponse) Reset()         { *m = EMEventStatusResponse{} }
+func (m *EMEventStatusResponse) String() string { return proto.CompactTextString(m) }
+func (*EMEventStatusResponse) ProtoMessage()    {}
+func (*EMEventStatusResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e190cb14ee571f53, []int{2}
+}
+
+func (m *EMEventStatusResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EMEventStatusResponse.Unmarshal(m, b)
+}
+func (m *EMEventStatusResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EMEventStatusResponse.Marshal(b, m, deterministic)
+}
+func (m *EMEventStatusResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EMEventStatusResponse.Merge(m, src)
+}
+func (m *EMEventStatusResponse) XXX_Size() int {
+	return xxx_messageInfo_EMEventStatusResponse.Size(m)
+}
+func (m *EMEventStatusResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EMEventStatusResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EMEventStatusResponse proto.InternalMessageInfo
+
+func (m *EMEventStatusResponse) GetEventId() string {
+	if m != nil {
+		return m.EventId
+	}
+	return ""
+}
+
+func (m *EMEventStatusResponse) GetOccurrenceId() string {
+	if m != nil {
+		return m.OccurrenceId
+	}
+	return ""
+}
+
+func (m *EMEventStatusResponse) GetSuccess() bool {
+	if m != nil {
+		return m.Success
+	}
+	return false
+}
+
+func (m *EMEventStatusResponse) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
 type EventStatusResponse struct {
-	SuccessList          map[string]bool `protobuf:"bytes,1,rep,name=success_list,json=successList,proto3" json:"success_list,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
-	XXX_unrecognized     []byte          `json:"-"`
-	XXX_sizecache        int32           `json:"-"`
+	StatusResponses      []*EMEventStatusResponse `protobuf:"bytes,1,rep,name=status_responses,json=statusResponses,proto3" json:"status_responses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
 }
 
 func (m *EventStatusResponse) Reset()         { *m = EventStatusResponse{} }
 func (m *EventStatusResponse) String() string { return proto.CompactTextString(m) }
 func (*EventStatusResponse) ProtoMessage()    {}
 func (*EventStatusResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{2}
+	return fileDescriptor_e190cb14ee571f53, []int{3}
 }
 
 func (m *EventStatusResponse) XXX_Unmarshal(b []byte) error {
@@ -221,56 +292,18 @@ func (m *EventStatusResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventStatusResponse proto.InternalMessageInfo
 
-func (m *EventStatusResponse) GetSuccessList() map[string]bool {
+func (m *EventStatusResponse) GetStatusResponses() []*EMEventStatusResponse {
 	if m != nil {
-		return m.SuccessList
-	}
-	return nil
-}
-
-type EventAnnotationRequest struct {
-	AnnotationList       map[string]*Annotation `protobuf:"bytes,1,rep,name=annotation_list,json=annotationList,proto3" json:"annotation_list,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
-}
-
-func (m *EventAnnotationRequest) Reset()         { *m = EventAnnotationRequest{} }
-func (m *EventAnnotationRequest) String() string { return proto.CompactTextString(m) }
-func (*EventAnnotationRequest) ProtoMessage()    {}
-func (*EventAnnotationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{3}
-}
-
-func (m *EventAnnotationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EventAnnotationRequest.Unmarshal(m, b)
-}
-func (m *EventAnnotationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EventAnnotationRequest.Marshal(b, m, deterministic)
-}
-func (m *EventAnnotationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventAnnotationRequest.Merge(m, src)
-}
-func (m *EventAnnotationRequest) XXX_Size() int {
-	return xxx_messageInfo_EventAnnotationRequest.Size(m)
-}
-func (m *EventAnnotationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventAnnotationRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EventAnnotationRequest proto.InternalMessageInfo
-
-func (m *EventAnnotationRequest) GetAnnotationList() map[string]*Annotation {
-	if m != nil {
-		return m.AnnotationList
+		return m.StatusResponses
 	}
 	return nil
 }
 
 type Annotation struct {
 	EventId              string   `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
-	AnnotationId         string   `protobuf:"bytes,2,opt,name=annotation_id,json=annotationId,proto3" json:"annotation_id,omitempty"`
-	Annotation           string   `protobuf:"bytes,3,opt,name=annotation,proto3" json:"annotation,omitempty"`
+	OccurrenceId         string   `protobuf:"bytes,2,opt,name=occurrence_id,json=occurrenceId,proto3" json:"occurrence_id,omitempty"`
+	AnnotationId         string   `protobuf:"bytes,3,opt,name=annotation_id,json=annotationId,proto3" json:"annotation_id,omitempty"`
+	Annotation           string   `protobuf:"bytes,4,opt,name=annotation,proto3" json:"annotation,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -308,6 +341,13 @@ func (m *Annotation) GetEventId() string {
 	return ""
 }
 
+func (m *Annotation) GetOccurrenceId() string {
+	if m != nil {
+		return m.OccurrenceId
+	}
+	return ""
+}
+
 func (m *Annotation) GetAnnotationId() string {
 	if m != nil {
 		return m.AnnotationId
@@ -322,9 +362,51 @@ func (m *Annotation) GetAnnotation() string {
 	return ""
 }
 
+type EventAnnotationRequest struct {
+	Annotations          []*Annotation `protobuf:"bytes,1,rep,name=annotations,proto3" json:"annotations,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *EventAnnotationRequest) Reset()         { *m = EventAnnotationRequest{} }
+func (m *EventAnnotationRequest) String() string { return proto.CompactTextString(m) }
+func (*EventAnnotationRequest) ProtoMessage()    {}
+func (*EventAnnotationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e190cb14ee571f53, []int{5}
+}
+
+func (m *EventAnnotationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EventAnnotationRequest.Unmarshal(m, b)
+}
+func (m *EventAnnotationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EventAnnotationRequest.Marshal(b, m, deterministic)
+}
+func (m *EventAnnotationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventAnnotationRequest.Merge(m, src)
+}
+func (m *EventAnnotationRequest) XXX_Size() int {
+	return xxx_messageInfo_EventAnnotationRequest.Size(m)
+}
+func (m *EventAnnotationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventAnnotationRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventAnnotationRequest proto.InternalMessageInfo
+
+func (m *EventAnnotationRequest) GetAnnotations() []*Annotation {
+	if m != nil {
+		return m.Annotations
+	}
+	return nil
+}
+
 type AnnotationResponse struct {
-	Success              bool     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	AnnotationId         string   `protobuf:"bytes,2,opt,name=annotation_id,json=annotationId,proto3" json:"annotation_id,omitempty"`
+	EventId              string   `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	OccurrenceId         string   `protobuf:"bytes,2,opt,name=occurrence_id,json=occurrenceId,proto3" json:"occurrence_id,omitempty"`
+	AnnotationId         string   `protobuf:"bytes,3,opt,name=annotation_id,json=annotationId,proto3" json:"annotation_id,omitempty"`
+	Success              bool     `protobuf:"varint,4,opt,name=success,proto3" json:"success,omitempty"`
+	Error                string   `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -334,7 +416,7 @@ func (m *AnnotationResponse) Reset()         { *m = AnnotationResponse{} }
 func (m *AnnotationResponse) String() string { return proto.CompactTextString(m) }
 func (*AnnotationResponse) ProtoMessage()    {}
 func (*AnnotationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{5}
+	return fileDescriptor_e190cb14ee571f53, []int{6}
 }
 
 func (m *AnnotationResponse) XXX_Unmarshal(b []byte) error {
@@ -355,11 +437,18 @@ func (m *AnnotationResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AnnotationResponse proto.InternalMessageInfo
 
-func (m *AnnotationResponse) GetSuccess() bool {
+func (m *AnnotationResponse) GetEventId() string {
 	if m != nil {
-		return m.Success
+		return m.EventId
 	}
-	return false
+	return ""
+}
+
+func (m *AnnotationResponse) GetOccurrenceId() string {
+	if m != nil {
+		return m.OccurrenceId
+	}
+	return ""
 }
 
 func (m *AnnotationResponse) GetAnnotationId() string {
@@ -369,19 +458,33 @@ func (m *AnnotationResponse) GetAnnotationId() string {
 	return ""
 }
 
+func (m *AnnotationResponse) GetSuccess() bool {
+	if m != nil {
+		return m.Success
+	}
+	return false
+}
+
+func (m *AnnotationResponse) GetError() string {
+	if m != nil {
+		return m.Error
+	}
+	return ""
+}
+
 type EventAnnotationResponse struct {
-	Success                bool                           `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	AnnotationResponseList map[string]*AnnotationResponse `protobuf:"bytes,2,rep,name=annotation_response_list,json=annotationResponseList,proto3" json:"annotation_response_list,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral   struct{}                       `json:"-"`
-	XXX_unrecognized       []byte                         `json:"-"`
-	XXX_sizecache          int32                          `json:"-"`
+	Success              bool                  `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	AnnotationResponses  []*AnnotationResponse `protobuf:"bytes,2,rep,name=annotation_responses,json=annotationResponses,proto3" json:"annotation_responses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *EventAnnotationResponse) Reset()         { *m = EventAnnotationResponse{} }
 func (m *EventAnnotationResponse) String() string { return proto.CompactTextString(m) }
 func (*EventAnnotationResponse) ProtoMessage()    {}
 func (*EventAnnotationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e190cb14ee571f53, []int{6}
+	return fileDescriptor_e190cb14ee571f53, []int{7}
 }
 
 func (m *EventAnnotationResponse) XXX_Unmarshal(b []byte) error {
@@ -409,27 +512,24 @@ func (m *EventAnnotationResponse) GetSuccess() bool {
 	return false
 }
 
-func (m *EventAnnotationResponse) GetAnnotationResponseList() map[string]*AnnotationResponse {
+func (m *EventAnnotationResponse) GetAnnotationResponses() []*AnnotationResponse {
 	if m != nil {
-		return m.AnnotationResponseList
+		return m.AnnotationResponses
 	}
 	return nil
 }
 
 func init() {
 	proto.RegisterEnum("zenoss.cloud.EMStatus", EMStatus_name, EMStatus_value)
-	proto.RegisterType((*EventStatusRequest)(nil), "zenoss.cloud.EventStatusRequest")
-	proto.RegisterMapType((map[string]*EMEventStatus)(nil), "zenoss.cloud.EventStatusRequest.StatusListEntry")
 	proto.RegisterType((*EMEventStatus)(nil), "zenoss.cloud.EMEventStatus")
 	proto.RegisterType((*EMEventStatus_Wrapper)(nil), "zenoss.cloud.EMEventStatus.Wrapper")
+	proto.RegisterType((*EventStatusRequest)(nil), "zenoss.cloud.EventStatusRequest")
+	proto.RegisterType((*EMEventStatusResponse)(nil), "zenoss.cloud.EMEventStatusResponse")
 	proto.RegisterType((*EventStatusResponse)(nil), "zenoss.cloud.EventStatusResponse")
-	proto.RegisterMapType((map[string]bool)(nil), "zenoss.cloud.EventStatusResponse.SuccessListEntry")
-	proto.RegisterType((*EventAnnotationRequest)(nil), "zenoss.cloud.EventAnnotationRequest")
-	proto.RegisterMapType((map[string]*Annotation)(nil), "zenoss.cloud.EventAnnotationRequest.AnnotationListEntry")
 	proto.RegisterType((*Annotation)(nil), "zenoss.cloud.Annotation")
+	proto.RegisterType((*EventAnnotationRequest)(nil), "zenoss.cloud.EventAnnotationRequest")
 	proto.RegisterType((*AnnotationResponse)(nil), "zenoss.cloud.AnnotationResponse")
 	proto.RegisterType((*EventAnnotationResponse)(nil), "zenoss.cloud.EventAnnotationResponse")
-	proto.RegisterMapType((map[string]*AnnotationResponse)(nil), "zenoss.cloud.EventAnnotationResponse.AnnotationResponseListEntry")
 }
 
 func init() {
@@ -437,51 +537,47 @@ func init() {
 }
 
 var fileDescriptor_e190cb14ee571f53 = []byte{
-	// 691 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0xef, 0x4e, 0xd3, 0x5e,
-	0x18, 0xfe, 0x75, 0xcb, 0x0f, 0xb6, 0x77, 0x30, 0xe6, 0x01, 0xb1, 0x96, 0x84, 0xcc, 0xa1, 0x09,
-	0xd1, 0x78, 0x2a, 0x33, 0x21, 0x48, 0x8c, 0xc9, 0x90, 0x9a, 0x60, 0x40, 0x66, 0xcb, 0x24, 0xc1,
-	0x0f, 0x4b, 0xd9, 0x8e, 0xb5, 0x59, 0xe9, 0x99, 0x3d, 0xed, 0x08, 0x78, 0x2d, 0xde, 0x81, 0x97,
-	0xe0, 0x37, 0x6f, 0xc2, 0xbb, 0xf0, 0x16, 0xcc, 0x7a, 0x4e, 0xe9, 0xe9, 0x36, 0x36, 0xbe, 0x9d,
-	0xf3, 0xbc, 0xcf, 0xfb, 0xf7, 0x39, 0x7f, 0x60, 0xfb, 0x9a, 0xf8, 0x94, 0x31, 0xfd, 0xda, 0xf5,
-	0x1d, 0xbd, 0x1f, 0xd0, 0x90, 0xea, 0x1d, 0x8f, 0x46, 0x5d, 0x9d, 0x0c, 0x88, 0x1f, 0xb6, 0x2f,
-	0x6c, 0xdf, 0x76, 0xc8, 0xc5, 0x70, 0xc9, 0x48, 0x30, 0x70, 0x3b, 0x04, 0xc7, 0x24, 0xb4, 0xc0,
-	0xfd, 0x70, 0x4c, 0xd6, 0xd6, 0x1d, 0x4a, 0x1d, 0x8f, 0xf0, 0x00, 0xe7, 0xd1, 0x17, 0xfd, 0x32,
-	0xb0, 0xfb, 0x7d, 0x12, 0x30, 0xce, 0xae, 0xfd, 0x56, 0x00, 0x19, 0xc3, 0x80, 0x56, 0x68, 0x87,
-	0x11, 0x33, 0xc9, 0xb7, 0x88, 0xb0, 0x10, 0x7d, 0x84, 0x12, 0x8b, 0x81, 0xb6, 0xe7, 0xb2, 0x50,
-	0x55, 0xaa, 0xf9, 0xcd, 0x52, 0xfd, 0x05, 0x96, 0x43, 0xe3, 0x71, 0x37, 0xcc, 0x77, 0x87, 0x2e,
-	0x0b, 0x0d, 0x3f, 0x0c, 0xae, 0x4c, 0x60, 0x37, 0x80, 0x76, 0x06, 0x4b, 0x23, 0x66, 0x54, 0x81,
-	0x7c, 0x8f, 0x5c, 0xa9, 0x4a, 0x55, 0xd9, 0x2c, 0x9a, 0xc3, 0x25, 0xda, 0x82, 0xff, 0x07, 0xb6,
-	0x17, 0x11, 0x35, 0x57, 0x55, 0x36, 0x4b, 0xf5, 0xb5, 0x91, 0x8c, 0x47, 0x72, 0x4e, 0xce, 0xdc,
-	0xcd, 0xed, 0x28, 0xb5, 0xbf, 0x0a, 0x2c, 0x66, 0x8c, 0xe8, 0x21, 0x14, 0xf8, 0x9c, 0xdc, 0xae,
-	0x88, 0x3f, 0x1f, 0xef, 0x0f, 0xba, 0xe8, 0x35, 0x94, 0xec, 0x4e, 0xcf, 0xa7, 0x97, 0x1e, 0xe9,
-	0x3a, 0x49, 0x26, 0x0d, 0xf3, 0x41, 0xe1, 0x64, 0x50, 0x78, 0x8f, 0x52, 0xef, 0xd3, 0x30, 0x83,
-	0x29, 0xd3, 0xd1, 0x7b, 0x28, 0x8b, 0xc9, 0x88, 0x49, 0xaa, 0xf9, 0x38, 0xc0, 0xc6, 0x94, 0x52,
-	0xf1, 0x29, 0xa7, 0x9a, 0x8b, 0xdc, 0x55, 0x6c, 0xb5, 0x57, 0x30, 0x2f, 0x96, 0x08, 0xc3, 0x1c,
-	0xb7, 0xc5, 0xd5, 0x96, 0xeb, 0xab, 0xa3, 0xe1, 0x44, 0xd3, 0x82, 0x55, 0xfb, 0xa9, 0xc0, 0x72,
-	0x46, 0x00, 0xd6, 0xa7, 0x3e, 0x23, 0xa8, 0x05, 0x0b, 0x2c, 0xea, 0x74, 0x08, 0xcb, 0x28, 0x57,
-	0x9f, 0xa2, 0x1c, 0x77, 0xc4, 0x16, 0xf7, 0x4a, 0xb5, 0x2b, 0xb1, 0x14, 0xd1, 0xde, 0x40, 0x65,
-	0x94, 0x30, 0x41, 0xbd, 0x15, 0x59, 0xbd, 0x82, 0x2c, 0xd0, 0x1f, 0x05, 0x56, 0xe3, 0xac, 0x0d,
-	0xdf, 0xa7, 0xa1, 0x1d, 0xba, 0xd4, 0x4f, 0x8e, 0x9a, 0x0d, 0x4b, 0xf6, 0x0d, 0x28, 0x17, 0xbd,
-	0x33, 0xa1, 0xe8, 0x31, 0x77, 0x9c, 0x22, 0x69, 0xe9, 0x65, 0x3b, 0x03, 0x6a, 0x9f, 0x61, 0x79,
-	0x02, 0x6d, 0x42, 0x03, 0x38, 0x7b, 0xfc, 0xd4, 0x6c, 0x05, 0x52, 0x72, 0xa9, 0x35, 0x0f, 0x20,
-	0x35, 0x4c, 0x3b, 0x77, 0x1b, 0xb0, 0x28, 0x35, 0xea, 0x76, 0xe3, 0x24, 0x45, 0x73, 0x21, 0x05,
-	0x0f, 0xba, 0x68, 0x1d, 0x20, 0xdd, 0xc7, 0x47, 0xab, 0x68, 0x4a, 0x48, 0xcd, 0x02, 0x24, 0xcf,
-	0x40, 0xa8, 0xae, 0xc2, 0xbc, 0x50, 0x2b, 0x4e, 0x5a, 0x30, 0x93, 0xed, 0x9d, 0x92, 0xd6, 0x7e,
-	0xe4, 0xe0, 0xc1, 0xd8, 0x78, 0x67, 0x86, 0xfe, 0x0e, 0xaa, 0x14, 0x3a, 0x10, 0x0e, 0x5c, 0xc1,
-	0x5c, 0xac, 0x60, 0x63, 0x86, 0x82, 0xe2, 0xe8, 0x8d, 0x43, 0xa9, 0x94, 0xab, 0xf6, 0x44, 0xa3,
-	0xd6, 0x83, 0xb5, 0x29, 0x6e, 0x13, 0xa4, 0xdd, 0xce, 0x4a, 0x5b, 0xbd, 0x55, 0x5a, 0x11, 0x4b,
-	0x92, 0xf8, 0x29, 0x81, 0x42, 0x72, 0x01, 0xd1, 0x7d, 0xb8, 0x67, 0x1c, 0xb5, 0xad, 0x93, 0xc6,
-	0x49, 0xcb, 0x6a, 0xef, 0x1b, 0xef, 0x1a, 0xad, 0xc3, 0x93, 0xca, 0x7f, 0x08, 0x41, 0x39, 0x85,
-	0x8f, 0x9b, 0xc6, 0x87, 0x8a, 0x82, 0x54, 0x58, 0x49, 0x31, 0xab, 0xd5, 0x6c, 0x9a, 0x86, 0x65,
-	0x19, 0xfb, 0x95, 0x1c, 0x5a, 0x81, 0x4a, 0x6a, 0x79, 0x7b, 0x78, 0x3c, 0x44, 0xf3, 0xf5, 0x5f,
-	0x0a, 0x2c, 0xc5, 0x33, 0x3a, 0xba, 0x79, 0xdb, 0x51, 0x13, 0x8a, 0x16, 0x49, 0x1e, 0xb5, 0xea,
-	0xac, 0x07, 0x58, 0x7b, 0x34, 0xf3, 0xa2, 0xa3, 0x53, 0x28, 0x88, 0x6e, 0x09, 0x7a, 0x7c, 0x97,
-	0x2b, 0xa6, 0x3d, 0xb9, 0x93, 0x8c, 0x7b, 0x3d, 0x78, 0x46, 0x03, 0x27, 0xe1, 0x0e, 0xbf, 0x2d,
-	0xfe, 0x98, 0x0a, 0x37, 0x92, 0xed, 0xac, 0xa9, 0x9c, 0xed, 0x3a, 0x6e, 0xf8, 0x35, 0x3a, 0xc7,
-	0x1d, 0x7a, 0xa1, 0x4b, 0x9f, 0xdd, 0x73, 0xfe, 0xd9, 0x0d, 0xb6, 0xb6, 0x74, 0xe7, 0xb6, 0x3f,
-	0xef, 0x7c, 0x2e, 0x26, 0xbd, 0xfc, 0x17, 0x00, 0x00, 0xff, 0xff, 0xa4, 0x57, 0x91, 0x22, 0x26,
-	0x07, 0x00, 0x00,
+	// 634 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0x6d, 0x4f, 0xd3, 0x50,
+	0x14, 0xb6, 0x1b, 0x2f, 0xe3, 0x8c, 0xc1, 0xbc, 0x0c, 0xac, 0x33, 0x21, 0x58, 0x34, 0x21, 0x1a,
+	0xdb, 0x30, 0x13, 0x8d, 0xc4, 0x2f, 0x20, 0x35, 0xc1, 0x30, 0x58, 0xda, 0x21, 0x89, 0x5f, 0x96,
+	0xd2, 0x1e, 0xeb, 0xc2, 0xe8, 0x9d, 0xbd, 0x2d, 0x24, 0xfc, 0x01, 0xfd, 0x6a, 0xe2, 0x9f, 0xf0,
+	0x3f, 0xf8, 0xe3, 0x4c, 0xef, 0x6d, 0xd7, 0x5b, 0xc6, 0xa6, 0x09, 0x7e, 0xeb, 0x39, 0xe7, 0x39,
+	0x4f, 0x9f, 0xe7, 0x9c, 0xf6, 0x5e, 0x78, 0x75, 0x8d, 0x01, 0x65, 0xcc, 0xb8, 0xee, 0x07, 0xbe,
+	0x31, 0x0c, 0x69, 0x44, 0x0d, 0x77, 0x40, 0x63, 0xcf, 0xc0, 0x4b, 0x0c, 0xa2, 0xde, 0x85, 0x13,
+	0x38, 0x3e, 0x5e, 0x24, 0x8f, 0x0c, 0xc3, 0xcb, 0xbe, 0x8b, 0x3a, 0x07, 0x91, 0x45, 0xd1, 0xa7,
+	0x73, 0x70, 0x73, 0xdd, 0xa7, 0xd4, 0x1f, 0xa0, 0x20, 0x38, 0x8b, 0x3f, 0x1b, 0x57, 0xa1, 0x33,
+	0x1c, 0x62, 0xc8, 0x04, 0x5a, 0xfb, 0x59, 0x82, 0x9a, 0xd9, 0x36, 0x13, 0x4a, 0x3b, 0x72, 0xa2,
+	0x98, 0x91, 0x87, 0x50, 0x11, 0x6f, 0xe8, 0x7b, 0xaa, 0xb2, 0xa1, 0x6c, 0x2d, 0x58, 0xf3, 0x3c,
+	0x3e, 0xf0, 0xc8, 0x26, 0xd4, 0xa8, 0xeb, 0xc6, 0x61, 0x88, 0x81, 0x8b, 0x49, 0xbd, 0xc4, 0xeb,
+	0x8b, 0x79, 0xf2, 0xc0, 0x23, 0x6f, 0xa1, 0xea, 0xb8, 0xe7, 0x01, 0xbd, 0x1a, 0xa0, 0xe7, 0xa3,
+	0x5a, 0xde, 0x50, 0xb6, 0xaa, 0xad, 0xa6, 0x2e, 0x74, 0xe8, 0x99, 0x0e, 0x7d, 0x8f, 0xd2, 0xc1,
+	0x47, 0x67, 0x10, 0xa3, 0x25, 0xc3, 0xc9, 0x07, 0x58, 0x62, 0x5c, 0x47, 0x2f, 0x15, 0xaa, 0xce,
+	0x70, 0x82, 0x4d, 0x5d, 0xb6, 0xa5, 0x17, 0x24, 0xeb, 0xa7, 0x02, 0x6a, 0xd5, 0x44, 0x6b, 0x1a,
+	0x36, 0xdf, 0xc0, 0x7c, 0xfa, 0x48, 0x74, 0x98, 0x13, 0x35, 0x6e, 0x69, 0xa9, 0xb5, 0x76, 0x93,
+	0x4e, 0x30, 0x59, 0x29, 0x4a, 0x6b, 0x03, 0x91, 0x5e, 0x60, 0xe1, 0xd7, 0x18, 0x59, 0x44, 0x5e,
+	0x43, 0x45, 0xd4, 0x31, 0xe1, 0x29, 0x6f, 0x55, 0x5b, 0x8f, 0xa6, 0xc8, 0xb2, 0x46, 0x60, 0xed,
+	0x9b, 0x02, 0xab, 0xc5, 0x1a, 0xb2, 0x21, 0x0d, 0x18, 0xde, 0x79, 0xda, 0x2a, 0xcc, 0xb3, 0xd8,
+	0x75, 0x91, 0x31, 0x3e, 0xe9, 0x8a, 0x95, 0x85, 0xa4, 0x01, 0xb3, 0x18, 0x86, 0x54, 0x0c, 0x70,
+	0xc1, 0x12, 0x81, 0x86, 0xb0, 0x72, 0x9b, 0x8c, 0x23, 0xa8, 0xa7, 0x63, 0x0f, 0xd3, 0x54, 0xe6,
+	0x70, 0xda, 0xe0, 0xb3, 0x76, 0x6b, 0x99, 0x15, 0x62, 0xa6, 0xfd, 0x50, 0x00, 0x76, 0x83, 0x80,
+	0x46, 0x4e, 0xd4, 0xa7, 0xc1, 0x9d, 0x5d, 0x6e, 0x42, 0xcd, 0x19, 0xb1, 0x25, 0xa0, 0xb2, 0x00,
+	0xe5, 0xc9, 0x03, 0x8f, 0xac, 0x03, 0xe4, 0x71, 0xea, 0x5a, 0xca, 0x68, 0x5d, 0x58, 0xe3, 0xda,
+	0x73, 0x5d, 0xd9, 0x5e, 0x77, 0xa0, 0x9a, 0xe3, 0x32, 0xe3, 0x6a, 0xd1, 0xb8, 0xd4, 0x25, 0x83,
+	0xb5, 0x5f, 0x0a, 0x10, 0x99, 0xf1, 0x3f, 0xed, 0xf5, 0x9f, 0x1c, 0x4b, 0xcb, 0x9f, 0x99, 0xb0,
+	0xfc, 0x59, 0x79, 0xf9, 0xdf, 0x15, 0x78, 0x30, 0x36, 0x82, 0x54, 0xb0, 0xc4, 0xa5, 0x14, 0xb9,
+	0x6c, 0x68, 0x48, 0x52, 0xf2, 0xef, 0xa3, 0xc4, 0xc7, 0xb4, 0x31, 0x71, 0x4c, 0xd9, 0xc7, 0xb1,
+	0xe2, 0x8c, 0xe5, 0xd8, 0x33, 0x84, 0x4a, 0xf6, 0xd3, 0x91, 0x55, 0xb8, 0x6f, 0xb6, 0x7b, 0x76,
+	0x77, 0xb7, 0x7b, 0x62, 0xf7, 0xf6, 0xcd, 0xf7, 0xbb, 0x27, 0x87, 0xdd, 0xfa, 0x3d, 0x42, 0x60,
+	0x29, 0x4f, 0x1f, 0x77, 0xcc, 0xa3, 0xba, 0x42, 0x54, 0x68, 0xe4, 0x39, 0xfb, 0xa4, 0xd3, 0xb1,
+	0x4c, 0xdb, 0x36, 0xf7, 0xeb, 0x25, 0xd2, 0x80, 0x7a, 0x5e, 0x79, 0x77, 0x78, 0x9c, 0x64, 0xcb,
+	0xad, 0xdf, 0x0a, 0x2c, 0x73, 0xc7, 0xed, 0xd1, 0x71, 0x49, 0x3a, 0xb0, 0x60, 0x63, 0x76, 0xda,
+	0xdd, 0x90, 0x3f, 0xfe, 0xd3, 0x37, 0x1f, 0x4f, 0x41, 0xa4, 0xb3, 0x3b, 0x85, 0x4a, 0xea, 0x1b,
+	0xc9, 0x93, 0x5b, 0xe0, 0x63, 0x5f, 0x5c, 0xf3, 0xe9, 0x5f, 0x50, 0x82, 0x78, 0xef, 0x1c, 0x9e,
+	0xd3, 0xd0, 0xcf, 0xb0, 0xc9, 0x4d, 0x20, 0x0e, 0xd0, 0xb4, 0x0d, 0x8b, 0xce, 0x3a, 0xca, 0xa7,
+	0x1d, 0xbf, 0x1f, 0x7d, 0x89, 0xcf, 0x74, 0x97, 0x5e, 0x18, 0xd2, 0xfd, 0xf1, 0x42, 0xdc, 0x1f,
+	0x97, 0xdb, 0xdb, 0x86, 0x3f, 0xe9, 0x1a, 0x39, 0x9b, 0xe3, 0xa0, 0x97, 0x7f, 0x02, 0x00, 0x00,
+	0xff, 0xff, 0x1c, 0x58, 0x2b, 0x96, 0x79, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
