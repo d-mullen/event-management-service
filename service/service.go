@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/zenoss/event-context-svc/utils"
 	"github.com/zenoss/event-management-service/metrics"
 	"github.com/zenoss/zenkit/v5"
@@ -66,6 +65,16 @@ func sinceInMilliseconds(startTime time.Time) float64 {
 	return float64(time.Since(startTime).Nanoseconds()) / 1e6
 }
 
+func addStatusResponse(response *proto.EventStatusResponse, item *proto.EMEventStatus, success bool, error string) {
+	resp := proto.EMEventStatusResponse{
+		EventId:      item.EventId,
+		OccurrenceId: item.OccurrenceId,
+		Success:      success,
+		Error:        error,
+	}
+	response.StatusResponses = append(response.StatusResponses, &resp)
+}
+
 // SetStatus sets the staus of the event(s) passed in
 func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto.EventStatusRequest) (*proto.EventStatusResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "EventMangement.SetStatus")
@@ -79,7 +88,7 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 	defer func() {
 		span.End()
 		stats.Record(ctx, metrics.MSetStatusTimeMs.M(sinceInMilliseconds(mTime)),
-			metrics.MSetStatusCount.M(int64(len(request.StatusList))))
+			metrics.MSetStatusCount.M(int64(len(request.Statuses))))
 	}()
 
 	// validate
@@ -89,35 +98,51 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 		return nil, err
 	}
 
+	// iterate thru the statuses sent in
 	response := new(proto.EventStatusResponse)
-	response.SuccessList = make(map[string]bool)
-
-	for k, v := range request.StatusList {
-		if v.EventId == "" {
-			return response, errors.New("Aborting... Event id cannot be empty")
-		}
-		ecRequest := ecproto.UpdateEventRequest{
-			OccurrenceId: k,
-			Acknowledged: v.Acknowledge,
-			EventId:      v.EventId,
-		}
-
-		if v.StatusWrapper != nil {
-			sw := ecproto.UpdateEventRequest_Wrapper{
-				Status: getECStatus(v.StatusWrapper.Status),
-			}
-			ecRequest.StatusWrapper = &sw
-		}
-
-		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
-		if err != nil {
-			log.Error("Failed setting status", err)
-			response.SuccessList[k] = false
+	for _, item := range request.Statuses {
+		if item.EventId == "" {
+			addStatusResponse(response, item, false, "Event id cannot be empty")
+		} else if item.OccurrenceId == "" {
+			addStatusResponse(response, item, false, "Occurrence id cannot be empty")
+		} else if item.Acknowledge == nil && item.StatusWrapper == nil {
+			addStatusResponse(response, item, false, "Need status or acknowledged to be set")
 		} else {
-			response.SuccessList[k] = resp.Status
+			// process
+			ecRequest := ecproto.UpdateEventRequest{
+				OccurrenceId: item.OccurrenceId,
+				Acknowledged: item.Acknowledge,
+				EventId:      item.EventId,
+			}
+
+			if item.StatusWrapper != nil {
+				sw := ecproto.UpdateEventRequest_Wrapper{
+					Status: getECStatus(item.StatusWrapper.Status),
+				}
+				ecRequest.StatusWrapper = &sw
+			}
+
+			_, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
+			if err != nil {
+				log.Error("Failed setting status", err)
+				addStatusResponse(response, item, false, err.Error())
+			} else {
+				addStatusResponse(response, item, true, "")
+			}
 		}
 	}
 	return response, nil
+}
+
+func addAnotationResponse(response *proto.EventAnnotationResponse, item *proto.Annotation, success bool, aid string, error string) {
+	resp := proto.AnnotationResponse{
+		EventId:      item.EventId,
+		OccurrenceId: item.OccurrenceId,
+		AnnotationId: aid,
+		Success:      success,
+		Error:        error,
+	}
+	response.AnnotationResponses = append(response.AnnotationResponses, &resp)
 }
 
 // Annotate adds a annotation to the associated event
@@ -133,7 +158,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 	defer func() {
 		span.End()
 		stats.Record(ctx, metrics.MAnnotateTimeMs.M(sinceInMilliseconds(mTime)),
-			metrics.MAnnotateCount.M(int64(len(request.AnnotationList))))
+			metrics.MAnnotateCount.M(int64(len(request.Annotations))))
 	}()
 
 	// validate
@@ -142,33 +167,31 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 		log.WithError(err).Error("Annotate failed: unauthenticated")
 		return nil, err
 	}
-	response := new(proto.EventAnnotationResponse)
-	response.AnnotationResponseList = make(map[string]*proto.AnnotationResponse)
-	atleastOneSuccess := false
-	for k, v := range request.AnnotationList {
-		if v.Annotation == "" || v.EventId == "" {
-			return response, errors.New("Aborting... Event id, Annotation cannot be empty")
-		}
-		ecRequest := ecproto.UpdateEventRequest{
-			OccurrenceId: k,
-			NoteId:       v.AnnotationId,
-			Note:         v.Annotation,
-			EventId:      v.EventId,
-		}
 
-		resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
-		aresp := proto.AnnotationResponse{}
-		if err == nil {
-			atleastOneSuccess = true
-			aresp.Success = resp.Status
-			aresp.AnnotationId = resp.NoteId
+	// iterate thru the annotations sent in
+	response := new(proto.EventAnnotationResponse)
+	for _, item := range request.Annotations {
+		if item.EventId == "" || item.OccurrenceId == "" {
+			addAnotationResponse(response, item, false, "", "Event id, Occurrence id cannot be empty")
+		} else if item.Annotation == "" {
+			addAnotationResponse(response, item, false, "", "Annotation cannot be empty")
 		} else {
-			aresp.Success = false
-			log.Error("Failed annotating", err)
+			ecRequest := ecproto.UpdateEventRequest{
+				OccurrenceId: item.OccurrenceId,
+				NoteId:       item.AnnotationId,
+				Note:         item.Annotation,
+				EventId:      item.EventId,
+			}
+
+			resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+			if err == nil {
+				addAnotationResponse(response, item, true, resp.NoteId, "")
+			} else {
+				log.Error("Failed annotating", err)
+				addAnotationResponse(response, item, false, "", err.Error())
+			}
 		}
-		response.AnnotationResponseList[k] = &aresp
 	}
-	response.Success = atleastOneSuccess
 	return response, nil
 }
 
