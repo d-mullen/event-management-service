@@ -34,7 +34,7 @@ spec:
           readOnlyRootFilesystem: true
           runAsUser: 512
         ports:
-          - containerPort: 8081
+          - containerPort: 8080
         env:
           - name: ZING_PRODUCT_NAME
             valueFrom:
@@ -56,8 +56,8 @@ spec:
               configMapKeyRef:
                 name: project-common
                 key: PROJECT_ID
-          - name: LISTEN_ADDR
-            value: "0.0.0.0:8080"
+          - name: EVENT_MANAGEMENT_SERVICE_GRPC_LISTEN_ADDR
+            value: :8080
           - name: EVENT_MANAGEMENT_SERVICE_GCLOUD_PROJECT_ID
             valueFrom:
               configMapKeyRef:
