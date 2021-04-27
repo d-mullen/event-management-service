@@ -4,6 +4,8 @@ metadata:
   labels:
     app: event-management-service
   name: event-management-service
+  annotations:
+    zenoss.zing.deploy.istio: "true"
 spec:
   selector:
     matchLabels:
