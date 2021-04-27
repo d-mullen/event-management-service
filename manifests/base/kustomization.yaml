@@ -6,7 +6,3 @@ resources:
 - service.yaml
 - virtualservice.yaml
 - pdb.yaml
-commonLabels:
-  app: event-management-service-public 
-  app.kubernetes.io/managed-by: spinnaker-for-gcp
-  app.kubernetes.io/name: event-management-service-public 
