@@ -113,7 +113,7 @@ github.com/grpc-ecosystem/go-grpc-middleware/testing
 github.com/grpc-ecosystem/go-grpc-middleware/testing/testproto
 github.com/grpc-ecosystem/go-grpc-middleware/util/backoffutils
 github.com/grpc-ecosystem/go-grpc-middleware/util/metautils
-# github.com/grpc-ecosystem/grpc-gateway v1.14.3
+# github.com/grpc-ecosystem/grpc-gateway v1.14.8
 github.com/grpc-ecosystem/grpc-gateway/internal
 github.com/grpc-ecosystem/grpc-gateway/runtime
 github.com/grpc-ecosystem/grpc-gateway/utilities
@@ -219,19 +219,14 @@ github.com/zenoss/event-context-svc/utils
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.10.9
+# github.com/zenoss/zing-proto/v11 v11.11.10
 ## explicit
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver
 github.com/zenoss/zing-proto/v11/go/cloud/event_context
 github.com/zenoss/zing-proto/v11/go/cloud/event_management
-github.com/zenoss/zing-proto/v11/go/cloud/eventts
 github.com/zenoss/zing-proto/v11/go/cloud/feature_flags
-github.com/zenoss/zing-proto/v11/go/cloud/yamr
 github.com/zenoss/zing-proto/v11/go/event
-github.com/zenoss/zing-proto/v11/go/metric
-github.com/zenoss/zing-proto/v11/go/model
-github.com/zenoss/zing-proto/v11/go/query
 # github.com/zenoss/zingo/v4 v4.1.6
 ## explicit
 github.com/zenoss/zingo/v4/filters
@@ -344,7 +339,7 @@ google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/type/calendarperiod
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.31.0
+# google.golang.org/grpc v1.31.1
 ## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes

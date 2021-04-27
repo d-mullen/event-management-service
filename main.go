@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// run
-	err := zenkit.RunGRPCServer(ctx, ServiceName, func(svr *grpc.Server) error {
+	err := zenkit.RunGRPCServerWithEndpoint(ctx, ServiceName, func(svr *grpc.Server) error {
 
 		if viper.GetBool(config.EventManagementEnabledConfig) {
 			log.Debug("registering event management server")
@@ -52,7 +52,7 @@ func main() {
 
 		return nil
 
-	})
+	}, proto.RegisterEventManagementHandlerFromEndpoint())
 	if err != nil {
 		log.WithError(err).Fatal("error running gRPC server")
 	}
