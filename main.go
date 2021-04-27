@@ -52,7 +52,7 @@ func main() {
 
 		return nil
 
-	}, proto.RegisterEventManagementHandlerFromEndpoint())
+	}, proto.RegisterEventManagementHandlerFromEndpoint)
 	if err != nil {
 		log.WithError(err).Fatal("error running gRPC server")
 	}
