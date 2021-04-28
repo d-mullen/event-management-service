@@ -4,6 +4,8 @@ metadata:
   labels:
     app: event-management-service
   name: event-management-service
+  annotations:
+    zenoss.zing.deploy.istio: "true"
 spec:
   selector:
     matchLabels:
@@ -128,11 +130,11 @@ spec:
 
           # ZC_API_PROXY_HTTP_TARGET_URL is mandatory. It has no default.
           - name: ZC_API_PROXY_HTTP_TARGET_URL
-            value: "http://localhost:8081"
+            value: "http://localhost:8080"
 
           # ZC_API_PROXY_HTTP2_TARGET_URL is mandatory. It has no default.
           - name: ZC_API_PROXY_HTTP2_TARGET_URL
-            value: "http://localhost:8081"
+            value: "http://localhost:8080"
 
           # ZC_API_PROXY_API_KEY_HEADER must be set to zenoss-api-key.
           - name: ZC_API_PROXY_API_KEY_HEADER
