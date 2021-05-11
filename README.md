@@ -28,6 +28,44 @@ For a given tenant the API allows users to
  `/v1/event-management/annotate` | POST   | Yes   | Add/edit an annotation for the event
 <!-- /markdown-swagger -->
 
+Status request fields:
+- statuses - array of EMEventStatus  messages
+- EMEventStatus  contians
+    - eventId - the event id
+    - occurrenceId - the occurrence id
+    - acknowledge - boolean value for event acknowledgement. true/false
+    - statusWrapper - a wrapper for EMStatus  value
+- EMStatus has the following possible values
+    - EM_STATUS_DEFAULT
+    - EM_STATUS_OPEN
+    - EM_STATUS_SUPPRESSED
+    - EM_STATUS_CLOSED
+
+Status response fields:
+- statusResponses - array of EMEventStatusResponse messages
+- EMEventStatusResponse  contans 
+    - eventid
+    - occurrenceId
+    - success - true or false
+    - error - details when success is false
+
+  Annotate request fields:
+- annotations - array of Annotation messages
+- Annotation   contians
+    - eventId - the event id
+    - occurrenceId - the occurrence id
+    - annotationId -  the id of the annotaion when editing one. leave out for new notes
+    - annotation  - the text to be used.
+
+Annotation response fields:
+- annotationResponses  - array of AnnotationResponse messages
+- AnnotationResponse   contans 
+    - eventid
+    - occurrenceId
+    - annotationId - the id of the new annotation or that of the one edited.
+    - success - true or false
+    - error - details when success is false
+
 ## How to use the API
 
   1. Create a Zenoss API Key in one of the whitelisted tenants for a stack. Currently: (zing-dev: cladhoc; zing-testing; e2e-long; staging: qa-staging; prod: guidedtour)
@@ -57,6 +95,10 @@ Given a ack.json file that has
     }]
 }
 
+response will be like 
+
+{"statusResponses":[{"eventId":"AAAABWRDWOPER3lzOFI2tSCG49g=","occurrenceId":"AAAABWRDWOPER3lzOFI2tSCG49g=:1","success":true}]}
+
 Example 2:
 command line:
 
@@ -72,6 +114,10 @@ Given a stat.json file that has
     }]
 }
 
+response will be like
+
+{"statusResponses":[{"eventId":"AAAABWRDWOPER3lzOFI2tSCG49g=","occurrenceId":"AAAABWRDWOPER3lzOFI2tSCG49g=:1","success":true}]}
+
 Example 3:
 command line:
 
@@ -86,4 +132,8 @@ Given a annot.json file that has
         "annotation":  "annotation from a curl api request"
     }]
 }
+
+response will be like:
+
+{"annotationResponses":[{"eventId":"AAAABWRDWOPER3lzOFI2tSCG49g=","occurrenceId":"AAAABWRDWOPER3lzOFI2tSCG49g=:1","annotationId":"Q0WQI5BQayOBBoeZ2LBD","success":true}]}
 
