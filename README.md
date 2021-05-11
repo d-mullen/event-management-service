@@ -39,7 +39,7 @@ For a given tenant the API allows users to
 - production: <https://api.zenoss.io/v1/event-management>
 
 Any HTTP request to the  event-management-service should include the header zenoss-api-key for authentication.
-Note: The examples below use an event id under the dev tenant and used the api key 6PJCuEByD3Wc0RJvpAoSyjT61lT_GeTMTs35inEIrvDjz
+Note: The examples below use an event id under the dev tenant and used the api key for the dev tenant.
 Data can be verified in the event console under event details or in firestore under EventContextTenants> <your tenant> > Events > <event-id> > Occurrences....
 
 Example 1:
