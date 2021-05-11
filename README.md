@@ -35,7 +35,7 @@ For a given tenant the API allows users to
 
 ### List of user-trials API endpoints by GCP project
 
-- staging: <https://ingress-zcloud-qa.zenoss.io/v1/event-management>
+- staging: <https://api-zing-preview.zenoss.io/v1/event-management>
 - production: <https://api.zenoss.io/v1/event-management>
 
 Any HTTP request to the  event-management-service should include the header zenoss-api-key for authentication.
