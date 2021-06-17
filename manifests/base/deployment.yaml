@@ -105,9 +105,6 @@ spec:
           requests:
             cpu: 1000m
             memory: 1000M
-          limits:
-            cpu: 1500m
-            memory: 1000M
         volumeMounts:
           - name: cred-secrets
             mountPath: /run/credentials
@@ -162,9 +159,6 @@ spec:
           requests:
             cpu: 10m
             memory: 35M
-          limits:
-            cpu: 60m
-            memory: 100M
       # [END zc-api-proxy]
       volumes:
         - name: cred-secrets
