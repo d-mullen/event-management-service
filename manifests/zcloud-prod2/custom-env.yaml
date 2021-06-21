@@ -7,7 +7,6 @@ spec:
     spec:
       containers:
       - name: event-management-service
-        resources:
-          requests:
-            memory: 512M
-            cpu: 800m
+        env:
+          - name: EVENT_MANAGEMENT_SERVICE_LOG_LEVEL
+            value: "error"
