@@ -9,7 +9,6 @@ import (
 	"github.com/zenoss/zenkit/v5"
 	ecproto "github.com/zenoss/zing-proto/v11/go/cloud/event_context"
 	proto "github.com/zenoss/zing-proto/v11/go/cloud/event_management"
-	eproto "github.com/zenoss/zing-proto/v11/go/event"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
@@ -43,22 +42,6 @@ func NewEventManagementServiceFromParts(client ecproto.EventContextIngestClient)
 	return &EventManagementService{
 		eventCtxClient: client,
 	}, nil
-}
-
-func getECStatus(status proto.EMStatus) eproto.Status {
-	switch status {
-	case proto.EMStatus_EM_STATUS_DEFAULT:
-		return eproto.Status_STATUS_DEFAULT
-	case proto.EMStatus_EM_STATUS_OPEN:
-		return eproto.Status_STATUS_OPEN
-	case proto.EMStatus_EM_STATUS_SUPPRESSED:
-		return eproto.Status_STATUS_SUPPRESSED
-	case proto.EMStatus_EM_STATUS_CLOSED:
-		return eproto.Status_STATUS_CLOSED
-	default:
-		// Should never happen ?
-		return eproto.Status_STATUS_DEFAULT
-	}
 }
 
 func sinceInMilliseconds(startTime time.Time) float64 {
@@ -105,19 +88,19 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 			addStatusResponse(response, item, false, "Event id cannot be empty")
 		} else if item.OccurrenceId == "" {
 			addStatusResponse(response, item, false, "Occurrence id cannot be empty")
-		} else if item.Acknowledge == nil && item.StatusWrapper == nil {
+		} else if item.Acknowledged == nil && item.StatusWrapper == nil {
 			addStatusResponse(response, item, false, "Need status or acknowledged to be set")
 		} else {
 			// process
 			ecRequest := ecproto.UpdateEventRequest{
 				OccurrenceId: item.OccurrenceId,
-				Acknowledged: item.Acknowledge,
+				Acknowledged: item.Acknowledged,
 				EventId:      item.EventId,
 			}
 
 			if item.StatusWrapper != nil {
 				sw := ecproto.UpdateEventRequest_Wrapper{
-					Status: getECStatus(item.StatusWrapper.Status),
+					Status: item.StatusWrapper.Status,
 				}
 				ecRequest.StatusWrapper = &sw
 			}
