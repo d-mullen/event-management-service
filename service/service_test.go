@@ -20,6 +20,7 @@ import (
 
 	//	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	proto "github.com/zenoss/zing-proto/v11/go/cloud/event_management"
+	eproto "github.com/zenoss/zing-proto/v11/go/event"
 	//"github.com/zenoss/zingo/v4/protobufutils"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
@@ -54,31 +55,31 @@ var _ = Describe("Management Service", func() {
 		eStatus = proto.EMEventStatus{
 			EventId:       "eventId1",
 			OccurrenceId:  "occId1",
-			Acknowledge:   &wrappers.BoolValue{Value: true},
-			StatusWrapper: &proto.EMEventStatus_Wrapper{Status: proto.EMStatus_EM_STATUS_OPEN},
+			Acknowledged:  &wrappers.BoolValue{Value: true},
+			StatusWrapper: &proto.EMEventStatus_Wrapper{Status: eproto.Status_STATUS_OPEN},
 		}
 		eStatus2 = proto.EMEventStatus{
 			EventId:       "eventId1",
 			OccurrenceId:  "occId1",
-			Acknowledge:   &wrappers.BoolValue{Value: true},
+			Acknowledged:  &wrappers.BoolValue{Value: true},
 			StatusWrapper: nil,
 		}
 		eStatus3 = proto.EMEventStatus{
 			EventId:       "",
 			OccurrenceId:  "",
-			Acknowledge:   &wrappers.BoolValue{Value: true},
+			Acknowledged:  &wrappers.BoolValue{Value: true},
 			StatusWrapper: nil,
 		}
 		eStatus4 = proto.EMEventStatus{
 			EventId:       "eventId1",
 			OccurrenceId:  "occId1",
-			Acknowledge:   nil,
-			StatusWrapper: &proto.EMEventStatus_Wrapper{Status: proto.EMStatus_EM_STATUS_CLOSED},
+			Acknowledged:  nil,
+			StatusWrapper: &proto.EMEventStatus_Wrapper{Status: eproto.Status_STATUS_CLOSED},
 		}
 		eStatus5 = proto.EMEventStatus{
 			EventId:       "eventId1",
 			OccurrenceId:  "occId1",
-			Acknowledge:   nil,
+			Acknowledged:  nil,
 			StatusWrapper: nil,
 		}
 		annotation1 = proto.Annotation{

@@ -47,8 +47,6 @@ github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-# github.com/cenkalti/backoff v2.2.1+incompatible
-## explicit
 # github.com/census-instrumentation/opencensus-proto v0.2.1
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/metrics/v1
@@ -196,7 +194,6 @@ github.com/spf13/cast
 # github.com/spf13/jwalterweatherman v1.0.0
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
-## explicit
 github.com/spf13/pflag
 # github.com/spf13/viper v1.6.3
 ## explicit
@@ -219,7 +216,7 @@ github.com/zenoss/event-context-svc/utils
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.11.10
+# github.com/zenoss/zing-proto/v11 v11.13.14
 ## explicit
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver
@@ -228,7 +225,6 @@ github.com/zenoss/zing-proto/v11/go/cloud/event_management
 github.com/zenoss/zing-proto/v11/go/cloud/feature_flags
 github.com/zenoss/zing-proto/v11/go/event
 # github.com/zenoss/zingo/v4 v4.1.6
-## explicit
 github.com/zenoss/zingo/v4/filters
 # go.opencensus.io v0.22.4
 ## explicit
