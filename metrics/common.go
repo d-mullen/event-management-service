@@ -15,10 +15,6 @@
 package metrics
 
 import (
-	"context"
-	"time"
-
-	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 )
@@ -32,30 +28,3 @@ var (
 	Log10Distribution               = view.Distribution(1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9)
 	DefaultMillisecondsDistribution = view.Distribution(1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 20, 25, 30, 40, 50, 65, 80, 100, 130, 160, 200, 250, 300, 400, 500, 650, 800, 1000, 2000, 5000, 10000, 20000, 50000, 100000)
 )
-
-func SinceInMS(start time.Time) int64 {
-	return int64(time.Since(start) / time.Millisecond)
-}
-
-func SinceInHours(start time.Time) int64 {
-	return int64(time.Since(start) / time.Hour)
-}
-
-func SinceInMinutes(start time.Time) int64 {
-	return int64(time.Since(start) / time.Minute)
-}
-
-func RecordMillisecondLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
-	ctx, _ = tag.New(ctx, mutator...)
-	stats.Record(ctx, ms.M(SinceInMS(since)))
-}
-
-func RecordHourLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
-	ctx, _ = tag.New(ctx, mutator...)
-	stats.Record(ctx, ms.M(SinceInHours(since)))
-}
-
-func RecordMinuteLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
-	ctx, _ = tag.New(ctx, mutator...)
-	stats.Record(ctx, ms.M(SinceInMinutes(since)))
-}

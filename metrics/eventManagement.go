@@ -16,8 +16,10 @@ var (
 	MSetStatusCount = stats.Int64("event_management/set_status_count", "The count of event occurrences whose status were set", "By")
 	// MAnnotateTimeMs annotate metrics time taken in milliseconds
 	MAnnotateTimeMs = stats.Float64("event_management/annotate_time_taken", "The time taken in millis for annotating", "ms")
-	// MAnnotateCount Search metrics count of events read in.
+	// MAnnotateCount count of event annotaions added or edited.
 	MAnnotateCount = stats.Int64("event_management/annotate_count", "The count of event occurrences whose status were set", "By")
+	// MDeleteAnnotationCount count of event annotations deleted.
+	MDeleteAnnotationCount = stats.Int64("event_management/delete_annotation_count", "The count of annotations deleted", "By")
 
 	// SetStatusTimeMsView  set status times taken
 	SetStatusTimeMsView = &view.View{
@@ -46,11 +48,20 @@ var (
 		TagKeys:     []tag.Key{zenkit.TagKeyServiceLabel, zenkit.KeyTenant, KeyWorker},
 	}
 
-	// SearchCountView search average count of events returned
+	// AnnotateCountView total count of annotations created or edited
 	AnnotateCountView = &view.View{
 		Name:        "annotateCount",
 		Measure:     MAnnotateCount,
 		Description: "The number of annotations added or edited",
+		TagKeys:     []tag.Key{zenkit.TagKeyServiceLabel, zenkit.KeyTenant, KeyWorker},
+		Aggregation: view.Sum(),
+	}
+
+	// DeleteAnnotationCountView total count of annotations deleted
+	DeleteAnnotationCountView = &view.View{
+		Name:        "DeleteAnnotationCount",
+		Measure:     MDeleteAnnotationCount,
+		Description: "The number of annotations deleted",
 		TagKeys:     []tag.Key{zenkit.TagKeyServiceLabel, zenkit.KeyTenant, KeyWorker},
 		Aggregation: view.Sum(),
 	}

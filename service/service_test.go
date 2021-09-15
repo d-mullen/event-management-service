@@ -21,6 +21,7 @@ import (
 	//	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	proto "github.com/zenoss/zing-proto/v11/go/cloud/event_management"
 	eproto "github.com/zenoss/zing-proto/v11/go/event"
+
 	//"github.com/zenoss/zingo/v4/protobufutils"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
@@ -219,6 +220,20 @@ var _ = Describe("Management Service", func() {
 			resp, err := svc.Annotate(ctx, &proto.EventAnnotationRequest{
 				Annotations: []*proto.Annotation{
 					&annotation1,
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Ω(resp).ShouldNot(BeNil())
+			Ω(resp.AnnotationResponses[0].Success).Should(BeTrue())
+		})
+
+		It("annotate-del", func() {
+			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
+				&ecproto.UpdateEventResponse{Status: true, NoteId: "noteId1"}, nil).Once()
+
+			resp, err := svc.DeleteAnnotations(ctx, &proto.EventAnnotationRequest{
+				Annotations: []*proto.Annotation{
+					&annotation2,
 				},
 			})
 			Expect(err).ShouldNot(HaveOccurred())
