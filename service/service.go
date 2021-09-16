@@ -128,7 +128,7 @@ func addAnotationResponse(response *proto.EventAnnotationResponse, item *proto.A
 	response.AnnotationResponses = append(response.AnnotationResponses, &resp)
 }
 
-// Annotate adds a annotation to the associated event
+// Annotate adds or edits an annotation to the associated event
 func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.EventAnnotationRequest) (*proto.EventAnnotationResponse, error) {
 	ctx, span := trace.StartSpan(ctx, "EventMangement.Annotate")
 	log := zenkit.ContextLogger(ctx)
@@ -172,6 +172,54 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			} else {
 				log.Error("Failed annotating", err)
 				addAnotationResponse(response, item, false, "", err.Error())
+			}
+		}
+	}
+	return response, nil
+}
+
+// DeleteAnnotation deletes a annotation in the associated event
+func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, request *proto.EventAnnotationRequest) (*proto.EventAnnotationResponse, error) {
+	ctx, span := trace.StartSpan(ctx, "EventMangement.DeleteAnnotation")
+	log := zenkit.ContextLogger(ctx)
+	if request == nil {
+		return nil, status.Error(codes.InvalidArgument, "Invalid DeleteAnnotation nil request")
+	}
+
+	// setup metrics
+	defer func() {
+		span.End()
+		stats.Record(ctx, metrics.MDeleteAnnotationCount.M(int64(len(request.Annotations))))
+	}()
+
+	// validate
+	_, err := utils.ValidateIdentity(ctx)
+	if err != nil {
+		log.WithError(err).Error("DeleteAnnotation failed: unauthenticated")
+		return nil, err
+	}
+
+	// iterate thru the annotations sent in
+	response := new(proto.EventAnnotationResponse)
+	for _, item := range request.Annotations {
+		if item.EventId == "" || item.OccurrenceId == "" {
+			addAnotationResponse(response, item, false, "", "Event id, Occurrence id cannot be empty")
+		} else if item.AnnotationId == "" {
+			addAnotationResponse(response, item, false, "", "Annotation id cannot be empty")
+		} else {
+			ecRequest := ecproto.UpdateEventRequest{
+				OccurrenceId: item.OccurrenceId,
+				NoteId:       item.AnnotationId,
+				Note:         "",
+				EventId:      item.EventId,
+			}
+
+			resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+			if err == nil {
+				addAnotationResponse(response, item, true, resp.NoteId, "")
+			} else {
+				log.Error("Failed deleting", err)
+				addAnotationResponse(response, item, false, resp.NoteId, err.Error())
 			}
 		}
 	}

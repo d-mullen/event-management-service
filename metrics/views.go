@@ -11,4 +11,5 @@ var AllViews = []*view.View{
 	//annotate
 	AnnotateTimeMsView,
 	AnnotateCountView,
+	DeleteAnnotationCountView,
 }
