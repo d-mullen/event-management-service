@@ -31,6 +31,8 @@ var (
 	}
 )
 
+type RPCWrapper func(context.Context, func() error) error
+
 func requestCounter(max int) func(context.Context, func() error) error {
 	var (
 		incoming int64
@@ -56,8 +58,7 @@ func requestCounter(max int) func(context.Context, func() error) error {
 	}
 }
 
-func ConcurrentRequestsStreamServerInterceptor(max int) grpc.StreamServerInterceptor {
-	wrapper := requestCounter(max)
+func StreamServerInterceptorWithWrapper(wrapper RPCWrapper) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		return wrapper(stream.Context(), func() error {
 			return handler(srv, stream)
@@ -65,8 +66,7 @@ func ConcurrentRequestsStreamServerInterceptor(max int) grpc.StreamServerInterce
 	}
 }
 
-func ConcurrentRequestsUnaryServerInterceptor(max int) grpc.UnaryServerInterceptor {
-	wrapper := requestCounter(max)
+func UnaryServerInterceptorWithWrapper(wrapper RPCWrapper) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		err = wrapper(ctx, func() error {
 			resp, err = handler(ctx, req)
@@ -74,4 +74,11 @@ func ConcurrentRequestsUnaryServerInterceptor(max int) grpc.UnaryServerIntercept
 		})
 		return
 	}
+}
+
+// ConcurrentRequestsMiddleware provides a unary and stream server interceptor that enforce a shared
+// concurrent request policy.
+func ConcurrentRequestsMiddleware(max int) (grpc.UnaryServerInterceptor, grpc.StreamServerInterceptor) {
+	wrapper := requestCounter(max)
+	return UnaryServerInterceptorWithWrapper(wrapper), StreamServerInterceptorWithWrapper(wrapper)
 }

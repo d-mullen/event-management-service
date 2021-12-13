@@ -2,14 +2,15 @@ package zenkit
 
 import (
 	"context"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"io/ioutil"
 	"strings"
 
-	"github.com/TV4/logrus-stackdriver-formatter"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+
+	stackdriver "github.com/TV4/logrus-stackdriver-formatter"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -119,20 +120,15 @@ func ContextAuditLogger(ctx context.Context) *logrus.Entry {
 				Level:     logrus.PanicLevel,
 			})
 	}
-
 	fields := logrus.Fields{}
-
 	tags := grpc_ctxtags.Extract(ctx)
 	for k, v := range tags.Values() {
 		fields[k] = v
 	}
-
 	for k, v := range l.fields {
 		fields[k] = v
 	}
-
 	entry := l.logger.WithFields(fields)
-
 	meta, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return entry
@@ -141,7 +137,6 @@ func ContextAuditLogger(ctx context.Context) *logrus.Entry {
 	if requestId != nil {
 		entry = entry.WithField(LogRequestIdField, strings.Join(requestId, " "))
 	}
-
 	return entry
 }
 
@@ -150,7 +145,6 @@ func AuditLogStreamServerInterceptor(entry *logrus.Entry) grpc.StreamServerInter
 		newCtx := WithAuditLogger(ss.Context(), entry)
 		wrapped := grpc_middleware.WrapServerStream(ss)
 		wrapped.WrappedContext = newCtx
-
 		return handler(srv, wrapped)
 	}
 }
@@ -158,7 +152,6 @@ func AuditLogStreamServerInterceptor(entry *logrus.Entry) grpc.StreamServerInter
 func AuditLogUnaryServerInterceptor(entry *logrus.Entry) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		newCtx := WithAuditLogger(ctx, entry)
-
 		resp, err = handler(newCtx, req)
 		return
 	}

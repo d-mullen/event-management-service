@@ -5,6 +5,8 @@ cloud.google.com/go/internal/version
 cloud.google.com/go/monitoring/apiv3
 cloud.google.com/go/profiler
 cloud.google.com/go/trace/apiv2
+# contrib.go.opencensus.io/exporter/jaeger v0.2.1
+contrib.go.opencensus.io/exporter/jaeger
 # contrib.go.opencensus.io/exporter/stackdriver v0.13.1
 contrib.go.opencensus.io/exporter/stackdriver
 contrib.go.opencensus.io/exporter/stackdriver/monitoredresource
@@ -208,10 +210,15 @@ github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
+# github.com/uber/jaeger-client-go v2.25.0+incompatible
+github.com/uber/jaeger-client-go/thrift
+github.com/uber/jaeger-client-go/thrift-gen/agent
+github.com/uber/jaeger-client-go/thrift-gen/jaeger
+github.com/uber/jaeger-client-go/thrift-gen/zipkincore
 # github.com/zenoss/event-context-svc v0.0.0-20210208232835-5442223405f6
 ## explicit
 github.com/zenoss/event-context-svc/utils
-# github.com/zenoss/zenkit/v5 v5.0.9
+# github.com/zenoss/zenkit/v5 v5.2.2
 ## explicit
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter

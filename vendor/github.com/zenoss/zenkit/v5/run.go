@@ -3,18 +3,20 @@ package zenkit
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
 	"regexp"
 	"strings"
+	"time"
 
 	"crypto/tls"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
+	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -147,7 +149,6 @@ func runGRPCServer(ctx context.Context, name string, f ServiceRegistrationFunc, 
 				return err
 			}
 		} else {
-
 			// grpc-gateway uses the field name in the proto by default. Change options for json pb marshalling to
 			// use grpc standard that defaults to lower camel case for field names.
 			// https://developers.google.com/protocol-buffers/docs/proto3#json_options
@@ -171,10 +172,12 @@ func runGRPCServer(ctx context.Context, name string, f ServiceRegistrationFunc, 
 				}
 			}
 
-			//grpc transcoder gateway set to proxy to ourselves on the grpc port
-			err = endpointFunc(ctx, gwmux, grpcAddr, dialOpts)
-			if err != nil {
-				return errors.Wrap(err, "Could not register endpoint")
+			// grpc transcoder gateway set to proxy to ourselves on the grpc port
+			if endpointFunc != nil {
+				err = endpointFunc(ctx, gwmux, grpcAddr, dialOpts)
+				if err != nil {
+					return errors.Wrap(err, "Could not register endpoint")
+				}
 			}
 		}
 
@@ -273,4 +276,54 @@ func HTTPProtoErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler
 		err = s.Err()
 	}
 	runtime.DefaultHTTPProtoErrorHandler(ctx, mux, marshaler, w, request, err)
+}
+
+var (
+	metadataURL  = "http://metadata.google.internal/"
+	envoyTimeout = 1 * time.Minute
+)
+
+// WaitUntilEnvoyReady optionally takes *logrus.Entry and loops until
+// http://metadata.google.internal/ returns status ok(200) response.
+//
+// Return error only if timeout reached.
+func WaitUntilEnvoyReady(log *logrus.Entry) error {
+	if os.Getenv("KUBERNETES_PORT") == "" {
+		return nil
+	}
+
+	if log == nil {
+		nilLogger := logrus.Logger{
+			Out:       ioutil.Discard,
+			Hooks:     make(logrus.LevelHooks),
+			Formatter: &logrus.JSONFormatter{},
+		}
+		log = logrus.NewEntry(&nilLogger)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), envoyTimeout)
+	defer cancel()
+
+	log.Info("waiting for envoy")
+	start := time.Now()
+	for {
+		if time.Since(start) >= envoyTimeout {
+			return fmt.Errorf("deadline exceeded: metadata URL didn't come up after %v", envoyTimeout)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataURL, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create new request: %w", err)
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil || resp.StatusCode != 200 {
+			log.Debug("couldn't reach metadata URL, sleeping for 1 second")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		break
+	}
+	log.Infof("envoy took approximately %v to start", time.Since(start))
+	return nil
 }

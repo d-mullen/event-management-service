@@ -81,7 +81,7 @@ When you're ready to add business logic to your new service,
 ### The zenkit library
 Install this package with `go get`:
 
-    go get github.com/zenoss/zenkit
+    go get github.com/zenoss/zenkit/v5
 
 The _zenkit_ library provides:
 * A standard base microservice with middleware preconfigured to support

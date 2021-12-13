@@ -22,6 +22,7 @@ type MockTenantIdentity struct {
 	clientID   string
 	connection string
 	scopes     []string
+	roles      []string
 	email      string
 	subject    string
 }
@@ -61,6 +62,19 @@ func (ti *MockTenantIdentity) HasScope(scope string) bool {
 	return false
 }
 
+func (ti *MockTenantIdentity) Roles() (roles []string) {
+	return ti.roles
+}
+
+func (ti *MockTenantIdentity) HasRole(role string) bool {
+	for _, r := range ti.roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
 func (ti *MockTenantIdentity) Email() (email string) {
 	return ti.email
 }
@@ -80,6 +94,11 @@ func (ti *MockTenantIdentity) SetConnection(value string) {
 func (ti *MockTenantIdentity) SetScopes(value []string) {
 	ti.scopes = []string{}
 	ti.scopes = append(ti.scopes, value...)
+}
+
+func (ti *MockTenantIdentity) SetRoles(value []string) {
+	ti.roles = []string{}
+	ti.roles = append(ti.roles, value...)
 }
 
 func (ti *MockTenantIdentity) SetEmail(value string) {

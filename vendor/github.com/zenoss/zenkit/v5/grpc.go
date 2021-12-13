@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/profiler"
+	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
@@ -26,12 +27,23 @@ import (
 	"github.com/zenoss/zenkit/v5/internal/exporter"
 )
 
+//OverrideAuthFunc Use alternative auth func, must be called before NewGRPCServer
+func OverrideAuthFunc(authFunc grpc_auth.AuthFunc) {
+	overrideAuthFunc = authFunc
+
+}
+
+var overrideAuthFunc grpc_auth.AuthFunc
+
 func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc.Server {
 
 	var (
 		authFunc   grpc_auth.AuthFunc = UnverifiedIdentity
 		serverOpts []grpc.ServerOption
 	)
+	if overrideAuthFunc != nil {
+		authFunc = overrideAuthFunc
+	}
 
 	if viper.GetBool(AuthDisabledConfig) {
 		authFunc = DevIdentity
@@ -78,6 +90,7 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 	}
 
 	maxRequests := viper.GetInt(GRPCMaxConcurrentRequests)
+	concurrentRequestsUnaryInterceptor, concurrentRequestsStreamInterceptor := ConcurrentRequestsMiddleware(maxRequests)
 
 	serverOpts = append(serverOpts, []grpc.ServerOption{
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
@@ -85,7 +98,7 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 			grpc_ctxtags.StreamServerInterceptor(),
 			grpc_logrus.StreamServerInterceptor(logger),
 			AuditLogStreamServerInterceptor(auditLogger),
-			ConcurrentRequestsStreamServerInterceptor(maxRequests),
+			concurrentRequestsStreamInterceptor,
 			grpc_auth.StreamServerInterceptor(authFunc),
 			IdentityTagsStreamServerInterceptor(),
 			grpc_recovery.StreamServerInterceptor(),
@@ -95,7 +108,7 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_logrus.UnaryServerInterceptor(logger),
 			AuditLogUnaryServerInterceptor(auditLogger),
-			ConcurrentRequestsUnaryServerInterceptor(maxRequests),
+			concurrentRequestsUnaryInterceptor,
 			grpc_auth.UnaryServerInterceptor(authFunc),
 			IdentityTagsUnaryServerInterceptor(),
 			grpc_recovery.UnaryServerInterceptor(),
@@ -120,17 +133,19 @@ func StartInstrumentation(ctx context.Context, logger *logrus.Entry) (exporters 
 	}).Info("Starting instrumentation")
 
 	if viper.GetBool(TracingEnabledConfig) || viper.GetBool(MetricsEnabledConfig) {
-		stackdriverExporter, err := startStackdriverExporter(
-			ctx, logger.WithField("opencensus-exporter", "stackdriver"))
+		if viper.GetBool(ExporterStackdriverEnabledConfig) {
+			stackdriverExporter, err := startStackdriverExporter(
+				ctx, logger.WithField("opencensus-exporter", "stackdriver"))
 
-		if err != nil {
-			logger.WithError(err).Error("Failed to start Stackdriver exporter")
-		} else {
-			logger.Info("Started Stackdriver exporter")
-			exporters = append(exporters, stackdriverExporter)
+			if err != nil {
+				logger.WithError(err).Error("Failed to start Stackdriver exporter")
+			} else {
+				logger.Info("Started Stackdriver exporter")
+				exporters = append(exporters, stackdriverExporter)
+			}
 		}
 
-		if viper.GetBool(MetricsEnabledConfig) {
+		if viper.GetBool(ExporterZenossEnabledConfig) && viper.GetBool(MetricsEnabledConfig) {
 			zenossExporter, err := startZenossExporter(
 				ctx, logger.WithField("opencensus-exporter", "zenoss"))
 
@@ -139,6 +154,17 @@ func StartInstrumentation(ctx context.Context, logger *logrus.Entry) (exporters 
 			} else {
 				logger.Info("Started Zenoss exporter")
 				exporters = append(exporters, zenossExporter)
+			}
+		}
+
+		if viper.GetBool(ExporterJaegerEnabledConfig) && viper.GetBool(TracingEnabledConfig) {
+			err := startJaegerExporter(
+				ctx, logger.WithField("opencensus-exporter", "jaeger"))
+
+			if err != nil {
+				logger.WithError(err).Error("Failed to start Jaeger exporter")
+			} else {
+				logger.Info("Started Jaeger exporter")
 			}
 		}
 	}
@@ -153,6 +179,13 @@ func StartInstrumentation(ctx context.Context, logger *logrus.Entry) (exporters 
 func startStackdriverExporter(ctx context.Context, logger *logrus.Entry) (view.Exporter, error) {
 	options := stackdriver.Options{
 		ProjectID: viper.GetString(GCProjectIDConfig),
+		OnError: func(err error) {
+			logger.WithError(err).Warn("failed to export to Stackdriver")
+		},
+	}
+
+	if viper.IsSet(ExporterStackdriverTraceMaxBufferConfig) {
+		options.TraceSpansBufferMaxBytes = viper.GetInt(ExporterStackdriverTraceMaxBufferConfig)
 	}
 
 	if viper.GetBool(MetricsEnabledConfig) {
@@ -214,6 +247,32 @@ func startZenossExporter(ctx context.Context, logger *logrus.Entry) (view.Export
 	}()
 
 	return exp, nil
+}
+
+func startJaegerExporter(ctx context.Context, logger *logrus.Entry) error {
+	serviceLabel := viper.GetString(ServiceLabel)
+	logger.WithField("ServiceName", serviceLabel).Info("Starting exporter")
+
+	exp, err := jaeger.NewExporter(jaeger.Options{
+		AgentEndpoint:     "localhost:6831",
+		CollectorEndpoint: "http://localhost:14268/api/traces",
+		Process:           jaeger.Process{ServiceName: serviceLabel},
+	})
+	if err != nil {
+		return err
+	}
+
+	logger.Info("Registering trace exporter")
+	trace.RegisterExporter(exp)
+
+	// Jaeger client buffers. So we'll attempt to flush it.
+	go func() {
+		<-ctx.Done()
+		logger.Info("Flushing exporter")
+		exp.Flush()
+	}()
+
+	return nil
 }
 
 // RetryOpts represent options that can be set to configure grpc_retry.Backoff options

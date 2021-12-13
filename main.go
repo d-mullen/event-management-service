@@ -33,6 +33,10 @@ func main() {
 	ctx, cancel := context.WithCancel(ctxlogrus.ToContext(context.Background(), log))
 	defer cancel()
 
+	if err := zenkit.WaitUntilEnvoyReady(log); err != nil {
+		log.WithError(err).Fatal("waiting for envoy failed")
+	}
+
 	// Register metrics
 	if err := zenkit.RegisterViews(ServiceName, metrics.AllViews...); err != nil {
 		log.WithError(err).Fatal("Error registering views")

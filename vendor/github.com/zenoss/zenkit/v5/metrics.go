@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/spf13/viper"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
@@ -96,15 +96,6 @@ func MetricTagsUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-func SinceInMS(start time.Time) int64 {
-	return int64(time.Since(start) / time.Millisecond)
-}
-
-func RecordMillisecondLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
-	ctx, _ = tag.New(ctx, mutator...)
-	stats.Record(ctx, ms.M(SinceInMS(since)))
-}
-
 type GrpcStatsHandler struct {
 	Handler grpcstats.Handler
 }
@@ -128,4 +119,31 @@ func (s *GrpcStatsHandler) TagConn(ctx context.Context, cti *grpcstats.ConnTagIn
 // HandleConn processes the Conn stats.
 func (s *GrpcStatsHandler) HandleConn(ctx context.Context, cs grpcstats.ConnStats) {
 	s.Handler.HandleConn(ctx, cs)
+}
+
+func SinceInMS(start time.Time) int64 {
+	return int64(time.Since(start) / time.Millisecond)
+}
+
+func SinceInHours(start time.Time) int64 {
+	return int64(time.Since(start) / time.Hour)
+}
+
+func SinceInMinutes(start time.Time) int64 {
+	return int64(time.Since(start) / time.Minute)
+}
+
+func RecordMillisecondLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
+	ctx, _ = tag.New(ctx, mutator...)
+	stats.Record(ctx, ms.M(SinceInMS(since)))
+}
+
+func RecordHourLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
+	ctx, _ = tag.New(ctx, mutator...)
+	stats.Record(ctx, ms.M(SinceInHours(since)))
+}
+
+func RecordMinuteLatency(ctx context.Context, ms *stats.Int64Measure, since time.Time, mutator ...tag.Mutator) {
+	ctx, _ = tag.New(ctx, mutator...)
+	stats.Record(ctx, ms.M(SinceInMinutes(since)))
 }

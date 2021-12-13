@@ -12,17 +12,22 @@ import (
 )
 
 const (
-	// the name of the feature the controls whether we can set values in the header request (for automated tests).
-	AllowFeatureHeaders = "AllowFeatureHeaders"
+	// Prefix for HTTP header that overrides feature enabled status.
+	featureHeaderPrefix = "x-feature-"
 )
 
 var (
+	// Ensure TestFeatureFlagsClient implements FeatureFlagsClient interface.
+	_ feature_flags.FeatureFlagsClient = (*TestFeatureFlagsClient)(nil)
+
 	featureClient feature_flags.FeatureFlagsClient
 
 	ErrMetadataNotFound    = errors.New("no metadata found on the context")
 	ErrFeatureFlagNotFound = errors.New("feature flag not found in the context metadata")
 )
 
+// SetFeatureFlagsClient sets the global FeatureFlagsClient to use.
+// NOTE: This isn't necessary if you want to use the default.
 func SetFeatureFlagsClient(client feature_flags.FeatureFlagsClient) {
 	featureClient = client
 }
@@ -50,43 +55,6 @@ func getZingUnleashClient(ctx context.Context, opts ...grpc.DialOption) feature_
 	return feature_flags.NewFeatureFlagsClient(conn)
 }
 
-// Perform a quick check to see if features have been specified in the context.  If so, we'll make the
-// heavier call to see if this context is allowed to set the feature states (AllowHeaderFeatures).
-// Returns the context-specified value + true if (a) the feature was set in the context and (b) the context
-// is allowed to specify the feature.
-func featureInContext(ctx context.Context, feature string) (bool, bool) {
-	enabled, err := GetFeatureFlagFromContext(ctx, feature)
-	if err != nil {
-		// No feature flag specified in the context; we don't need to check if the
-		// AllowHeaderFeatures flag is enabled on this context.
-		return false, false
-	}
-
-	// We have the flag in the context; if we're allowed to specify flags in the request headers, we'll
-	// use this value.
-	req := &feature_flags.FeatureEnabledRequest{
-		Feature: AllowFeatureHeaders,
-		Default: false,
-	}
-
-	response, err := featureClient.FeatureEnabled(ctx, req)
-	if err != nil {
-		ContextLogger(ctx).WithError(err).Errorf("Feature found in the context, but unable to query the feature flags server")
-		return false, false
-	}
-
-	if !response.Enabled {
-		// This context isn't allowed to specify a feature flag, but it did.  We'll log this as a warning so we can
-		// see it in StackDriver.
-		log := ContextLogger(ctx).WithField("feature", feature)
-		log.Warn("context specified the value for a feature in headers, but isn't allowed to do so")
-		return false, false
-	}
-
-	// The feature has been set in a header, and the context is allowed to do so. We'll return the specified value.
-	return enabled, true
-}
-
 // A helper function for checking whether a feature is enabled.
 func FeatureIsEnabled(ctx context.Context, feature string, defaultValue bool) bool {
 	if featureClient == nil {
@@ -96,12 +64,6 @@ func FeatureIsEnabled(ctx context.Context, feature string, defaultValue bool) bo
 			// The error is already logged; just return the default value.
 			return defaultValue
 		}
-	}
-
-	// If the feature was configured from the context (and is allowed to do so), return the specified value
-	// without going to the feature provider.
-	if enabled, found := featureInContext(ctx, feature); found {
-		return enabled
 	}
 
 	// We need to ask our feature provider if the feature is on for this context.
@@ -127,12 +89,12 @@ func FeatureIsEnabled(ctx context.Context, feature string, defaultValue bool) bo
  * enabled for that request (ie: client=smoke test).
  */
 func AddFeatureFlagToContext(ctx context.Context, feature string, value bool) context.Context {
-	feature = strings.ToLower("x-feature-" + feature)
+	feature = strings.ToLower(featureHeaderPrefix + feature)
 	return metadata.AppendToOutgoingContext(ctx, feature, strings.ToLower(strconv.FormatBool(value)))
 }
 
 func GetFeatureFlagFromContext(ctx context.Context, feature string) (bool, error) {
-	featureKey := strings.ToLower("x-feature-" + feature)
+	featureKey := strings.ToLower(featureHeaderPrefix + feature)
 	meta, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		ContextLogger(ctx).Debugf("no metadata found on the context. returning false for feature %s", feature)
@@ -145,4 +107,43 @@ func GetFeatureFlagFromContext(ctx context.Context, feature string) (bool, error
 	}
 	value := strings.Join(valueString, " ")
 	return value == "true", nil
+}
+
+// SetTestFeatureFlagsClient sets the global FeatureFlagsClient to a static map of enabled features.
+// NOTE: This should only be used in unit tests.
+func SetTestFeatureFlagsClient(features map[string]bool) *TestFeatureFlagsClient {
+	testClient := &TestFeatureFlagsClient{Features: features}
+	featureClient = testClient
+	return testClient
+}
+
+type TestFeatureFlagsClient struct {
+	Features map[string]bool
+}
+
+func (c *TestFeatureFlagsClient) FeatureEnabled(_ context.Context, in *feature_flags.FeatureEnabledRequest, _ ...grpc.CallOption) (*feature_flags.FeatureEnabledResponse, error) {
+	if enabled, ok := c.Features[in.Feature]; ok {
+		return &feature_flags.FeatureEnabledResponse{Enabled: enabled}, nil
+	}
+
+	return &feature_flags.FeatureEnabledResponse{Enabled: in.Default}, nil
+}
+
+func (c *TestFeatureFlagsClient) FeaturesEnabled(_ context.Context, in *feature_flags.FeaturesEnabledRequest, _ ...grpc.CallOption) (*feature_flags.FeaturesEnabledResponse, error) {
+	// Create the result structure.
+	featuresEnabled := make([]*feature_flags.FeatureEnabled, len(in.Features))
+
+	// Extract the values for each of the requested features.
+	for index, feature := range in.Features {
+		response, _ := c.FeatureEnabled(nil, feature)
+		featuresEnabled[index] = &feature_flags.FeatureEnabled{
+			Feature: feature.Feature,
+			Value:   response.Enabled,
+		}
+	}
+
+	// And return the results.
+	return &feature_flags.FeaturesEnabledResponse{
+		Enabled: featuresEnabled,
+	}, nil
 }

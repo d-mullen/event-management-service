@@ -7,7 +7,9 @@ import (
 
 	grpc_testing "github.com/grpc-ecosystem/go-grpc-middleware/testing"
 	pb_testproto "github.com/grpc-ecosystem/go-grpc-middleware/testing/testproto"
+	"github.com/mitchellh/go-testing-interface"
 	"github.com/onsi/ginkgo"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -71,4 +73,9 @@ func (s *GRPCTestServer) TearDown() {
 	if s.clientConn != nil {
 		s.clientConn.Close()
 	}
+}
+
+func InitConfigForTests(_ testing.T, name string) {
+	viper.Reset()
+	initConfigWithName(name)()
 }

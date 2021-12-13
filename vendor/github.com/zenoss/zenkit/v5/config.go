@@ -2,6 +2,7 @@ package zenkit
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,14 @@ const (
 	TracingSampleRateConfig = "tracing.samplerate"
 
 	MetricsEnabledConfig = "metrics.enabled"
+
+	// Control which OpenCensus metric and trace exporters are enabled.
+	ExporterStackdriverEnabledConfig = "exporter.stackdriver.enabled"
+	ExporterJaegerEnabledConfig      = "exporter.jaeger.enabled"
+	ExporterZenossEnabledConfig      = "exporter.zenoss.enabled"
+
+	// Additional options for configuring the stackdriver exporter
+	ExporterStackdriverTraceMaxBufferConfig = "exporter.stackdriver.trace.max.buffer"
 
 	ServiceLabel = "service.label"
 
@@ -81,6 +90,8 @@ const (
 
 	HTTP2ListenAddrConfig = "http2.listen_addr"
 
+	PolicyServiceRefreshInterval = "policy.service.refresh.interval"
+
 	ServiceDialTimeoutConfig = "dial_timeout"
 
 	ZINGAnomalyTableConfig           = "zing.bigtable.table.anomaly"
@@ -128,15 +139,23 @@ func init() {
 	globalViper.SetDefault(ZINGProductCompanyNameConfig, "Zenoss")
 }
 
-func InitConfig(name string) {
-	// ZING-4105: Prevent fatal error: concurrent map writes
-	initOnce.Do(func() {
+var (
+	configMu sync.Mutex
+)
+
+func initConfigWithName(name string) func() {
+	return func() {
+		configMu.Lock()
+		defer configMu.Unlock()
 		viper.SetDefault(LogLevelConfig, "info")
 		viper.SetDefault(GrpcLogLevelConfig, "warn")
 		viper.SetDefault(LogStackdriverConfig, true)
 		viper.SetDefault(TracingEnabledConfig, true)
 		viper.SetDefault(TracingSampleRateConfig, 1.0)
 		viper.SetDefault(MetricsEnabledConfig, true)
+		viper.SetDefault(ExporterStackdriverEnabledConfig, true)
+		viper.SetDefault(ExporterZenossEnabledConfig, true)
+		viper.SetDefault(ExporterJaegerEnabledConfig, false)
 		viper.SetDefault(AuthDevTenantConfig, "ACME")
 		viper.SetDefault(AuthDevUserConfig, "zcuser@acme.example.com")
 		viper.SetDefault(AuthDevEmailConfig, "zcuser@acme.example.com")
@@ -158,6 +177,8 @@ func InitConfig(name string) {
 		viper.SetDefault(HTTP2ListenAddrConfig, ":9080")
 		viper.SetDefault(JWKSCacheMinutes, 30)
 
+		viper.SetDefault(PolicyServiceRefreshInterval, 300)
+
 		viper.SetDefault(ProfilingEnabledConfig, false)
 		viper.SetDefault(ProfilingServiceName, name)
 		viper.SetDefault(ProfilingMutexDisabledConfig, false)
@@ -175,11 +196,38 @@ func InitConfig(name string) {
 		viper.SetEnvPrefix(name)
 		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 		viper.AutomaticEnv()
-	})
+	}
 }
 
+func InitConfig(name string) {
+	// ZING-4105: Prevent fatal error: concurrent map writes
+	initOnce.Do(initConfigWithName(name))
+}
+
+// ServiceAddress returns a "<host>:<port>" address for svc service name.
+// The svc string is expected to be a resolvable hostname.
+//
+// In a Kubernetes context it should be the unqualified name of the Service.
+// When running within Kubernetes, the <host> portion will always be exactly
+// the same as svc, and <port> will be looked up in the <svc>_SERVICE_PORT
+// environment variable. The <svc>_SERVICE_HOST environment variable provided
+// by Kubernetes is intentionally ignored in favor of the service's name to
+// avoid service startup race conditions, and for dealing with services
+// potentially changing IP addresses over time.
+//
+// When running outside of Kubernetes, the <host> portion will be looked up in
+// <svc>_SERVICE_HOST, and the <port> portion will be looked up in
+// <svc>_SERVICE_PORT.
 func ServiceAddress(svc string) (string, error) {
-	host := svc
+	var host string
+	if os.Getenv("KUBERNETES_PORT") != "" {
+		host = svc
+	} else {
+		host = globalViper.GetString(svc + "_SERVICE_HOST")
+		if host == "" {
+			host = svc
+		}
+	}
 	port := globalViper.GetString(svc + "_SERVICE_PORT")
 	if host == "" || port == "" {
 		return "", ErrNoServiceAddress
