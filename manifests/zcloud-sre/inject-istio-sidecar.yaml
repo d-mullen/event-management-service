@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-management-service
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: false
+      labels:
+        app: event-management-service
+        istio.io/rev: asm-managed-stable
+
