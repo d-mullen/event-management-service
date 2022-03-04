@@ -3,3 +3,5 @@ services:
   zenkit-build:
     image: zenoss/zenkit-build:${ZENKIT_BUILD_VERSION}
     dns: 8.8.8.8
+    security_opt:
+      - seccomp:unconfined

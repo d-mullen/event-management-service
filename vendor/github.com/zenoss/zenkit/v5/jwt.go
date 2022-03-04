@@ -2,14 +2,14 @@ package zenkit
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/auth0/go-jwt-middleware"
-	"github.com/dgrijalva/jwt-go"
+	jwtmiddleware "github.com/auth0/go-jwt-middleware"
+	"github.com/form3tech-oss/jwt-go"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 

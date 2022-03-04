@@ -1,4 +1,4 @@
-ZENKIT_BUILD_VERSION := 1.8.0
+ZENKIT_BUILD_VERSION := 1.9.1
 PACKAGE              := github.com/zenoss/zenkit
 ROOTDIR              ?= $(CURDIR)
 NETRC                ?= ~/.netrc
@@ -60,7 +60,7 @@ GOLINT = $(GOBIN)/golint
 $(GOBIN)/golint: PACKAGE=golang.org/x/lint/golint
 
 GINKGO = $(GOBIN)/ginkgo
-$(GOBIN)/ginkgo: PACKAGE=github.com/onsi/ginkgo/ginkgo
+$(GOBIN)/ginkgo: PACKAGE=github.com/onsi/ginkgo/v2/ginkgo
 
 GOCOVMERGE = $(GOBIN)/gocovmerge
 $(GOBIN)/gocovmerge: PACKAGE=github.com/wadey/gocovmerge
@@ -113,8 +113,8 @@ test: COVERAGE_HTML    := $(COVERAGE_DIR)/index.html
 test: COVERAGE_XML     := $(COVERAGE_DIR)/coverage.xml
 test: | $(GINKGO) $(GOCOVMERGE) $(GOCOV) $(GOCOVXML) ; $(info $(M) running tests...) @ ## Execute tests with ginkgo.
 	$Q mkdir -p $(COVERAGE_DIR)
-	$Q $(GINKGO) -r -cover -covermode=count
-	$Q $(GOCOVMERGE) $$(find . -name \*.coverprofile) > $(COVERAGE_PROFILE)
+# TODO: cover policy_framework package with tests (ZING-18724)
+	$Q $(GINKGO) --skip-package=policy_framework -r -cover -coverprofile=$(COVERAGE_PROFILE) -covermode=count --junit-report=junit.xml
 	$Q $(GO) tool cover -html=$(COVERAGE_PROFILE) -o $(COVERAGE_HTML)
 	$Q $(GOCOV) convert $(COVERAGE_PROFILE) | $(GOCOVXML) > $(COVERAGE_XML)
 

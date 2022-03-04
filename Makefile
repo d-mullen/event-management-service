@@ -9,7 +9,7 @@ BIN                  := $(GOPATH)/bin
 BASE                 := $(GOPATH)/src/$(PACKAGE)
 DOCKER_COMPOSE       := /usr/local/bin/docker-compose
 LOCAL_USER_ID        := $(shell id -u)
-ZENKIT_BUILD_VERSION := 1.8.0
+ZENKIT_BUILD_VERSION := 1.9.1
 BUILD_IMG            := zenoss/zenkit-build:$(ZENKIT_BUILD_VERSION)
 COVERAGE_DIR         := coverage
 DOCKER_PARAMS        := --rm -v $(ROOTDIR):/go/src/$(PACKAGE):rw \
@@ -45,13 +45,10 @@ $(BIN)/%: $(BIN) | $(BASE)
 	@[ -x $@ ] || echo "$(M)" Installing $* && go get $(REPOSITORY)
 
 GINKGO = $(BIN)/ginkgo
-$(BIN)/ginkgo: REPOSITORY=github.com/onsi/ginkgo/ginkgo
+$(BIN)/ginkgo: REPOSITORY=github.com/onsi/ginkgo/v2/ginkgo
 
 GOLINT = $(BIN)/golint
 $(BIN)/golint: REPOSITORY=golang.org/x/lint/golint
-
-GOCOVMERGE = $(BIN)/gocovmerge
-$(BIN)/gocovmerge: REPOSITORY=github.com/wadey/gocovmerge
 
 GOCOV = $(BIN)/gocov
 $(BIN)/gocov: REPOSITORY=github.com/axw/gocov/...
@@ -105,7 +102,7 @@ down: $(DOCKER_COMPOSE)
 check test tests: unit-test-containerized
 
 .PHONY: unit-test
-unit-test: COVERAGE_PROFILE := $(COVERAGE_DIR)/profile.out
+unit-test: COVERAGE_PROFILE := coverprofile.out
 unit-test: COVERAGE_HTML    := $(COVERAGE_DIR)/index.html
 unit-test: COVERAGE_XML     := $(COVERAGE_DIR)/coverage.xml
 unit-test: fmt
@@ -115,8 +112,8 @@ unit-test: fmt
 		-mod vendor \
 		-cover \
 		-covermode=count \
-		--skipPackage vendor
-	@$(GOCOVMERGE) $$(find . -name \*.coverprofile) > $(COVERAGE_PROFILE)
+		--skip-package vendor \
+		--junit-report=junit.xml
 	@$(GO) tool cover -html=$(COVERAGE_PROFILE) -o $(COVERAGE_HTML)
 	@$(GOCOV) convert $(COVERAGE_PROFILE) | $(GOCOVXML) > $(COVERAGE_XML)
 
@@ -128,8 +125,8 @@ unit-test-containerized: $(DOCKER_COMPOSE)
 
 .PHONY: clean
 clean:: down
-	rm -f **/junit.xml
-	rm -f **/*.coverprofile
+	rm -f junit.xml
+	rm -f coverprofile.out
 	rm -rf $(COVERAGE_DIR)
 
 .PHONY: mrclean

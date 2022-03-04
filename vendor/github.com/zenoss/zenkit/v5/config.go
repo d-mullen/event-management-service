@@ -25,6 +25,8 @@ const (
 	ExporterStackdriverEnabledConfig = "exporter.stackdriver.enabled"
 	ExporterJaegerEnabledConfig      = "exporter.jaeger.enabled"
 	ExporterZenossEnabledConfig      = "exporter.zenoss.enabled"
+	ExporterJaegerAgentConfig        = "exporter.jaeger.agent.endpoint"
+	ExporterJaegerCollectorConfig    = "exporter.jaeger.collector.endpoint"
 
 	// Additional options for configuring the stackdriver exporter
 	ExporterStackdriverTraceMaxBufferConfig = "exporter.stackdriver.trace.max.buffer"
@@ -109,6 +111,14 @@ const (
 	ZINGProductVersionConfig       = "zing.product.version"
 	ZINGProductCompanyNameConfig   = "zing.product.company_name"
 	ZINGProductOtherCommentsConfig = "zing.product.other_comments"
+
+	// Auth0DomainConfig is the config to get the auth0 domain, used for logging a user out
+	Auth0DomainConfig = "auth0.domain"
+
+	// Auth0 creds for connecting to other microservices (currently, just tenant service)
+	BackendClientIDConfig     = "auth0.backend.client_id"
+	BackendClientSecretConfig = "auth0.backend.client_secret"
+	BackendClientAudience     = "auth0.backend.client_audience"
 )
 
 var (
@@ -156,6 +166,8 @@ func initConfigWithName(name string) func() {
 		viper.SetDefault(ExporterStackdriverEnabledConfig, true)
 		viper.SetDefault(ExporterZenossEnabledConfig, true)
 		viper.SetDefault(ExporterJaegerEnabledConfig, false)
+		viper.SetDefault(ExporterJaegerAgentConfig, "localhost:6831")
+		viper.SetDefault(ExporterJaegerCollectorConfig, "localhost:14268")
 		viper.SetDefault(AuthDevTenantConfig, "ACME")
 		viper.SetDefault(AuthDevUserConfig, "zcuser@acme.example.com")
 		viper.SetDefault(AuthDevEmailConfig, "zcuser@acme.example.com")

@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/form3tech-oss/jwt-go"
 )
 
 // A function called whenever an error is encountered
@@ -47,7 +48,7 @@ type Options struct {
 	EnableAuthOnOptions bool
 	// When set, the middelware verifies that tokens are signed with the specific signing algorithm
 	// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
-	// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
+	// Important to avoid security issues described here: https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
 	// Default: nil
 	SigningMethod jwt.SigningMethod
 }
@@ -180,7 +181,7 @@ func (m *JWTMiddleware) CheckJWT(w http.ResponseWriter, r *http.Request) error {
 	// If an error occurs, call the error handler and return an error
 	if err != nil {
 		m.Options.ErrorHandler(w, r, err.Error())
-		return fmt.Errorf("Error extracting token: %v", err)
+		return fmt.Errorf("Error extracting token: %w", err)
 	}
 
 	// If the token is empty...
@@ -206,7 +207,7 @@ func (m *JWTMiddleware) CheckJWT(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		m.logf("Error parsing token: %v", err)
 		m.Options.ErrorHandler(w, r, err.Error())
-		return fmt.Errorf("Error parsing token: %v", err)
+		return fmt.Errorf("Error parsing token: %w", err)
 	}
 
 	if m.Options.SigningMethod != nil && m.Options.SigningMethod.Alg() != parsedToken.Header["alg"] {

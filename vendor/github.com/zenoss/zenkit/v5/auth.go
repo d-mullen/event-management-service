@@ -63,6 +63,7 @@ func addRequestIdToTags(ctx context.Context) {
 		return
 	}
 	requestId := meta[LogRequestIdField]
+
 	if requestId != nil {
 		grpc_ctxtags.Extract(ctx).Set(LogRequestIdField, strings.Join(requestId, " "))
 	}
