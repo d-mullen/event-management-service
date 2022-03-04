@@ -25,9 +25,9 @@ import (
 	//"github.com/zenoss/zingo/v4/protobufutils"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 
-	//	. "github.com/onsi/ginkgo/extensions/table"
+	//	. "github.com/onsi/ginkgo/v2/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/zenoss/zenkit/v5"
 

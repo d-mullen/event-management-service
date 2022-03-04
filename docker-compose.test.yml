@@ -13,6 +13,8 @@ services:
   #     - "8085"
   test:
     image: zenoss/zenkit-build:${ZENKIT_BUILD_VERSION}
+    security_opt:
+      - seccomp:unconfined
     # depends_on:
     #   - bigtable
     #   - pubsub

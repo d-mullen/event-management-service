@@ -251,11 +251,17 @@ func startZenossExporter(ctx context.Context, logger *logrus.Entry) (view.Export
 
 func startJaegerExporter(ctx context.Context, logger *logrus.Entry) error {
 	serviceLabel := viper.GetString(ServiceLabel)
-	logger.WithField("ServiceName", serviceLabel).Info("Starting exporter")
-
+	agentEnpoint := viper.GetString(ExporterJaegerAgentConfig)
+	collectorEndpoint := viper.GetString(ExporterJaegerCollectorConfig)
+	logger.WithField("ServiceName", serviceLabel).
+		WithFields(logrus.Fields{
+			"agent":     agentEnpoint,
+			"collector": collectorEndpoint,
+		}).
+		Info("Starting exporter")
 	exp, err := jaeger.NewExporter(jaeger.Options{
-		AgentEndpoint:     "localhost:6831",
-		CollectorEndpoint: "http://localhost:14268/api/traces",
+		AgentEndpoint:     agentEnpoint,
+		CollectorEndpoint: fmt.Sprintf("http://%s/api/traces", collectorEndpoint),
 		Process:           jaeger.Process{ServiceName: serviceLabel},
 	})
 	if err != nil {
