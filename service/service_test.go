@@ -123,7 +123,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status - all", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Twice()
 
 			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
 				Statuses: []*proto.EMEventStatus{
@@ -137,7 +137,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status -ack only", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Twice()
 
 			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
 				Statuses: []*proto.EMEventStatus{
@@ -150,7 +150,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status - status only", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Twice()
 
 			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
 				Statuses: []*proto.EMEventStatus{
@@ -164,7 +164,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status - fail", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("failing just for test")).Once()
+				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("failing just for test")).Twice()
 
 			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
 				Statuses: []*proto.EMEventStatus{
@@ -178,7 +178,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status - err", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("just an error")).Once()
+				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("just an error")).Twice()
 
 			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
 				Statuses: []*proto.EMEventStatus{
@@ -192,7 +192,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status -nil request", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Twice()
 
 			resp, err := svc.SetStatus(ctx, nil)
 			Expect(err).Should(HaveOccurred())
@@ -201,7 +201,7 @@ var _ = Describe("Management Service", func() {
 
 		It("set status -nothing set", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: ""}, nil).Twice()
 
 			resp, err := svc.SetStatus(ctx, &proto.EventStatusRequest{
 				Statuses: []*proto.EMEventStatus{
@@ -215,7 +215,7 @@ var _ = Describe("Management Service", func() {
 
 		It("annotate-add", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: "newNoteId1"}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: "newNoteId1"}, nil).Twice()
 
 			resp, err := svc.Annotate(ctx, &proto.EventAnnotationRequest{
 				Annotations: []*proto.Annotation{
@@ -229,7 +229,7 @@ var _ = Describe("Management Service", func() {
 
 		It("annotate-del", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: "noteId1"}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: "noteId1"}, nil).Twice()
 
 			resp, err := svc.DeleteAnnotations(ctx, &proto.EventAnnotationRequest{
 				Annotations: []*proto.Annotation{
@@ -243,7 +243,7 @@ var _ = Describe("Management Service", func() {
 
 		It("annotate-add -fail", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: false, NoteId: "newNoteId1"}, errors.New("just a bogus error")).Once()
+				&ecproto.UpdateEventResponse{Status: false, NoteId: "newNoteId1"}, errors.New("just a bogus error")).Twice()
 
 			resp, err := svc.Annotate(ctx, &proto.EventAnnotationRequest{
 				Annotations: []*proto.Annotation{
@@ -257,7 +257,7 @@ var _ = Describe("Management Service", func() {
 
 		It("annotate-edit", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: true, NoteId: "noteId1"}, nil).Once()
+				&ecproto.UpdateEventResponse{Status: true, NoteId: "noteId1"}, nil).Twice()
 
 			resp, err := svc.Annotate(ctx, &proto.EventAnnotationRequest{
 				Annotations: []*proto.Annotation{
@@ -271,7 +271,7 @@ var _ = Describe("Management Service", func() {
 
 		It("annotate- no eventId", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("just another error")).Once()
+				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("just another error")).Twice()
 
 			resp, err := svc.Annotate(ctx, &proto.EventAnnotationRequest{
 				Annotations: []*proto.Annotation{
@@ -285,7 +285,7 @@ var _ = Describe("Management Service", func() {
 
 		It("annotate- nil request", func() {
 			clientMock.On("UpdateEvent", mock.Anything, mock.AnythingOfType("*event_context.UpdateEventRequest")).Return(
-				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("just another error")).Once()
+				&ecproto.UpdateEventResponse{Status: false, NoteId: ""}, errors.New("just another error")).Twice()
 
 			resp, err := svc.Annotate(ctx, nil)
 			Expect(err).Should(HaveOccurred())
