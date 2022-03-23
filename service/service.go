@@ -34,17 +34,16 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 			svc.eventCtxClient = ecproto.NewEventContextIngestClient(ecConn)
 			log.Info("connected to event-context-ingest-svc")
 		}
-
 	}
 	if svc.eventCtxClientv2 == nil {
 		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest-v2", zenkit.DefaultRetryOpts())
 		if err != nil {
 			log.WithError(err).Error("failed to connect to event-context-ingest-svc-v2")
-			return nil, err
+			//return nil, err
+		} else {
+			svc.eventCtxClientv2 = ecproto.NewEventContextIngestClient(ecConn)
+			log.Info("connected to event-context-ingest-svc-v2")
 		}
-		svc.eventCtxClientv2 = ecproto.NewEventContextIngestClient(ecConn)
-
-		log.Info("connected to event-context-ingest-svc-v2")
 	}
 	return svc, nil
 }
@@ -129,12 +128,14 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 			}
 
 			// mongo db
-			_, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
-			if err != nil {
-				log.Error("Failed setting status in mongo", err)
-				addStatusResponse(response, item, false, err.Error())
-			} else {
-				addStatusResponse(response, item, true, "")
+			if svc.eventCtxClientv2 != nil {
+				_, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
+				if err != nil {
+					log.Error("Failed setting status in mongo", err)
+					addStatusResponse(response, item, false, err.Error())
+				} else {
+					addStatusResponse(response, item, true, "")
+				}
 			}
 		}
 	}
@@ -202,12 +203,14 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			}
 
 			//mongo store
-			resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
-			if err == nil {
-				addAnotationResponse(response, item, true, resp.NoteId, "")
-			} else {
-				log.Error("Failed annotating in mongo", err)
-				addAnotationResponse(response, item, false, "", err.Error())
+			if svc.eventCtxClientv2 != nil {
+				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
+				if err == nil {
+					addAnotationResponse(response, item, true, resp.NoteId, "")
+				} else {
+					log.Error("Failed annotating in mongo", err)
+					addAnotationResponse(response, item, false, "", err.Error())
+				}
 			}
 		}
 	}
@@ -262,14 +265,15 @@ func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, reques
 			}
 
 			//mongo store
-			resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
-			if err == nil {
-				addAnotationResponse(response, item, true, resp.NoteId, "")
-			} else {
-				log.Error("Failed deleting in mongo", err)
-				addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+			if svc.eventCtxClientv2 != nil {
+				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
+				if err == nil {
+					addAnotationResponse(response, item, true, resp.NoteId, "")
+				} else {
+					log.Error("Failed deleting in mongo", err)
+					addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+				}
 			}
-
 		}
 	}
 	return response, nil
