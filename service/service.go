@@ -17,7 +17,8 @@ import (
 
 // EventManagementService implements the interface proto.EventManagementServer
 type EventManagementService struct {
-	eventCtxClient ecproto.EventContextIngestClient
+	eventCtxClient   ecproto.EventContextIngestClient
+	eventCtxClientv2 ecproto.EventContextIngestClient
 }
 
 // NewEventManagementService returns implementation of proto.EventManagementServer
@@ -27,12 +28,22 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 	if svc.eventCtxClient == nil {
 		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest", zenkit.DefaultRetryOpts())
 		if err != nil {
-			log.WithError(err).Error("failed to connect to event-context-ingest-svc")
-			return nil, err
+			log.WithError(err).Error("failed to connect to event-context-ingest-svc. Ignoring...")
+			//return nil, err
+		} else {
+			svc.eventCtxClient = ecproto.NewEventContextIngestClient(ecConn)
+			log.Info("connected to event-context-ingest-svc")
 		}
-		svc.eventCtxClient = ecproto.NewEventContextIngestClient(ecConn)
-
-		log.Info("connected to event-context-ingest-svc")
+	}
+	if svc.eventCtxClientv2 == nil {
+		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest-v2", zenkit.DefaultRetryOpts())
+		if err != nil {
+			log.WithError(err).Error("failed to connect to event-context-ingest-svc-v2")
+			//return nil, err
+		} else {
+			svc.eventCtxClientv2 = ecproto.NewEventContextIngestClient(ecConn)
+			log.Info("connected to event-context-ingest-svc-v2")
+		}
 	}
 	return svc, nil
 }
@@ -40,7 +51,8 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 // NewEventManagementServiceFromParts returns implementation of proto.EventManagementServer with the passed in client for testing
 func NewEventManagementServiceFromParts(client ecproto.EventContextIngestClient) (proto.EventManagementServer, error) {
 	return &EventManagementService{
-		eventCtxClient: client,
+		eventCtxClient:   client,
+		eventCtxClientv2: client, // testing will go to passed in client for firestore and mongo
 	}, nil
 }
 
@@ -104,13 +116,26 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 				}
 				ecRequest.StatusWrapper = &sw
 			}
-
-			_, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
-			if err != nil {
-				log.Error("Failed setting status", err)
-				addStatusResponse(response, item, false, err.Error())
-			} else {
+			// firestore
+			if svc.eventCtxClient != nil {
+				_, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
+				if err != nil {
+					log.Error("Failed setting status", err)
+					addStatusResponse(response, item, false, err.Error())
+				} else {
+				}
 				addStatusResponse(response, item, true, "")
+			}
+
+			// mongo db
+			if svc.eventCtxClientv2 != nil {
+				_, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
+				if err != nil {
+					log.Error("Failed setting status in mongo", err)
+					addStatusResponse(response, item, false, err.Error())
+				} else {
+					addStatusResponse(response, item, true, "")
+				}
 			}
 		}
 	}
@@ -166,12 +191,26 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				EventId:      item.EventId,
 			}
 
-			resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
-			if err == nil {
-				addAnotationResponse(response, item, true, resp.NoteId, "")
-			} else {
-				log.Error("Failed annotating", err)
-				addAnotationResponse(response, item, false, "", err.Error())
+			//firestore
+			if svc.eventCtxClient != nil {
+				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+				if err == nil {
+					addAnotationResponse(response, item, true, resp.NoteId, "")
+				} else {
+					log.Error("Failed annotating", err)
+					addAnotationResponse(response, item, false, "", err.Error())
+				}
+			}
+
+			//mongo store
+			if svc.eventCtxClientv2 != nil {
+				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
+				if err == nil {
+					addAnotationResponse(response, item, true, resp.NoteId, "")
+				} else {
+					log.Error("Failed annotating in mongo", err)
+					addAnotationResponse(response, item, false, "", err.Error())
+				}
 			}
 		}
 	}
@@ -214,12 +253,26 @@ func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, reques
 				EventId:      item.EventId,
 			}
 
-			resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
-			if err == nil {
-				addAnotationResponse(response, item, true, resp.NoteId, "")
-			} else {
-				log.Error("Failed deleting", err)
-				addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+			// firestore
+			if svc.eventCtxClient != nil {
+				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+				if err == nil {
+					addAnotationResponse(response, item, true, resp.NoteId, "")
+				} else {
+					log.Error("Failed deleting", err)
+					addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+				}
+			}
+
+			//mongo store
+			if svc.eventCtxClientv2 != nil {
+				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
+				if err == nil {
+					addAnotationResponse(response, item, true, resp.NoteId, "")
+				} else {
+					log.Error("Failed deleting in mongo", err)
+					addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+				}
 			}
 		}
 	}
