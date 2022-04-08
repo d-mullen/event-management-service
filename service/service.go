@@ -123,8 +123,9 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 					log.Error("Failed setting status", err)
 					addStatusResponse(response, item, false, err.Error())
 				} else {
+					// skip as mongodb will add it
+					// addStatusResponse(response, item, true, "")
 				}
-				addStatusResponse(response, item, true, "")
 			}
 
 			// mongo db
@@ -193,9 +194,11 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 
 			//firestore
 			if svc.eventCtxClient != nil {
-				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
+			resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
-					addAnotationResponse(response, item, true, resp.NoteId, "")
+					ecRequest.NoteId = resp.NoteId // use it for mongo for now
+					// skip mongo will add response
+					// addAnotationResponse(response, item, true, resp.NoteId, "")
 				} else {
 					log.Error("Failed annotating", err)
 					addAnotationResponse(response, item, false, "", err.Error())
