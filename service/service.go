@@ -196,7 +196,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			if svc.eventCtxClient != nil {
 				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
-					log.Errorf("New firestore note id is %v", resp.NoteId)
+					log.Logger.Debugf("New firestore note id is %v", resp.NoteId)
 					ecRequest.NoteId = resp.NoteId // use it for mongo for now
 					// skip mongo will add response
 					// addAnotationResponse(response, item, true, resp.NoteId, "")
@@ -211,7 +211,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				log.Errorf("req to mongo is %v", ecRequest)
 				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
-					log.Errorf("New mongo note id is %v", resp.NoteId)
+					log.Debugf("New mongo note id is %v", resp.NoteId)
 					addAnotationResponse(response, item, true, resp.NoteId, "")
 				} else {
 					log.Error("Failed annotating in mongo", err)
