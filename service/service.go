@@ -197,7 +197,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
 					log.Errorf("New firestore note id is %v", resp.NoteId)
-					ecRequest.NoteId = resp.NoteId // use it for mongo for now
+					//ecRequest.NoteId = resp.NoteId // use it for mongo for now
 					// skip mongo will add response
 					// addAnotationResponse(response, item, true, resp.NoteId, "")
 				} else {
