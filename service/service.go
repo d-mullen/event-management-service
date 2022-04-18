@@ -206,6 +206,13 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				}
 			}
 
+			// remake the request
+			ecRequest = ecproto.UpdateEventRequest{
+				OccurrenceId: item.OccurrenceId,
+				NoteId:       item.AnnotationId,
+				Note:         item.Annotation,
+				EventId:      item.EventId,
+			}
 			//mongo store
 			if svc.eventCtxClientv2 != nil {
 				log.Errorf("req to mongo is %v", ecRequest)
