@@ -123,8 +123,10 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 					log.Error("Failed setting status", err)
 					addStatusResponse(response, item, false, err.Error())
 				} else {
+					if svc.eventCtxClientv2 == nil {
+						addStatusResponse(response, item, true, "")
+					} // else skip as mongodb will add it
 				}
-				addStatusResponse(response, item, true, "")
 			}
 
 			// mongo db
@@ -195,17 +197,34 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			if svc.eventCtxClient != nil {
 				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
-					addAnotationResponse(response, item, true, resp.NoteId, "")
+					log.Logger.Debugf("New firestore note id is %v", resp.NoteId)
+					ecRequest.NoteId = resp.NoteId // use it for mongo for now
+					if svc.eventCtxClientv2 == nil {
+						addAnotationResponse(response, item, true, resp.NoteId, "")
+					} // else skip mongo will add response
 				} else {
 					log.Error("Failed annotating", err)
 					addAnotationResponse(response, item, false, "", err.Error())
 				}
 			}
 
+			// remake the request
+			id2use := item.AnnotationId // for edits
+			if id2use == "" {
+				id2use = ecRequest.NoteId // use new firestore id for insert
+			}
+			ecRequest = ecproto.UpdateEventRequest{
+				OccurrenceId: item.OccurrenceId,
+				NoteId:       id2use,
+				Note:         item.Annotation,
+				EventId:      item.EventId,
+			}
 			//mongo store
 			if svc.eventCtxClientv2 != nil {
+				log.Errorf("req to mongo is %v", ecRequest)
 				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
+					log.Debugf("New mongo note id is %v", resp.NoteId)
 					addAnotationResponse(response, item, true, resp.NoteId, "")
 				} else {
 					log.Error("Failed annotating in mongo", err)
@@ -257,7 +276,9 @@ func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, reques
 			if svc.eventCtxClient != nil {
 				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
-					addAnotationResponse(response, item, true, resp.NoteId, "")
+					if svc.eventCtxClientv2 == nil {
+						addAnotationResponse(response, item, true, resp.NoteId, "")
+					} // else skip mongo will add response
 				} else {
 					log.Error("Failed deleting", err)
 					addAnotationResponse(response, item, false, resp.NoteId, err.Error())
