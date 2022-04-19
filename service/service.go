@@ -209,9 +209,13 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			}
 
 			// remake the request
+			id2use := item.AnnotationId // for edits
+			if id2use == "" {
+				id2use = ecRequest.NoteId // use new firestore id for insert
+			}
 			ecRequest = ecproto.UpdateEventRequest{
 				OccurrenceId: item.OccurrenceId,
-				NoteId:       ecRequest.NoteId, // use new firestore id
+				NoteId:       id2use,
 				Note:         item.Annotation,
 				EventId:      item.EventId,
 			}
