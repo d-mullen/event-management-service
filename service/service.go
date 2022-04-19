@@ -123,8 +123,9 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 					log.Error("Failed setting status", err)
 					addStatusResponse(response, item, false, err.Error())
 				} else {
-					// skip as mongodb will add it
-					// addStatusResponse(response, item, true, "")
+					if svc.eventCtxClientv2 == nil {
+						addStatusResponse(response, item, true, "")
+					} // else skip as mongodb will add it
 				}
 			}
 
@@ -198,8 +199,9 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				if err == nil {
 					log.Logger.Debugf("New firestore note id is %v", resp.NoteId)
 					ecRequest.NoteId = resp.NoteId // use it for mongo for now
-					// skip mongo will add response
-					// addAnotationResponse(response, item, true, resp.NoteId, "")
+					if svc.eventCtxClientv2 == nil {
+						addAnotationResponse(response, item, true, resp.NoteId, "")
+					} // else skip mongo will add response
 				} else {
 					log.Error("Failed annotating", err)
 					addAnotationResponse(response, item, false, "", err.Error())
@@ -270,8 +272,9 @@ func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, reques
 			if svc.eventCtxClient != nil {
 				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
-					// skip mongo will add response
-					// addAnotationResponse(response, item, true, resp.NoteId, "")
+					if svc.eventCtxClientv2 == nil {
+						addAnotationResponse(response, item, true, resp.NoteId, "")
+					} // else skip mongo will add response
 				} else {
 					log.Error("Failed deleting", err)
 					addAnotationResponse(response, item, false, resp.NoteId, err.Error())
