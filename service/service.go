@@ -221,7 +221,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 			}
 			//mongo store
 			if svc.eventCtxClientv2 != nil {
-				log.Errorf("req to mongo is %v", ecRequest)
+				log.Debugf("request to mongo is %v", ecRequest)
 				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
 					log.Debugf("New mongo note id is %v", resp.NoteId)
