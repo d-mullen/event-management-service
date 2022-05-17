@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
 - ../base
 patchesStrategicMerge:
-- pdb.yaml
 - set-replicas.yaml
 - custom-env.yaml
