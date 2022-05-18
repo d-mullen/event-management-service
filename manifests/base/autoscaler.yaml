@@ -3,7 +3,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: event-management-service
 spec:
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 16
   metrics:
   - type: Resource
