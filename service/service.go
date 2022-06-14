@@ -121,7 +121,9 @@ func (svc *EventManagementService) SetStatus(ctx context.Context, request *proto
 				_, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest) // ignore response as we dont expect note id
 				if err != nil {
 					log.Error("Failed setting status", err)
-					addStatusResponse(response, item, false, err.Error())
+					if svc.eventCtxClientv2 == nil {
+						addStatusResponse(response, item, false, err.Error())
+					} // else skip as mongodb will add it
 				} else {
 					if svc.eventCtxClientv2 == nil {
 						addStatusResponse(response, item, true, "")
@@ -204,7 +206,9 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 					} // else skip mongo will add response
 				} else {
 					log.Error("Failed annotating", err)
-					addAnotationResponse(response, item, false, "", err.Error())
+					if svc.eventCtxClientv2 == nil {
+						addAnotationResponse(response, item, false, "", err.Error())
+					} // else skip mongo will add response
 				}
 			}
 
@@ -281,7 +285,9 @@ func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, reques
 					} // else skip mongo will add response
 				} else {
 					log.Error("Failed deleting", err)
-					addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+					if svc.eventCtxClientv2 == nil {
+						addAnotationResponse(response, item, false, resp.NoteId, err.Error())
+					} // else skip mongo will add response
 				}
 			}
 
