@@ -1,4 +1,4 @@
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: event-management-service
@@ -9,11 +9,15 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: 500
+      target:
+         type: Utilization
+         averageUtilization: 500
   - type: Resource
     resource:
       name: memory
-      targetAverageUtilization: 500
+      target:
+         type: Utilization
+         averageUtilization: 500
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
