@@ -155,6 +155,7 @@ func parseEntityFiltersToElastic(filters []string) (clauses []interface{}, err e
 						"path": "fields",
 						"query": map[string]interface{}{
 							"bool": map[string]interface{}{
+								"minimum_should_match": 1,
 								"must": []interface{}{
 									map[string]interface{}{"term": map[string]interface{}{"fields.key": clause["field"]}},
 								},

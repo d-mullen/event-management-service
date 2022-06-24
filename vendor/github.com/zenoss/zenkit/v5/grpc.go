@@ -92,11 +92,12 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 	maxRequests := viper.GetInt(GRPCMaxConcurrentRequests)
 	concurrentRequestsUnaryInterceptor, concurrentRequestsStreamInterceptor := ConcurrentRequestsMiddleware(maxRequests)
 
+	opts := grpc_logrus.WithLevels(ZenkitCodeToLevel)
 	serverOpts = append(serverOpts, []grpc.ServerOption{
 		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
 			MetricTagsStreamServerInterceptor(),
 			grpc_ctxtags.StreamServerInterceptor(),
-			grpc_logrus.StreamServerInterceptor(logger),
+			grpc_logrus.StreamServerInterceptor(logger, opts),
 			AuditLogStreamServerInterceptor(auditLogger),
 			concurrentRequestsStreamInterceptor,
 			grpc_auth.StreamServerInterceptor(authFunc),
@@ -106,7 +107,7 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			MetricTagsUnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
-			grpc_logrus.UnaryServerInterceptor(logger),
+			grpc_logrus.UnaryServerInterceptor(logger, opts),
 			AuditLogUnaryServerInterceptor(auditLogger),
 			concurrentRequestsUnaryInterceptor,
 			grpc_auth.UnaryServerInterceptor(authFunc),

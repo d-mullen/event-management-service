@@ -16,6 +16,7 @@ import (
 const AuthHeaderScheme = "bearer"
 
 func DevIdentity(ctx context.Context) (context.Context, error) {
+	//Treat Tenant ACME as legacy v1 tenant
 	tenant := viper.GetString(AuthDevTenantConfig)
 	user := viper.GetString(AuthDevUserConfig)
 	email := viper.GetString(AuthDevEmailConfig)
@@ -25,7 +26,9 @@ func DevIdentity(ctx context.Context) (context.Context, error) {
 	roles := viper.GetStringSlice(AuthDevRolesConfig)
 	clientid := viper.GetString(AuthDevClientIDConfig)
 	subject := viper.GetString(AuthDevSubjectConfig)
-	ident := &devTenantIdentity{user, email, scopes, tenant, connection, groups, roles, clientid, subject}
+	tenantid := viper.GetString(AuthDevTenantIDConfig)
+	tenantname := viper.GetString(AuthDevTenantConfig)
+	ident := &devTenantIdentity{user, email, scopes, tenant, connection, groups, roles, clientid, subject, tenantid, tenantname}
 	addIdentityFieldsToTags(ctx, ident)
 	addRequestIdToTags(ctx)
 	return WithTenantIdentity(ctx, ident), nil

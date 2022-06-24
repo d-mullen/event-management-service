@@ -8,6 +8,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 
 	stackdriver "github.com/TV4/logrus-stackdriver-formatter"
@@ -154,5 +155,48 @@ func AuditLogUnaryServerInterceptor(entry *logrus.Entry) grpc.UnaryServerInterce
 		newCtx := WithAuditLogger(ctx, entry)
 		resp, err = handler(newCtx, req)
 		return
+	}
+}
+
+// ZenkitCodeToLevel is the copy of default implementation of gRPC return codes to log levels mapping.
+// It is a copy with only one modification, status OK is moved to debug level.
+func ZenkitCodeToLevel(code codes.Code) logrus.Level {
+	switch code {
+	case codes.OK:
+		return logrus.DebugLevel
+	case codes.Canceled:
+		return logrus.InfoLevel
+	case codes.Unknown:
+		return logrus.ErrorLevel
+	case codes.InvalidArgument:
+		return logrus.InfoLevel
+	case codes.DeadlineExceeded:
+		return logrus.WarnLevel
+	case codes.NotFound:
+		return logrus.InfoLevel
+	case codes.AlreadyExists:
+		return logrus.InfoLevel
+	case codes.PermissionDenied:
+		return logrus.WarnLevel
+	case codes.Unauthenticated:
+		return logrus.InfoLevel
+	case codes.ResourceExhausted:
+		return logrus.WarnLevel
+	case codes.FailedPrecondition:
+		return logrus.WarnLevel
+	case codes.Aborted:
+		return logrus.WarnLevel
+	case codes.OutOfRange:
+		return logrus.WarnLevel
+	case codes.Unimplemented:
+		return logrus.ErrorLevel
+	case codes.Internal:
+		return logrus.ErrorLevel
+	case codes.Unavailable:
+		return logrus.WarnLevel
+	case codes.DataLoss:
+		return logrus.ErrorLevel
+	default:
+		return logrus.ErrorLevel
 	}
 }

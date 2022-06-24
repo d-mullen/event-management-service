@@ -2,13 +2,11 @@ package zenkit
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-
-	"golang.org/x/sync/singleflight"
 	"time"
 
-	"errors"
-	"fmt"
+	"golang.org/x/sync/singleflight"
 )
 
 type JSONWebKeySet struct {
@@ -56,7 +54,7 @@ func (c *JWKSClient) GetJWK(key string) (*JSONWebKey, error) {
 	}
 	k, ok := c.cachedJWKs[key]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("could find jwks for %v", key))
+		return nil, fmt.Errorf("could find jwks for %v", key)
 	}
 	return &k, nil
 }

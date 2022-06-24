@@ -54,6 +54,7 @@ const (
 
 	AuthDisabledConfig      = "auth.disabled"
 	AuthDevTenantConfig     = "auth.dev_tenant"
+	AuthDevTenantIDConfig   = "auth.dev_tenantid"
 	AuthDevEmailConfig      = "auth.dev_email"
 	AuthDevUserConfig       = "auth.dev_user"
 	AuthDevConnectionConfig = "auth.dev_connection"
@@ -169,6 +170,7 @@ func initConfigWithName(name string) func() {
 		viper.SetDefault(ExporterJaegerAgentConfig, "localhost:6831")
 		viper.SetDefault(ExporterJaegerCollectorConfig, "localhost:14268")
 		viper.SetDefault(AuthDevTenantConfig, "ACME")
+		viper.SetDefault(AuthDevTenantIDConfig, "cazjxtlt7oqqt34a")
 		viper.SetDefault(AuthDevUserConfig, "zcuser@acme.example.com")
 		viper.SetDefault(AuthDevEmailConfig, "zcuser@acme.example.com")
 		viper.SetDefault(AuthDevClientIDConfig, "0123456789abcdef")

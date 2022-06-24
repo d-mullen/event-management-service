@@ -3,11 +3,14 @@ package zenkit
 import (
 	"context"
 	"strings"
+	"sync"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"gopkg.in/square/go-jose.v2/jwt"
+
+	tenant "github.com/zenoss/zing-proto/v11/go/cloud/tenant"
 )
 
 type key int
@@ -17,11 +20,72 @@ const (
 )
 
 var (
-	ErrorNoSubject    = errors.New("no subject present on token")
-	ErrorNoScopes     = errors.New("no scopes present on token")
-	ErrorNoTenant     = errors.New("no tenant present on token")
-	ErrorNoConnection = errors.New("no connection present on token")
+	ErrorNoSubject                                    = errors.New("no subject present on token")
+	ErrorNoScopes                                     = errors.New("no scopes present on token")
+	ErrorNoTenant                                     = errors.New("no tenant present on token")
+	ErrorNoConnection                                 = errors.New("no connection present on token")
+	tenantInternalClient *TenantInternalServiceClient = nil
+	mu                   sync.Mutex
 )
+
+func SetTenantInternalClient(client *TenantInternalServiceClient) {
+	tenantInternalClient = client
+}
+
+func createTenantInternalClient(ctx context.Context) error {
+	mu.Lock()
+	defer mu.Unlock()
+	if tenantInternalClient == nil {
+		client := CreateNewTenantInternalServiceClient(ctx)
+		if client == nil {
+			return errors.New("Unable to create tenant Internal service client")
+		}
+		SetTenantInternalClient(client)
+	}
+	return nil
+}
+
+func GetTenantIDByName(name string) (string, error) {
+	ctx := context.Background()
+	err := createTenantInternalClient(ctx)
+	if err != nil {
+		return "", err
+	}
+	nameTenantInfo := &tenant.TenantInfo_TenantName{
+		TenantName: name,
+	}
+	tenantIdRequest := &tenant.GetTenantIdRequest{
+		TenantInfo: &tenant.TenantInfo{
+			Field: nameTenantInfo,
+		},
+	}
+	tenantID, err := tenantInternalClient.GetTenantId(ctx, tenantIdRequest)
+	if err != nil {
+		return "", err
+	}
+	return tenantID, nil
+}
+
+func GetTenantDataIDByName(name string) (string, error) {
+	ctx := context.Background()
+	err := createTenantInternalClient(ctx)
+	if err != nil {
+		return "", err
+	}
+	nameTenantInfo := &tenant.TenantInfo_TenantName{
+		TenantName: name,
+	}
+	tenantDataIdRequest := &tenant.GetTenantDataIdRequest{
+		TenantInfo: &tenant.TenantInfo{
+			Field: nameTenantInfo,
+		},
+	}
+	tenantDataId, err := tenantInternalClient.GetTenantDataId(ctx, tenantDataIdRequest)
+	if err != nil {
+		return "", err
+	}
+	return tenantDataId, nil
+}
 
 // TenantIdentity is an identity in a multi-tenant application
 type TenantIdentity interface {
@@ -33,6 +97,8 @@ type TenantIdentity interface {
 	HasScope(string) bool
 	ClientID() string
 	GetSubject() string
+	TenantID() string
+	TenantName() string
 }
 
 // Cast the identity to IdentityGroups if you need group information from the identity.
@@ -72,12 +138,20 @@ func NewAuth0TenantIdentity(token string) (TenantIdentity, error) {
 	if claims.ScopesValue == "" && claims.ScopeValue == "" {
 		return nil, ErrorNoScopes
 	}
-	if claims.TenantValue == "" {
-		return nil, ErrorNoTenant
+
+	// Verify tenant and connection unless this is an internal claim.
+	if claims.isInternal() {
+		claims.TenantValue = ""
+		claims.ConnectionValue = ""
+	} else {
+		if claims.TenantValue == "" {
+			return nil, ErrorNoTenant
+		}
+		if claims.ConnectionValue == "" {
+			return nil, ErrorNoConnection
+		}
 	}
-	if claims.ConnectionValue == "" {
-		return nil, ErrorNoConnection
-	}
+
 	return &claims, nil
 }
 
@@ -111,7 +185,17 @@ func (c *auth0TenantClaims) Scopes() []string {
 
 // Tenant gets the tenant the identity belogs to
 func (c *auth0TenantClaims) Tenant() string {
-	return c.TenantValue
+	if c.TenantValue == "" {
+		return ""
+	}
+	ctx := context.Background()
+	logger := ContextLogger(ctx)
+	// This will be changed to just lookup from the claim itself in future
+	tenant, err := GetTenantDataIDByName(c.TenantValue)
+	if err != nil {
+		logger.WithError(err).Warning("Unable to get tenant data id from tenant name")
+	}
+	return tenant
 }
 
 // Tenant gets the tenant the identity belogs to
@@ -155,6 +239,38 @@ func (c *auth0TenantClaims) ClientID() string {
 // Returns the claims subject for the identity
 func (c *auth0TenantClaims) GetSubject() string {
 	return c.Claims.Subject
+}
+
+// Returns the TenantID for the claims tenant for the identity
+func (c *auth0TenantClaims) TenantID() string {
+	if c.TenantValue == "" {
+		return ""
+	}
+
+	ctx := context.Background()
+	logger := ContextLogger(ctx)
+	// This will be changed to just lookup from the claim itself in future
+	tenantId, err := GetTenantIDByName(c.TenantValue)
+	if err != nil {
+		logger.WithError(err).Warning("Unable to get tenant id from tenant name")
+	}
+	return tenantId
+}
+
+// Returns the TenantName for the claims tenant for the identity
+func (c *auth0TenantClaims) TenantName() string {
+	return c.TenantValue
+}
+
+// isInternal returns true if any scopes have an "internal:" prefix.
+func (c *auth0TenantClaims) isInternal() bool {
+	for _, scope := range c.Scopes() {
+		if strings.HasPrefix(scope, "internal:") {
+			return true
+		}
+	}
+
+	return false
 }
 
 // StringSliceEquals compare two string slices for equality
@@ -204,6 +320,8 @@ type devTenantIdentity struct {
 	roles      []string
 	clientid   string
 	subject    string
+	tenantid   string
+	tenantname string
 }
 
 func (c *devTenantIdentity) ID() string         { return c.id }
@@ -215,6 +333,8 @@ func (c *devTenantIdentity) Groups() []string   { return c.groups }
 func (c *devTenantIdentity) Roles() []string    { return c.roles }
 func (c *devTenantIdentity) ClientID() string   { return c.clientid }
 func (c *devTenantIdentity) GetSubject() string { return c.subject }
+func (c *devTenantIdentity) TenantID() string   { return c.tenantid }
+func (c *devTenantIdentity) TenantName() string { return c.tenantname }
 
 func (c *devTenantIdentity) HasScope(scope string) bool {
 	return StringInSlice(scope, c.Scopes())

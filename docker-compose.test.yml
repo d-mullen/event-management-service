@@ -3,21 +3,25 @@
 #
 version: "3.3"
 services:
-  # bigtable:
-  #   image: zenoss/gcloud-emulator:bigtable
-  #   ports:
-  #     - "8086"
-  # pubsub:
-  #   image: zenoss/gcloud-emulator:pubsub
-  #   ports:
-  #     - "8085"
+  mongodb:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: zing-user
+      MONGO_INITDB_ROOT_PASSWORD: .H1ddenPassw0rd.
+    ports:
+      - 27017:27017
+    networks:
+      default:
+        aliases:
+          - zing-mongodb
   test:
+    privileged: true
     image: zenoss/zenkit-build:${ZENKIT_BUILD_VERSION}
     security_opt:
       - seccomp:unconfined
-    # depends_on:
-    #   - bigtable
-    #   - pubsub
+    depends_on:
+      - mongodb
     # environment:
     #   BIGTABLE_EMULATOR_HOST: "bigtable:8086"
     #   PUBSUB_EMULATOR_HOST: "pubsub:8085"

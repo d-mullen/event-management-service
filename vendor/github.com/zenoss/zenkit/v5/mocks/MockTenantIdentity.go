@@ -14,7 +14,9 @@
  */
 package mocks
 
-import "github.com/zenoss/zenkit/v5"
+import (
+	"github.com/zenoss/zenkit/v5"
+)
 
 type MockTenantIdentity struct {
 	tenant     string
@@ -25,12 +27,25 @@ type MockTenantIdentity struct {
 	roles      []string
 	email      string
 	subject    string
+	tenantID   string
+	tenantname string
 }
 
 var _ zenkit.TenantIdentity = &MockTenantIdentity{} // verify the interface is implemented correctly
 
 func NewMockTenantIdentity(tenant, id string) zenkit.TenantIdentity {
-	return &MockTenantIdentity{tenant: tenant, id: id}
+	var tenantdataid string
+	tenantID := tenant + "Id"
+	tenantdataid = tenantID
+	return &MockTenantIdentity{tenant: tenantdataid, id: id}
+}
+
+func (ti *MockTenantIdentity) TenantID() string {
+	return ti.tenantID
+}
+
+func (ti *MockTenantIdentity) TenantName() string {
+	return ti.tenantname
 }
 
 func (ti *MockTenantIdentity) Tenant() string {

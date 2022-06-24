@@ -1,10 +1,10 @@
-ARG ZENKIT_BUILD_VERSION=1.9.1
+ARG ZENKIT_BUILD_VERSION=1.11.0
 
 FROM zenoss/zenkit-build:${ZENKIT_BUILD_VERSION}
 
 COPY . /go/src/github.com/zenoss/event-management-service
 WORKDIR /go/src/github.com/zenoss/event-management-service
-RUN go build -mod vendor -o /bin/event-management-service
+RUN go build -buildvcs=false -mod vendor -o /bin/event-management-service
 
 FROM alpine
 RUN apk add --no-cache curl

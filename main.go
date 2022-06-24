@@ -7,6 +7,9 @@ import (
 
 	"github.com/zenoss/event-management-service/config"
 	"github.com/zenoss/event-management-service/metrics"
+	eventsGrpc "github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
+	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
+	"github.com/zenoss/event-management-service/pkg/application/event"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	"github.com/spf13/viper"
@@ -16,6 +19,8 @@ import (
 
 	"github.com/zenoss/zenkit/v5"
 	proto "github.com/zenoss/zing-proto/v11/go/cloud/event_management"
+	eventQueryProto "github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
+	"github.com/zenoss/zing-proto/v11/go/cloud/eventts"
 )
 
 const (
@@ -52,6 +57,23 @@ func main() {
 				return err
 			}
 			proto.RegisterEventManagementServer(svr, svc)
+		}
+
+		if viper.GetBool(config.EventQueryEnabled) {
+			log.Debug("registering event query service")
+			conn, err := zenkit.NewClientConnWithRetry(ctx, "event-ts-svc", zenkit.DefaultRetryOpts())
+			if err != nil {
+				log.Errorf("failed to get connection event-ts-svc: %q", err)
+				return err
+			}
+			eventTSClient := eventts.NewEventTSServiceClient(conn)
+			eventsRepo, err := mongodb.NewAdapter(ctx, MongoConfigFromEnv(nil))
+			if err != nil {
+				return err
+			}
+			eventApp := event.NewService(eventsRepo, eventsGrpc.NewEventTSAdapter(eventTSClient))
+			eventsQuerySvc := eventsGrpc.NewEventQueryService(eventApp)
+			eventQueryProto.RegisterEventQueryServer(svr, eventsQuerySvc)
 		}
 
 		return nil
