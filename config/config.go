@@ -18,6 +18,9 @@ const (
 	MongoDBAddr                  = "mongo.address"
 	MongoDBName                  = "mongo.db.name"
 
+	// TraceRateLimitedSamplingEnabled - specifies whether rate-limited tracing is enabled
+	TraceRateLimitedSamplingEnabled = "trace.rate.limited.sampling.enabled"
+
 	// The name of the CA certificate file: For Example: ca.crt
 	MongoDBCACertificate = "mongo.certificate.ca.path"
 	// The name of the client certificate and private key file.

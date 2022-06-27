@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/domain/event"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
-	"github.com/zenoss/zingo/v4/protobufutils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -29,14 +28,18 @@ func FilterProtoToEventFilter(filterPb *eventquery.Filter) (*event.Filter, error
 	if !ok {
 		return nil, errInvalidFilter
 	}
-	v, err := protobufutils.FromScalar(filterPb.GetValue())
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to extract filter value: %q", err)
+	mv := filterPb.GetValue().AsMap()
+	keys := make([]string, 0, len(mv))
+	for k := range mv {
+		keys = append(keys, k)
+		if len(keys) > 0 {
+			break
+		}
 	}
 	return &event.Filter{
 		Field: filterPb.Field,
 		Op:    op,
-		Value: v,
+		Value: mv[keys[0]],
 	}, nil
 }
 
@@ -51,7 +54,14 @@ func WithScopeProtoToDomainFilter(pb *eventquery.WithScope) (*event.Filter, erro
 			Op:    event.FilterOpIn,
 			Value: v.EntityIds.Ids}, nil
 	case *eventquery.WithScope_EntityScopeCursor:
-		return nil, status.Error(codes.Unimplemented, "scope cursor clause is unimplemented")
+		return &event.Filter{
+			Field: "scope",
+			Op:    event.FilterOpScope,
+			Value: &event.Scope{
+				ScopeType: event.ScopeEntity,
+				Cursor:    v.EntityScopeCursor.GetCursor(),
+			},
+		}, nil
 	}
 	return nil, errInvalidFilter
 }
@@ -105,13 +115,17 @@ func ClauseProtoToEventFilter(clause *eventquery.Clause) (*event.Filter, error) 
 	case *eventquery.Clause_Filter:
 		return FilterProtoToEventFilter(v.Filter)
 	case *eventquery.Clause_In:
-		values, err := protobufutils.FromScalarArray(v.In.GetValues())
-		if err != nil {
-			return nil, errInvalidClause
+		inAsMap := v.In.Values.AsMap()
+		keys := make([]string, 0, len(inAsMap))
+		for k := range inAsMap {
+			keys = append(keys, k)
+			if len(keys) > 0 {
+				break
+			}
 		}
 		return &event.Filter{
 			Field: v.In.GetField(),
-			Value: values,
+			Value: inAsMap[keys[0]],
 		}, nil
 	case *eventquery.Clause_WithScope:
 		fmt.Printf("%v", v)

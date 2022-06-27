@@ -4,10 +4,15 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
-	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
-	"github.com/zenoss/zingo/v4/protobufutils"
+
+	"google.golang.org/protobuf/types/known/structpb"
 )
+
+func mustToStruct(v map[string]any) *structpb.Struct {
+	s, _ := structpb.NewStruct(v)
+	return s
+}
 
 var _ = Describe("DTO Tests", func() {
 	Context("SearchRequestToQuery", func() {
@@ -50,13 +55,13 @@ var _ = Describe("DTO Tests", func() {
 			Ω(q1).Should(BeNil())
 
 			req.Query = &eventquery.Query{
-				TimeRange: &common.TimeRange{Start: 0, End: 1000},
+				TimeRange: &eventquery.TimeRange{Start: 0, End: 1000},
 				Clause: &eventquery.Clause{
 					Clause: &eventquery.Clause_Filter{
 						Filter: &eventquery.Filter{
 							Field:    "f1",
 							Operator: eventquery.Filter_EQUALS,
-							Value:    protobufutils.MustToScalar(1),
+							Value:    mustToStruct(map[string]any{"f1": 1}),
 						},
 					},
 				},
@@ -67,12 +72,12 @@ var _ = Describe("DTO Tests", func() {
 			Ω(r2).ShouldNot(BeNil())
 
 			req.Query = &eventquery.Query{
-				TimeRange: &common.TimeRange{Start: 0, End: 1000},
+				TimeRange: &eventquery.TimeRange{Start: 0, End: 1000},
 				Clause: &eventquery.Clause{
 					Clause: &eventquery.Clause_In{
 						In: &eventquery.In{
 							Field:  "f2",
-							Values: protobufutils.MustToScalarArray([]interface{}{1, 2}),
+							Values: mustToStruct(map[string]any{"f2": []any{1, 2}}),
 						},
 					},
 				},
@@ -82,7 +87,7 @@ var _ = Describe("DTO Tests", func() {
 			Ω(r3).ShouldNot(BeNil())
 
 			req.Query = &eventquery.Query{
-				TimeRange: &common.TimeRange{Start: 0, End: 1000},
+				TimeRange: &eventquery.TimeRange{Start: 0, End: 1000},
 				Clause: &eventquery.Clause{
 					Clause: &eventquery.Clause_WithScope{
 						WithScope: &eventquery.WithScope{

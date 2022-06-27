@@ -14,10 +14,7 @@ import (
 	"github.com/zenoss/event-management-service/pkg/domain/event"
 	"github.com/zenoss/event-management-service/pkg/domain/eventts"
 	"github.com/zenoss/zenkit/v5"
-	"github.com/zenoss/zing-proto/v11/go/cloud/common"
-	"github.com/zenoss/zing-proto/v11/go/cloud/event_context"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
-	"github.com/zenoss/zing-proto/v11/go/cloud/yamr"
 	eventPb "github.com/zenoss/zing-proto/v11/go/event"
 )
 
@@ -119,13 +116,13 @@ var _ = Describe("Query gRPC Service Tests", func() {
 				}, nil)
 			resp, err := svc.Search(ctx, &eventquery.SearchRequest{
 				Query: &eventquery.Query{
-					TimeRange: &common.TimeRange{
+					TimeRange: &eventquery.TimeRange{
 						Start: 0,
 						End:   10,
 					},
 					Severities: []eventPb.Severity{eventPb.Severity_SEVERITY_DEFAULT},
 					Statuses:   []eventPb.Status{eventPb.Status_STATUS_OPEN},
-					PageInput: &event_context.PageInput{
+					PageInput: &eventquery.PageInput{
 						Limit: 100,
 					},
 					Fields: nil,
@@ -161,15 +158,15 @@ var _ = Describe("Query gRPC Service Tests", func() {
 					},
 				}, nil)
 			resp, err := svc.Frequency(ctx, &eventquery.FrequencyRequest{
-				Query: &eventquery.Query{TimeRange: &common.TimeRange{Start: 0, End: 10}, Severities: []eventPb.Severity{eventPb.Severity_SEVERITY_DEFAULT}, Statuses: []eventPb.Status{eventPb.Status_STATUS_OPEN}, PageInput: &event_context.PageInput{Limit: 100}, Fields: nil},
-				Fields: []*yamr.Field{{
+				Query: &eventquery.Query{TimeRange: &eventquery.TimeRange{Start: 0, End: 10}, Severities: []eventPb.Severity{eventPb.Severity_SEVERITY_DEFAULT}, Statuses: []eventPb.Status{eventPb.Status_STATUS_OPEN}, PageInput: &eventquery.PageInput{Limit: 100}, Fields: nil},
+				Fields: []*eventquery.Field{{
 					Field:      "severity",
-					Aggregator: yamr.Aggregator_FIRST,
+					Aggregator: eventquery.Aggregator_FIRST,
 					Label:      "",
 				}},
-				GroupBy: []*yamr.Field{{
+				GroupBy: []*eventquery.Field{{
 					Field:      "severity",
-					Aggregator: yamr.Aggregator_FIRST,
+					Aggregator: eventquery.Aggregator_FIRST,
 					Label:      "",
 				}},
 				Downsample:     0,

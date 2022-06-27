@@ -52,7 +52,11 @@ func ConcurrentBatcher[E any, R any](
 		defer childSpan.End()
 		return doOperation(batch)
 	}
-	queue := make(chan []E, len(payload)/batchSize+len(payload)%batchSize)
+	numBatches := len(payload)
+	if len(payload)%batchSize > 0 {
+		numBatches += 1
+	}
+	queue := make(chan []E, numBatches)
 	for i := 0; i < len(payload); i += batchSize {
 		j := i + batchSize
 		if j > len(payload) {

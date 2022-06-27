@@ -25,7 +25,7 @@ var _ = Describe("eventquery.Service", func() {
 	BeforeEach(func() {
 		eventsRepo = eventContextMocks.NewRepository(suiteTestingT)
 		eventTSRepo = eventTSMocks.NewRepository(suiteTestingT)
-		svc = event.NewService(eventsRepo, eventTSRepo)
+		svc = event.NewService(eventsRepo, eventTSRepo, nil)
 	})
 
 	Context("Service.Find", func() {

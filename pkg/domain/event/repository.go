@@ -21,6 +21,7 @@ const (
 	FilterOpOr                   FilterOp = "or"
 	FilterOpAnd                  FilterOp = "and"
 	FilterOpNot                  FilterOp = "not"
+	FilterOpScope                FilterOp = "_in_scope"
 )
 
 type SortOrder int
@@ -30,10 +31,21 @@ const (
 	SortOrderAscending  = 1
 )
 
+type ScopeEnum int
+
+const (
+	ScopeEntity ScopeEnum = iota
+)
+
 type (
 	TimeRange struct {
 		Start int64
 		End   int64
+	}
+
+	Scope struct {
+		ScopeType ScopeEnum
+		Cursor    string
 	}
 	Query struct {
 		Tenant     string

@@ -9,10 +9,12 @@ import (
 	"github.com/zenoss/event-management-service/metrics"
 	eventsGrpc "github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
 	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
+	"github.com/zenoss/event-management-service/pkg/adapters/scopes/yamr"
 	"github.com/zenoss/event-management-service/pkg/application/event"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	"github.com/spf13/viper"
+	yamrPb "github.com/zenoss/zing-proto/v11/go/cloud/yamr"
 	"google.golang.org/grpc"
 
 	. "github.com/zenoss/event-management-service/service"
@@ -71,7 +73,17 @@ func main() {
 			if err != nil {
 				return err
 			}
-			eventApp := event.NewService(eventsRepo, eventsGrpc.NewEventTSAdapter(eventTSClient))
+			yamrConn, err := zenkit.NewClientConnWithRetry(ctx, "yamr-query-public", zenkit.DefaultRetryOpts())
+			if err != nil {
+				log.Errorf("failed to get connection to yamr: %q", err)
+				return err
+			}
+			yamrQueryClient := yamrPb.NewYamrQueryClient(yamrConn)
+			entityScopeProvider := yamr.NewAdapter(yamrQueryClient)
+			eventApp := event.NewService(
+				eventsRepo,
+				eventsGrpc.NewEventTSAdapter(eventTSClient),
+				entityScopeProvider)
 			eventsQuerySvc := eventsGrpc.NewEventQueryService(eventApp)
 			eventQueryProto.RegisterEventQueryServer(svr, eventsQuerySvc)
 		}

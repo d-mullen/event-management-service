@@ -69,7 +69,7 @@ func (f *FrequencyMap) Get() (timestamps []int64, buckets []*Bucket) {
 	return
 }
 
-func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]interface{}) error {
+func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]interface{}) {
 	type FieldValues struct {
 		Field  string
 		Values []interface{}
@@ -120,7 +120,7 @@ func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]in
 			}
 		})
 	})
-	return nil
+	return
 }
 
 func (f *FrequencyMap) increment(key string, values map[string]interface{}, ival interval.Interval) {

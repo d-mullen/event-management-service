@@ -3,17 +3,17 @@ package grpc
 import (
 	"context"
 	"errors"
+	"github.com/zenoss/event-management-service/internal/auth"
 
 	appEvent "github.com/zenoss/event-management-service/pkg/application/event"
 	"github.com/zenoss/event-management-service/pkg/domain/event"
 	"github.com/zenoss/zenkit/v5"
-	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
 	eventPb "github.com/zenoss/zing-proto/v11/go/event"
-	"github.com/zenoss/zingo/v4/protobufutils"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -35,44 +35,33 @@ func NewEventQueryService(eventQuerySvr appEvent.Service) *EventQueryService {
 
 var _ eventquery.EventQueryServer = &EventQueryService{}
 
-func CheckAuth(ctx context.Context) (zenkit.TenantIdentity, error) {
-	ident := zenkit.ContextTenantIdentity(ctx)
-	if ident == nil {
-		return nil, status.Error(codes.Unauthenticated, "no identity found on context")
-	}
-	if len(ident.TenantName()) == 0 && len(ident.Tenant()) == 0 {
-		return nil, status.Errorf(codes.Unauthenticated, "not tenant claim found identity: %#v", ident)
-	}
-	return ident, nil
-}
-
-func sortOrderFromProto(order common.SortOrder) event.SortOrder {
-	if order == common.SortOrder_DESC {
+func sortOrderFromProto(order eventquery.SortOrder) event.SortOrder {
+	if order == eventquery.SortOrder_DESC {
 		return event.SortOrderDescending
 	}
 	return event.SortOrderAscending
 }
-func fieldNameFromProto(byField *common.SortBy_ByField) string {
+func fieldNameFromProto(byField *eventquery.SortBy_ByField) string {
 	switch v := byField.ByField.SortField.(type) {
-	case *common.SortByField_Property:
+	case *eventquery.SortByField_Property:
 		return v.Property
-	case *common.SortByField_Dimension:
+	case *eventquery.SortByField_Dimension:
 		return v.Dimension
-	case *common.SortByField_Metadata:
+	case *eventquery.SortByField_Metadata:
 		return v.Metadata
 	default:
 		return ""
 	}
 }
 
-func ProtoSortByToDomain(orig *common.SortBy) (*event.SortOpt, error) {
+func ProtoSortByToDomain(orig *eventquery.SortBy) (*event.SortOpt, error) {
 	switch v := orig.SortType.(type) {
-	case *common.SortBy_ByField:
+	case *eventquery.SortBy_ByField:
 		return &event.SortOpt{
 			Field:     fieldNameFromProto(v),
 			SortOrder: sortOrderFromProto(v.ByField.GetOrder()),
 		}, nil
-	case *common.SortBy_BySeries:
+	case *eventquery.SortBy_BySeries:
 		return &event.SortOpt{
 			Field:     v.BySeries.SeriesName,
 			SortOrder: sortOrderFromProto(v.BySeries.Order),
@@ -146,7 +135,7 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 	ctx, span := trace.StartSpan(ctx, "zenoss.cloud/eventQuery/v2/go/EventQueryService.Search")
 	defer span.End()
 	log := zenkit.ContextLogger(ctx).WithField("req", req)
-	ident, err := CheckAuth(ctx)
+	ident, err := auth.CheckAuth(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +154,7 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 	}
 	resp := &eventquery.SearchResponse{
 		Results: make([]*eventquery.EventResult, 0),
-		PageInfo: &common.PageInfo{
+		PageInfo: &eventquery.PageInfo{
 			EndCursor: page.Cursor,
 			HasNext:   page.HasNext,
 		},
@@ -173,14 +162,11 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 	for _, result := range page.Results {
 		currID := result.ID
 		currEntity := result.Entity
-		currDim := make(map[string]*common.Scalar)
 		currName := result.Name
-		for k, v := range result.Dimensions {
-			scalar, err := protobufutils.ToScalar(v)
-			if err != nil {
-				return nil, status.Error(codes.Internal, "failed to marshal dimension")
-			}
-			currDim[k] = scalar
+		currDim, err := structpb.NewStruct(result.Dimensions)
+		if err != nil {
+			log.WithError(err).Error("failed to convert result dimentions to struct protocol buffer")
+			return nil, err
 		}
 		curr := &eventquery.EventResult{
 			Id:         currID,
@@ -194,7 +180,7 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 				curr.Occurrences[i] = &eventquery.Occurrence{
 					Id:            occ.ID,
 					EventId:       occ.EventID,
-					TimeRange:     &common.TimeRange{Start: occ.StartTime, End: occ.EndTime},
+					TimeRange:     &eventquery.TimeRange{Start: occ.StartTime, End: occ.EndTime},
 					Severity:      eventPb.Severity(occ.Severity), // TODO: fixme
 					Status:        eventPb.Status(occ.Status),     // TODO: fixme
 					InstanceCount: uint64(occ.InstanceCount),
@@ -216,13 +202,18 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 					}
 				}
 				if len(occ.Metadata) > 0 {
-					currOcc.Metadata = make(map[string]*common.ScalarArray)
+					resultMD := &structpb.Struct{}
+					resultMD.Fields = make(map[string]*structpb.Value)
 					for k, anyValues := range occ.Metadata {
-						scalarArray, err := protobufutils.ToScalarArray(anyValues)
+						listValue, err := structpb.NewList(anyValues)
 						if err != nil {
 							return nil, status.Errorf(codes.Internal, "failed to convert metatadata to protobuf: %q", err)
 						}
-						currOcc.Metadata[k] = scalarArray
+						resultMD.Fields[k] = &structpb.Value{
+							Kind: &structpb.Value_ListValue{
+								ListValue: listValue,
+							},
+						}
 					}
 				}
 			}
@@ -245,7 +236,7 @@ func (handler *EventQueryService) Count(ctx context.Context, req *eventquery.Cou
 	ctx, span := trace.StartSpan(ctx, "zenoss.cloud/eventQuery/v2/go/EventQueryService.Count")
 	defer span.End()
 	log := zenkit.ContextLogger(ctx).WithField("req", req)
-	ident, err := CheckAuth(ctx)
+	ident, err := auth.CheckAuth(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -254,29 +245,38 @@ func (handler *EventQueryService) Count(ctx context.Context, req *eventquery.Cou
 		log.WithError(err).Error("failed to convert request to domain query")
 		return nil, err
 	}
+	reqFields := make([]string, len(req.Fields))
+	for i, f := range req.Fields {
+		reqFields[i] = f.Field
+	}
 	log.
 		WithField("query", findReq).
 		Tracef("executing Find request")
 	countResp, err := handler.svr.Count(ctx, &event.CountRequest{
 		Query:  *findReq,
-		Fields: []string{req.Fields.Field}, // TODO: fix type of this field in zing-proto
+		Fields: reqFields, // TODO: fix type of this field in zing-proto
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "failed to execute event context query: %q", err)
 	}
 	response := &eventquery.CountResponse{
-		Field:  req.Fields.Field,
-		Counts: make([]*eventquery.CountResult, 0),
+		Results: make(map[string]*eventquery.CountResponse_Results),
 	}
-	counts := response.Counts
-	if countResults, ok := countResp.Results[response.Field]; ok {
-		for _, countResult := range countResults {
-			counts = append(counts, &eventquery.CountResult{
-				Value: protobufutils.MustToScalar(countResult.Value),
-				Count: countResult.Count,
-			})
+	for field, countResults := range countResp.Results {
+		countResultsProto := make([]*eventquery.CountResult, len(countResults))
+		for i, r := range countResults {
+			sV, err := structpb.NewValue(r.Value)
+			if err != nil {
+				log.WithError(err).Error("failed to convert result to struct value")
+				return nil, err
+			}
+			countResultsProto[i] = &eventquery.CountResult{
+				Value: sV,
+				Count: r.Count,
+			}
 		}
-		response.Counts = counts
+		response.Results[field] = &eventquery.CountResponse_Results{Values: countResultsProto}
+
 	}
 	return response, nil
 }
@@ -285,7 +285,7 @@ func (handler *EventQueryService) Frequency(ctx context.Context, req *eventquery
 	ctx, span := trace.StartSpan(ctx, "zenoss.cloud/eventQuery/v2/go/EventQueryService.Frequency")
 	defer span.End()
 	log := zenkit.ContextLogger(ctx).WithField("req", req)
-	ident, err := CheckAuth(ctx)
+	ident, err := auth.CheckAuth(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -316,22 +316,40 @@ func (handler *EventQueryService) Frequency(ctx context.Context, req *eventquery
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "failed to execute frequency request: %q", err)
 	}
-	resp := &eventquery.FrequencyResponse{
+	responseProto := &eventquery.FrequencyResponse{
 		Timestamps: resp1.Timestamps,
 	}
-	freqResults := make([]*eventquery.FrequencyResult, 0)
+	freqResults := make(map[string]*eventquery.FrequencyResponse_Results, 0)
 	for _, r := range resp1.Results {
-		key, err := protobufutils.ToScalarMap(r.Key)
-		if err != nil {
-			return nil, status.Error(codes.Internal, "failed to convert frequency result key to scalar map")
+		keys := make([]string, 0)
+		for k := range r.Key {
+			keys = append(keys, k)
+			if len(keys) > 0 {
+				break
+			}
 		}
-		freqResults = append(freqResults, &eventquery.FrequencyResult{
-			Key:    key,
-			Values: r.Values,
-		})
+		sv, err := structpb.NewValue(r.Key[keys[0]])
+		if err != nil {
+			return nil, err
+		}
+		if freqResultEntry, ok := freqResults[keys[0]]; !ok {
+			freqResults[keys[0]] = &eventquery.FrequencyResponse_Results{
+				Values: []*eventquery.FrequencyResult{
+					{
+						Value:  sv,
+						Counts: r.Values,
+					},
+				},
+			}
+		} else {
+			freqResultEntry.Values = append(freqResultEntry.Values, &eventquery.FrequencyResult{
+				Value:  sv,
+				Counts: r.Values,
+			})
+		}
 	}
-	resp.Results = freqResults
-	return resp, nil
+	responseProto.Results = freqResults
+	return responseProto, nil
 }
 
 func (handler *EventQueryService) SearchStream(_ *eventquery.SearchStreamRequest, _ eventquery.EventQuery_SearchStreamServer) error {

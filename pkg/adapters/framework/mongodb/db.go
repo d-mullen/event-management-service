@@ -9,13 +9,13 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/zenoss/event-management-service/internal/instrumentation"
 	"github.com/zenoss/event-management-service/pkg/domain/event"
 	"github.com/zenoss/zenkit/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.opencensus.io/trace"
 	"golang.org/x/exp/slices"
 )
 
@@ -115,7 +115,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		limit   int
 		log     = zenkit.ContextLogger(ctx)
 	)
-	ctx, span := trace.StartSpan(ctx, "mongodb.Adapter.Find")
+	ctx, span := instrumentation.StartSpan(ctx, "mongodb.Adapter.Find")
 	defer span.End()
 	err := query.Validate()
 	if err != nil {
@@ -128,10 +128,13 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 	if err != nil {
 		return nil, err
 	}
-	log.WithFields(logrus.Fields{
-		"filters":  filters,
-		"findOpts": findOpts,
-	}).Debugf("executing %s.Find", CollOccurrences)
+	instrumentation.AnnotateSpan("occurrence.Find",
+		fmt.Sprintf("executing %s.Find", CollOccurrences),
+		span,
+		map[string]any{
+			"filter":   filters,
+			"findOpts": findOpts,
+		}, nil)
 	cursor, err := db.collections[CollOccurrences].Find(ctx, filters, findOpts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find events with aggregation")
@@ -158,6 +161,12 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		}
 	}
 	hasNext = !(cursor.ID() == 0)
+	instrumentation.AnnotateSpan("occurrenceResults",
+		"got occurrence query results",
+		span,
+		map[string]any{
+			"count": len(docs),
+		}, nil)
 
 	results := make([]*Event, 0)
 	occMap := make(map[string]*Occurrence)
@@ -232,7 +241,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		// event docs from the occurrence docs
 		eventMapMut := sync.Mutex{}
 		eventMap := make(map[string]*EventDimensions)
-		err := ConcurrentBatcher(ctx, 200, 3, eventIDs,
+		err := ConcurrentBatcher(ctx, 500, 10, eventIDs,
 			func(batch []string) (*mongo.Cursor, error) {
 				eventInFilter := bson.D{{Key: MongoOpIn, Value: batch}}
 				log.WithFields(logrus.Fields{

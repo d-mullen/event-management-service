@@ -176,6 +176,12 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
 ## explicit
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/kr/pretty v0.3.0
+## explicit; go 1.12
+github.com/kr/pretty
+# github.com/kr/text v0.2.0
+## explicit
+github.com/kr/text
 # github.com/magiconair/properties v1.8.5
 ## explicit; go 1.13
 github.com/magiconair/properties
@@ -217,6 +223,12 @@ github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/rogpeppe/go-internal v1.6.1
+## explicit; go 1.11
+github.com/rogpeppe/go-internal/fmtsort
+# github.com/ryboe/q v1.0.16
+## explicit; go 1.18
+github.com/ryboe/q
 # github.com/sirupsen/logrus v1.5.0
 ## explicit; go 1.13
 github.com/sirupsen/logrus
@@ -279,7 +291,7 @@ github.com/zenoss/event-context-svc/utils
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.17.15-0.20220512001554-2157937c9c5e
+# github.com/zenoss/zing-proto/v11 v11.17.21-0.20220605225921-33c08f0c43a2 => ../../zing-proto
 ## explicit; go 1.14
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver
@@ -424,6 +436,9 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
+# golang.org/x/time v0.0.0-20220411224347-583f2d630306
+## explicit
+golang.org/x/time/rate
 # google.golang.org/api v0.76.0
 ## explicit; go 1.15
 google.golang.org/api/googleapi
@@ -585,3 +600,4 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
+# github.com/zenoss/zing-proto/v11 => ../../zing-proto
