@@ -4,3 +4,4 @@ resources:
 - ../base
 patchesStrategicMerge:
 - custom-env.yaml
+- inject-istio-sidecar.yaml
