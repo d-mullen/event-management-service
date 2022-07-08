@@ -10,3 +10,16 @@ spec:
         env:
           - name: EVENT_MANAGEMENT_SERVICE_LOG_LEVEL
             value: "error"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-query
+spec:
+  template:
+    spec:
+      containers:
+      - name: event-query
+        env:
+          - name: EVENT_MANAGEMENT_SERVICE_LOG_LEVEL
+            value: "error"

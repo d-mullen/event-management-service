@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: event-management-service
+    project: event-management-service
   name: event-management-service
   annotations:
     zenoss.zing.deploy.istio: "true"
@@ -14,6 +15,7 @@ spec:
     metadata:
       labels:
         app: event-management-service
+        project: event-management-service
     spec:
       affinity:
         podAntiAffinity:
@@ -164,3 +166,186 @@ spec:
         - name: cred-secrets
           secret:
             secretName: event-management-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    zenoss.spinnaker_deploy: "true"
+    zenoss.zing.deploy.istio: "true"
+  labels:
+    app: event-query
+    project: event-query
+  name: event-query
+spec:
+  selector:
+    matchLabels:
+      app: event-query
+  template:
+    metadata:
+      labels:
+        app: event-query
+        project: event-query
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - event-query
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: event-query
+        image: event-management-service
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 512
+        ports:
+          - containerPort: 9080
+        env:
+          - name: ZING_PRODUCT_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PRODUCT_NAME
+          - name: ZING_PRODUCT_VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PRODUCT_VERSION
+          - name: ZING_PRODUCT_COMPANY_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: COMPANY_NAME
+          - name: ZING_PRODUCT_OTHER_COMMENTS
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PROJECT_ID
+          - name: EVENT_MANAGEMENT_SERVICE_GCLOUD_PROJECT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PROJECT_ID
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: "/run/credentials/event-management-service.json"
+          - name: EVENT_MANAGEMENT_SERVICE_JWT_AUDIENCE
+            valueFrom:
+              configMapKeyRef:
+                name: auth0-common
+                key: AUTH0_AUDIENCE
+          - name: EVENT_MANAGEMENT_SERVICE_JWKS_CACHE_MINUTES
+            valueFrom:
+              configMapKeyRef:
+                name: auth0-common
+                key: JWKS_CACHE_MINUTES
+          - name: EVENT_MANAGEMENT_SERVICE_JWT_ISSUER
+            valueFrom:
+              configMapKeyRef:
+                name: auth0-common
+                key: JWT_ISSUER_URL
+          - name: EVENT_MANAGEMENT_SERVICE_JWKS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: auth0-common
+                key: JWKS_URL
+          - name: EVENT_MANAGEMENT_SERVICE_EVENTMANAGEMENT_ENABLED
+            value: "0"
+          - name: EVENT_MANAGEMENT_SERVICE_EVENT_QUERY_ENABLED
+            value: "1"
+          # Kubernetes location information.
+          - name: K8S_CLUSTER
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: K8S_CLUSTER
+          - name: K8S_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: K8S_POD
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1000M
+        volumeMounts:
+          - name: cred-secrets
+            mountPath: /run/credentials
+            readOnly: true
+          - name: zing-mongodb-event-query-certs
+            mountPath: /mongo-user
+            readOnly: true
+      # [START zc-api-proxy]: Provides authentication for our service.
+      - name: event-query-api-proxy
+        image: zc-api-proxy
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 512
+        ports:
+          - containerPort: 9000
+            protocol: TCP
+        env:
+          # ZC_API_PROXY_LISTEN_ADDR is mandatory. It has no default.
+          - name: ZC_API_PROXY_LISTEN_ADDR
+            value: ":9000"
+
+          # ZC_API_PROXY_HTTP_TARGET_URL is mandatory. It has no default.
+          - name: ZC_API_PROXY_HTTP_TARGET_URL
+            value: "http://localhost:9080"
+
+          # ZC_API_PROXY_HTTP2_TARGET_URL is mandatory. It has no default.
+          - name: ZC_API_PROXY_HTTP2_TARGET_URL
+            value: "http://localhost:9080"
+
+          # ZC_API_PROXY_API_KEY_HEADER must be set to zenoss-api-key.
+          - name: ZC_API_PROXY_API_KEY_HEADER
+            value: "zenoss-api-key"
+
+          # ZC_API_PROXY_API_KEY_SERVER_URL is mandatory. It has no default.
+          - name: ZC_API_PROXY_API_KEY_SERVER_URL
+            value: "http://api-key-server:8000/accessToken"
+
+          # ZC_API_PROXY_SERVICE_LABEL must be set to the proxied service's name.
+          - name: ZC_API_PROXY_SERVICE_LABEL
+            value: "event-query"
+
+          # ZC_API_PROXY_LISTENER_DISABLE_TLS must be set to true.
+          - name: ZC_API_PROXY_LISTENER_DISABLE_TLS
+            value: "true"
+
+          # ZC_API_PROXY_GCLOUD_PROJECT_ID is mandatory. It has no default.
+          - name: ZC_API_PROXY_GCLOUD_PROJECT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: PROJECT_ID
+        resources:
+          requests:
+            cpu: 10m
+            memory: 35M
+      # [END zc-api-proxy]
+      volumes:
+        - name: cred-secrets
+          secret:
+            secretName: event-management-service
+        - name: "zing-mongodb-event-query-certs"
+          secret:
+            secretName: "zing-mongodb-user-event-context-svc"
+            items:
+              - key: event-context-svc.pem
+                path: user.pem
+              - key: ca.crt
+                path: ca.crt

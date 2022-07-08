@@ -7,3 +7,16 @@ spec:
   selector:
     matchLabels:
       app: event-management-service
+      project: event-management-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: event-query
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app: event-query
+      project: event-query
+

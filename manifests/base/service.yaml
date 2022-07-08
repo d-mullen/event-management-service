@@ -26,3 +26,32 @@ spec:
   selector:
     app: event-management-service
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-query
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: grpc
+  selector:
+    app: event-query
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-query-public
+spec:
+  ports:
+  - port: 80
+    # through zc-api-proxy to event-mgmt-svc
+    targetPort: 9000
+    protocol: TCP
+    name: grpc
+  selector:
+    app: event-query
+  type: ClusterIP

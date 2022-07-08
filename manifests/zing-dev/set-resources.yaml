@@ -11,3 +11,17 @@ spec:
           requests:
             memory: 512M
             cpu: 800m
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-query
+spec:
+  template:
+    spec:
+      containers:
+      - name: event-query
+        resources:
+          requests:
+            memory: 512M
+            cpu: 800m
