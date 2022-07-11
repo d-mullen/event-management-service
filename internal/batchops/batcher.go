@@ -1,4 +1,4 @@
-package mongodb
+package batchops
 
 import (
 	"context"
@@ -9,7 +9,13 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func SerialBatcher[E any, R any](
+// Do takes payload, a slice of E, subdivides it into batches and
+// applies the func `doOperation` to that batch. If doOperation(batch)
+// succeeds, then its results are passed to the `processResults` func.
+// If `doOperation(result)` fails, then Do fails; if the
+// callback returns false, then Do will stop processing
+// batches.
+func Do[E any, R any](
 	batchSize int,
 	payload []E,
 	doOperation func(batch []E) (R, error),
@@ -36,19 +42,25 @@ func SerialBatcher[E any, R any](
 	return nil
 }
 
-func ConcurrentBatcher[E any, R any](
+// DoConcurrently takes payload, a slice of E, subdivides it into batches and
+// concurrently applies the func `doOperation` to that batch. If doOperation(batch)
+// succeeds, then its results are passed to the `processResults` func.
+// If `doOperation(result)` fails, then DoConcurrently fails; if the
+// callback returns false, then DoConcurrently will stop processing
+// batches.
+func DoConcurrently[E any, R any](
 	ctx context.Context,
 	batchSize, numRoutines int,
 	payload []E,
 	doOperation func(batch []E) (R, error),
 	processResults func(result R) (bool, error)) error {
-	ctx, span := trace.StartSpan(ctx, "ConcurrentBatcher")
+	ctx, span := trace.StartSpan(ctx, "DoConcurrently")
 	defer span.End()
 	if batchSize == 0 {
 		return errors.New("invalid batch size")
 	}
 	doOpWithSpan := func(batch []E) (R, error) {
-		_, childSpan := trace.StartSpan(ctx, "ConcurrentBatcher.doOperation")
+		_, childSpan := trace.StartSpan(ctx, "DoConcurrently.doOperation")
 		defer childSpan.End()
 		return doOperation(batch)
 	}
@@ -81,6 +93,7 @@ func ConcurrentBatcher[E any, R any](
 					return err
 				}
 				if !ok {
+					//TODO: implement mechanism to stop all goroutines in group
 					break
 				}
 			}

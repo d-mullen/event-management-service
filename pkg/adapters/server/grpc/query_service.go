@@ -6,7 +6,7 @@ import (
 	"github.com/zenoss/event-management-service/internal/auth"
 
 	appEvent "github.com/zenoss/event-management-service/pkg/application/event"
-	"github.com/zenoss/event-management-service/pkg/domain/event"
+	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
 	eventPb "github.com/zenoss/zing-proto/v11/go/event"

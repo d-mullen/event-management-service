@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	eventts "github.com/zenoss/event-management-service/pkg/domain/eventts"
+	eventts "github.com/zenoss/event-management-service/pkg/models/eventts"
 
 	testing "testing"
 )

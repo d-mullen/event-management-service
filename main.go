@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
+	eventContextMongo "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
+	eventTSGrpc "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventts"
+	eventQueryGrpc "github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
 	"math/rand"
 	"time"
 
 	"github.com/zenoss/event-management-service/config"
 	"github.com/zenoss/event-management-service/metrics"
-	eventsGrpc "github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
 	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
 	"github.com/zenoss/event-management-service/pkg/adapters/scopes/yamr"
 	"github.com/zenoss/event-management-service/pkg/application/event"
@@ -62,29 +65,40 @@ func main() {
 		}
 
 		if viper.GetBool(config.EventQueryEnabled) {
-			log.Debug("registering event query service")
+			cfg := MongoConfigFromEnv(nil)
+			db, err := mongodb.NewMongoDatabaseConnection(ctx, cfg)
+			if err != nil {
+				log.WithField(logrus.ErrorKey, err).Error("failed to connect to mongodb")
+				return err
+			}
+			eventContextAdapter, err := eventContextMongo.NewAdapter(ctx, cfg, db)
+			if err != nil {
+				log.WithField(logrus.ErrorKey, err).Error("failed to connect to event-ts-svc")
+				return err
+			}
 			conn, err := zenkit.NewClientConnWithRetry(ctx, "event-ts-svc", zenkit.DefaultRetryOpts())
 			if err != nil {
 				log.Errorf("failed to get connection event-ts-svc: %q", err)
 				return err
 			}
 			eventTSClient := eventts.NewEventTSServiceClient(conn)
-			eventsRepo, err := mongodb.NewAdapter(ctx, MongoConfigFromEnv(nil))
+			eventTSAdapter := eventTSGrpc.NewAdapter(eventTSClient)
+			yamrAddress := "yamr-query-public" // TODO get this from config
+			yamrConn, err := zenkit.NewClientConnWithRetry(ctx, yamrAddress, zenkit.DefaultRetryOpts())
 			if err != nil {
-				return err
-			}
-			yamrConn, err := zenkit.NewClientConnWithRetry(ctx, "yamr-query-public", zenkit.DefaultRetryOpts())
-			if err != nil {
-				log.Errorf("failed to get connection to yamr: %q", err)
+				log.
+					WithField(logrus.ErrorKey, err).
+					Errorf("failed to get connection to %s: %q", yamrAddress, err)
 				return err
 			}
 			yamrQueryClient := yamrPb.NewYamrQueryClient(yamrConn)
-			entityScopeProvider := yamr.NewAdapter(yamrQueryClient)
+			entityScopeAdapter := yamr.NewAdapter(yamrQueryClient)
 			eventApp := event.NewService(
-				eventsRepo,
-				eventsGrpc.NewEventTSAdapter(eventTSClient),
-				entityScopeProvider)
-			eventsQuerySvc := eventsGrpc.NewEventQueryService(eventApp)
+				eventContextAdapter,
+				eventTSAdapter,
+				entityScopeAdapter)
+			eventsQuerySvc := eventQueryGrpc.NewEventQueryService(eventApp)
+			log.Debug("registering event query service")
 			eventQueryProto.RegisterEventQueryServer(svr, eventsQuerySvc)
 		}
 

@@ -5,8 +5,8 @@ package mocks
 import (
 	context "context"
 
-	event "github.com/zenoss/event-management-service/pkg/domain/event"
-	eventts "github.com/zenoss/event-management-service/pkg/domain/eventts"
+	event "github.com/zenoss/event-management-service/pkg/models/event"
+	eventts "github.com/zenoss/event-management-service/pkg/models/eventts"
 
 	mock "github.com/stretchr/testify/mock"
 

@@ -1,15 +1,15 @@
-package grpc_test
+package eventts_test
 
 import (
 	"context"
 	"fmt"
+	eventts2 "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventts"
 	"io"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
-	"github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
-	"github.com/zenoss/event-management-service/pkg/domain/eventts"
+	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	eventtsPb "github.com/zenoss/zing-proto/v11/go/cloud/eventts"
 	"github.com/zenoss/zingo/v4/protobufutils"
@@ -20,7 +20,7 @@ import (
 var _ = DescribeTable(
 	"EventTSRequestToProto Table-driven Tests",
 	func(req *eventts.GetRequest, expected *eventtsPb.EventTSRequest, shouldFail bool) {
-		actual, err := grpc.EventTSRequestToProto(req)
+		actual, err := eventts2.EventTSRequestToProto(req)
 		if shouldFail {
 			Ω(err).Should(HaveOccurred())
 			Ω(actual).Should(BeNil())
@@ -144,7 +144,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		eventTSMockClient = &eventtsPb.MockEventTSServiceClient{}
 		getEventStreamMock = &eventtsPb.MockEventTSService_GetEventsStreamClient{}
-		repo = grpc.NewEventTSAdapter(eventTSMockClient)
+		repo = eventts2.NewAdapter(eventTSMockClient)
 	})
 	AfterEach(func() {
 		cancel()

@@ -1,11 +1,11 @@
-package mongodb
+package mongo
 
 import (
 	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/zenoss/event-management-service/pkg/domain/event"
+	"github.com/zenoss/event-management-service/pkg/models/event"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -40,29 +40,29 @@ func getOccurrenceTemporalFilters(activeEventsOnly bool, tr event.TimeRange) (bs
 }
 
 const (
-	MongoOpEqualTo              = "$eq"
-	MongoOpLessThan             = "$lt"
-	MongoOpGreaterThan          = "$gt"
-	MongoOpGreaterThanOrEqualTo = "$gte"
-	MongoOpLessThanOrEqualTo    = "$lte"
-	MongoOpNotEqualTo           = "$ne"
-	MongoOpIn                   = "$in"
-	MongoOpNotIn                = "$nin"
-	MongoOpOr                   = "$or"
-	MongoOpAnd                  = "$and"
+	OpEqualTo              = "$eq"
+	OpLessThan             = "$lt"
+	OpGreaterThan          = "$gt"
+	OpGreaterThanOrEqualTo = "$gte"
+	OpLessThanOrEqualTo    = "$lte"
+	OpNotEqualTo           = "$ne"
+	OpIn                   = "$in"
+	OpNotIn                = "$nin"
+	OpOr                   = "$or"
+	OpAnd                  = "$and"
 )
 
 var domainMongoFilterMap = map[event.FilterOp]string{
-	event.FilterOpLessThan:             MongoOpLessThan,
-	event.FilterOpLessThanOrEqualTo:    MongoOpLessThanOrEqualTo,
-	event.FilterOpGreaterThan:          MongoOpGreaterThan,
-	event.FilterOpGreaterThanOrEqualTo: MongoOpGreaterThanOrEqualTo,
-	event.FilterOpEqualTo:              MongoOpEqualTo,
-	event.FilterOpNotEqualTo:           MongoOpNotEqualTo,
-	event.FilterOpIn:                   MongoOpIn,
-	event.FilterOpNotIn:                MongoOpNotIn,
-	event.FilterOpOr:                   MongoOpOr,
-	event.FilterOpAnd:                  MongoOpAnd,
+	event.FilterOpLessThan:             OpLessThan,
+	event.FilterOpLessThanOrEqualTo:    OpLessThanOrEqualTo,
+	event.FilterOpGreaterThan:          OpGreaterThan,
+	event.FilterOpGreaterThanOrEqualTo: OpGreaterThanOrEqualTo,
+	event.FilterOpEqualTo:              OpEqualTo,
+	event.FilterOpNotEqualTo:           OpNotEqualTo,
+	event.FilterOpIn:                   OpIn,
+	event.FilterOpNotIn:                OpNotIn,
+	event.FilterOpOr:                   OpOr,
+	event.FilterOpAnd:                  OpAnd,
 }
 
 func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
@@ -122,14 +122,14 @@ func QueryToFindArguments(query *event.Query) (bson.D, []*options.FindOptions, e
 		if len(query.Statuses) == 1 {
 			filters = append(filters, bson.E{Key: "status", Value: query.Statuses[0]})
 		} else {
-			filters = append(filters, bson.E{Key: "status", Value: bson.D{{Key: MongoOpIn, Value: query.Statuses}}})
+			filters = append(filters, bson.E{Key: "status", Value: bson.D{{Key: OpIn, Value: query.Statuses}}})
 		}
 	}
 	if len(query.Severities) > 0 {
 		if len(query.Severities) == 1 {
 			filters = append(filters, bson.E{Key: "severity", Value: query.Severities[0]})
 		} else {
-			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: MongoOpIn, Value: query.Severities}}})
+			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: OpIn, Value: query.Severities}}})
 		}
 	}
 	if query.Filter != nil {

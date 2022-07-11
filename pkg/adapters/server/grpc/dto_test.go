@@ -3,7 +3,7 @@ package grpc_test
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
+	"github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
 
 	"google.golang.org/protobuf/types/known/structpb"

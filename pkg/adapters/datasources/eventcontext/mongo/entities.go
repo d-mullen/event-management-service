@@ -1,9 +1,9 @@
-package mongodb
+package mongo
 
 import (
 	"time"
 
-	"github.com/zenoss/event-management-service/pkg/domain/event"
+	"github.com/zenoss/event-management-service/pkg/models/event"
 )
 
 type (

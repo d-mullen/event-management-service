@@ -6,7 +6,7 @@ import (
 	"github.com/zenoss/event-management-service/internal/auth"
 	"time"
 
-	"github.com/zenoss/event-management-service/pkg/domain/scopes"
+	"github.com/zenoss/event-management-service/pkg/models/scopes"
 	"github.com/zenoss/zenkit/v5"
 	yamrPb "github.com/zenoss/zing-proto/v11/go/cloud/yamr"
 	"go.opencensus.io/trace"

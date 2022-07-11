@@ -1,4 +1,4 @@
-package grpc
+package eventts
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	legacyProto "github.com/golang/protobuf/proto"
-	"github.com/zenoss/event-management-service/pkg/domain/eventts"
+	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	eventtsProto "github.com/zenoss/zing-proto/v11/go/cloud/eventts"
@@ -25,7 +25,7 @@ type (
 	GetRequest eventts.GetRequest
 )
 
-func NewEventTSAdapter(client eventtsProto.EventTSServiceClient) *eventTSRepo {
+func NewAdapter(client eventtsProto.EventTSServiceClient) *eventTSRepo {
 	return &eventTSRepo{
 		client: client,
 	}

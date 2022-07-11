@@ -2,6 +2,7 @@ package grpc_test
 
 import (
 	"context"
+	"github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
 	"sync"
 	"testing"
 
@@ -9,10 +10,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 	mocks2 "github.com/zenoss/event-management-service/internal/mocks"
-	"github.com/zenoss/event-management-service/pkg/adapters/framework/grpc"
 	"github.com/zenoss/event-management-service/pkg/application/event/mocks"
-	"github.com/zenoss/event-management-service/pkg/domain/event"
-	"github.com/zenoss/event-management-service/pkg/domain/eventts"
+	"github.com/zenoss/event-management-service/pkg/models/event"
+	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
 	eventPb "github.com/zenoss/zing-proto/v11/go/event"

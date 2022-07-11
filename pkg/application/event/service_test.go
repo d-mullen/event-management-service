@@ -8,10 +8,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/zenoss/event-management-service/pkg/application/event"
-	eventContext "github.com/zenoss/event-management-service/pkg/domain/event"
-	eventContextMocks "github.com/zenoss/event-management-service/pkg/domain/event/mocks"
-	"github.com/zenoss/event-management-service/pkg/domain/eventts"
-	eventTSMocks "github.com/zenoss/event-management-service/pkg/domain/eventts/mocks"
+	eventContext "github.com/zenoss/event-management-service/pkg/models/event"
+	eventContextMocks "github.com/zenoss/event-management-service/pkg/models/event/mocks"
+	"github.com/zenoss/event-management-service/pkg/models/eventts"
+	eventTSMocks "github.com/zenoss/event-management-service/pkg/models/eventts/mocks"
 )
 
 var _ = Describe("eventquery.Service", func() {

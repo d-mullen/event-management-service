@@ -14,5 +14,5 @@ func TestEventQueryGRPC(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	rand.Seed(GinkgoRandomSeed())
-	RunSpecs(t, "EventQuery GRPC Adapter Test Suite")
+	RunSpecs(t, "EventQuery gRPC Service Adapter Test Suite")
 }

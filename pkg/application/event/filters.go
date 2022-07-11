@@ -2,8 +2,8 @@ package event
 
 import (
 	"github.com/pkg/errors"
-	"github.com/zenoss/event-management-service/pkg/domain/event"
-	"github.com/zenoss/event-management-service/pkg/domain/eventts"
+	"github.com/zenoss/event-management-service/pkg/models/event"
+	"github.com/zenoss/event-management-service/pkg/models/eventts"
 )
 
 var (

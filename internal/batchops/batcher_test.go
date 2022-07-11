@@ -1,15 +1,15 @@
-package mongodb_test
+package batchops_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
+	"github.com/zenoss/event-management-service/internal/batchops"
 )
 
 var _ = Describe("Batcher Unit Tests", func() {
 	It("should batch up larger payloads into smaller batches and process them", func() {
 		i := 0
-		err := mongodb.SerialBatcher(2, []int{1, 2, 3, 4, 5, 6, 7},
+		err := batchops.Do(2, []int{1, 2, 3, 4, 5, 6, 7},
 			func(batch []int) (int, error) {
 				GinkgoWriter.Printf("got batch %v\n", batch)
 				if i == 0 {

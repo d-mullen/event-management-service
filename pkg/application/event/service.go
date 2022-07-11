@@ -6,14 +6,14 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/zenoss/event-management-service/pkg/domain/eventts"
-	"github.com/zenoss/event-management-service/pkg/domain/scopes"
+	"github.com/zenoss/event-management-service/pkg/models/eventts"
+	"github.com/zenoss/event-management-service/pkg/models/scopes"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zingo/v4/interval"
 
 	"github.com/ryboe/q"
 	"github.com/zenoss/event-management-service/internal/frequency"
-	"github.com/zenoss/event-management-service/pkg/domain/event"
+	"github.com/zenoss/event-management-service/pkg/models/event"
 )
 
 type Service interface {
