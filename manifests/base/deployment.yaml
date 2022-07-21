@@ -5,8 +5,6 @@ metadata:
     app: event-management-service
     project: event-management-service
   name: event-management-service
-  annotations:
-    zenoss.zing.deploy.istio: "true"
 spec:
   selector:
     matchLabels:
@@ -16,6 +14,9 @@ spec:
       labels:
         app: event-management-service
         project: event-management-service
+        istio.io/rev: "asm-managed-stable"
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "false"
     spec:
       affinity:
         podAntiAffinity:
@@ -172,7 +173,6 @@ kind: Deployment
 metadata:
   annotations:
     zenoss.spinnaker_deploy: "true"
-    zenoss.zing.deploy.istio: "true"
   labels:
     app: event-query
     project: event-query
@@ -186,6 +186,9 @@ spec:
       labels:
         app: event-query
         project: event-query
+        istio.io/rev: "asm-managed-stable"
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "false"
     spec:
       affinity:
         podAntiAffinity:
