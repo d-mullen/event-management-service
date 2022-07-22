@@ -44,8 +44,14 @@ var _ = Describe("eventquery.Service", func() {
 		When("when the event.Repository.Find passes an error", func() {
 			It("should fail", func() {
 				testErr := errors.New("test error")
-				eventsRepo.On("Find", mockCtx, mockQuery).Return(nil, testErr).Once()
-				_, err := svc.Find(ctx, &eventContext.Query{})
+				eventsRepo.On("Find", mockCtx, mockQuery).Return(nil, testErr)
+				_, err := svc.Find(ctx, &eventContext.Query{
+					Tenant: "acme",
+					TimeRange: eventContext.TimeRange{
+						Start: 0,
+						End:   10000,
+					},
+				})
 				Ω(err).Should(HaveOccurred())
 			})
 		})
@@ -61,6 +67,7 @@ var _ = Describe("eventquery.Service", func() {
 									StartTime: 0,
 									EndTime:   10000,
 									Status:    eventContext.StatusClosed,
+									Severity:  eventContext.SeverityDefault,
 								},
 							},
 						},
@@ -75,7 +82,9 @@ var _ = Describe("eventquery.Service", func() {
 						Start: 0,
 						End:   10000,
 					},
-					Fields: []string{"metadata"},
+					Severities: []eventContext.Severity{eventContext.SeverityDefault},
+					Statuses:   []eventContext.Status{eventContext.StatusClosed},
+					Fields:     []string{"metadata"},
 				})
 				Ω(err).Should(SatisfyAll(
 					HaveOccurred(),
@@ -97,6 +106,7 @@ var _ = Describe("eventquery.Service", func() {
 									StartTime: 0,
 									EndTime:   10000,
 									Status:    eventContext.StatusClosed,
+									Severity:  eventContext.SeverityDefault,
 								},
 							},
 						},
@@ -107,7 +117,7 @@ var _ = Describe("eventquery.Service", func() {
 					Return([]*eventts.Occurrence{{
 						ID:      "event1:1",
 						EventID: "event1",
-						Metadata: map[string][]interface{}{
+						Metadata: map[string][]any{
 							"k1": {"v1"},
 						},
 					}}, nil).Once()
@@ -117,7 +127,9 @@ var _ = Describe("eventquery.Service", func() {
 						Start: 0,
 						End:   10000,
 					},
-					Fields: []string{"metadata"},
+					Severities: []eventContext.Severity{eventContext.SeverityDefault},
+					Statuses:   []eventContext.Status{eventContext.StatusClosed},
+					Fields:     []string{"metadata"},
 				})
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(resp).ShouldNot(BeNil())
@@ -183,7 +195,7 @@ var _ = Describe("eventquery.Service", func() {
 								StartTime: 0,
 								EndTime:   10000,
 								Status:    eventContext.StatusClosed,
-								Metadata: map[string][]interface{}{
+								Metadata: map[string][]any{
 									"k0": {"v01", "v02"},
 								},
 							},
@@ -194,7 +206,7 @@ var _ = Describe("eventquery.Service", func() {
 					Return([]*eventts.Occurrence{{
 						ID:      "event1:1",
 						EventID: "event1",
-						Metadata: map[string][]interface{}{
+						Metadata: map[string][]any{
 							"k1": {"v1"},
 						},
 					}}, nil).Once()

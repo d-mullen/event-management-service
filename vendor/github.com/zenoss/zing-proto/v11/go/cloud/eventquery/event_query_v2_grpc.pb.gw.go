@@ -32,10 +32,10 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 var (
-	filter_EventQuery_GetEvent_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_EventQueryService_GetEvent_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
-func request_EventQuery_GetEvent_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_EventQueryService_GetEvent_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetEventRequest
 	var metadata runtime.ServerMetadata
 
@@ -59,7 +59,7 @@ func request_EventQuery_GetEvent_0(ctx context.Context, marshaler runtime.Marsha
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_EventQuery_GetEvent_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_EventQueryService_GetEvent_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -68,7 +68,7 @@ func request_EventQuery_GetEvent_0(ctx context.Context, marshaler runtime.Marsha
 
 }
 
-func local_request_EventQuery_GetEvent_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_EventQueryService_GetEvent_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetEventRequest
 	var metadata runtime.ServerMetadata
 
@@ -92,7 +92,7 @@ func local_request_EventQuery_GetEvent_0(ctx context.Context, marshaler runtime.
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_EventQuery_GetEvent_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_EventQueryService_GetEvent_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -101,7 +101,7 @@ func local_request_EventQuery_GetEvent_0(ctx context.Context, marshaler runtime.
 
 }
 
-func request_EventQuery_GetEvents_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_EventQueryService_GetEvents_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetEventsRequest
 	var metadata runtime.ServerMetadata
 
@@ -118,7 +118,7 @@ func request_EventQuery_GetEvents_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func local_request_EventQuery_GetEvents_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_EventQueryService_GetEvents_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetEventsRequest
 	var metadata runtime.ServerMetadata
 
@@ -135,7 +135,7 @@ func local_request_EventQuery_GetEvents_0(ctx context.Context, marshaler runtime
 
 }
 
-func request_EventQuery_Search_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_EventQueryService_Search_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq SearchRequest
 	var metadata runtime.ServerMetadata
 
@@ -152,7 +152,7 @@ func request_EventQuery_Search_0(ctx context.Context, marshaler runtime.Marshale
 
 }
 
-func local_request_EventQuery_Search_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_EventQueryService_Search_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq SearchRequest
 	var metadata runtime.ServerMetadata
 
@@ -169,7 +169,7 @@ func local_request_EventQuery_Search_0(ctx context.Context, marshaler runtime.Ma
 
 }
 
-func request_EventQuery_Count_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_EventQueryService_Count_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CountRequest
 	var metadata runtime.ServerMetadata
 
@@ -186,7 +186,7 @@ func request_EventQuery_Count_0(ctx context.Context, marshaler runtime.Marshaler
 
 }
 
-func local_request_EventQuery_Count_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_EventQueryService_Count_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CountRequest
 	var metadata runtime.ServerMetadata
 
@@ -203,7 +203,7 @@ func local_request_EventQuery_Count_0(ctx context.Context, marshaler runtime.Mar
 
 }
 
-func request_EventQuery_Frequency_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_EventQueryService_Frequency_0(ctx context.Context, marshaler runtime.Marshaler, client EventQueryServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq FrequencyRequest
 	var metadata runtime.ServerMetadata
 
@@ -220,7 +220,7 @@ func request_EventQuery_Frequency_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
-func local_request_EventQuery_Frequency_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_EventQueryService_Frequency_0(ctx context.Context, marshaler runtime.Marshaler, server EventQueryServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq FrequencyRequest
 	var metadata runtime.ServerMetadata
 
@@ -237,25 +237,25 @@ func local_request_EventQuery_Frequency_0(ctx context.Context, marshaler runtime
 
 }
 
-// RegisterEventQueryHandlerServer registers the http handlers for service EventQuery to "mux".
-// UnaryRPC     :call EventQueryServer directly.
+// RegisterEventQueryServiceHandlerServer registers the http handlers for service EventQueryService to "mux".
+// UnaryRPC     :call EventQueryServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
-// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterEventQueryHandlerFromEndpoint instead.
-func RegisterEventQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, server EventQueryServer) error {
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterEventQueryServiceHandlerFromEndpoint instead.
+func RegisterEventQueryServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server EventQueryServiceServer) error {
 
-	mux.Handle("GET", pattern_EventQuery_GetEvent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_EventQueryService_GetEvent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvent", runtime.WithHTTPPathPattern("/v1/events/{id}"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/GetEvent", runtime.WithHTTPPathPattern("/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_EventQuery_GetEvent_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_EventQueryService_GetEvent_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -263,23 +263,23 @@ func RegisterEventQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_EventQuery_GetEvent_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_GetEvent_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_GetEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_GetEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvents", runtime.WithHTTPPathPattern("/v1/events"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/GetEvents", runtime.WithHTTPPathPattern("/v1/events"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_EventQuery_GetEvents_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_EventQueryService_GetEvents_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -287,23 +287,23 @@ func RegisterEventQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_EventQuery_GetEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_GetEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_Search_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_Search_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/Search", runtime.WithHTTPPathPattern("/v1/events:search"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/Search", runtime.WithHTTPPathPattern("/v1/events:search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_EventQuery_Search_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_EventQueryService_Search_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -311,23 +311,23 @@ func RegisterEventQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_EventQuery_Search_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_Search_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_Count_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_Count_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/Count", runtime.WithHTTPPathPattern("/v1/events:count"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/Count", runtime.WithHTTPPathPattern("/v1/events:count"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_EventQuery_Count_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_EventQueryService_Count_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -335,23 +335,23 @@ func RegisterEventQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_EventQuery_Count_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_Count_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_Frequency_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_Frequency_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/Frequency", runtime.WithHTTPPathPattern("/v1/events:frequency"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/Frequency", runtime.WithHTTPPathPattern("/v1/events:frequency"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_EventQuery_Frequency_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_EventQueryService_Frequency_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -359,16 +359,16 @@ func RegisterEventQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_EventQuery_Frequency_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_Frequency_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
 	return nil
 }
 
-// RegisterEventQueryHandlerFromEndpoint is same as RegisterEventQueryHandler but
+// RegisterEventQueryServiceHandlerFromEndpoint is same as RegisterEventQueryServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
-func RegisterEventQueryHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+func RegisterEventQueryServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	conn, err := grpc.Dial(endpoint, opts...)
 	if err != nil {
 		return err
@@ -388,124 +388,124 @@ func RegisterEventQueryHandlerFromEndpoint(ctx context.Context, mux *runtime.Ser
 		}()
 	}()
 
-	return RegisterEventQueryHandler(ctx, mux, conn)
+	return RegisterEventQueryServiceHandler(ctx, mux, conn)
 }
 
-// RegisterEventQueryHandler registers the http handlers for service EventQuery to "mux".
+// RegisterEventQueryServiceHandler registers the http handlers for service EventQueryService to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterEventQueryHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
-	return RegisterEventQueryHandlerClient(ctx, mux, NewEventQueryClient(conn))
+func RegisterEventQueryServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterEventQueryServiceHandlerClient(ctx, mux, NewEventQueryServiceClient(conn))
 }
 
-// RegisterEventQueryHandlerClient registers the http handlers for service EventQuery
-// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "EventQueryClient".
-// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "EventQueryClient"
+// RegisterEventQueryServiceHandlerClient registers the http handlers for service EventQueryService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "EventQueryServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "EventQueryServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "EventQueryClient" to call the correct interceptors.
-func RegisterEventQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, client EventQueryClient) error {
+// "EventQueryServiceClient" to call the correct interceptors.
+func RegisterEventQueryServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client EventQueryServiceClient) error {
 
-	mux.Handle("GET", pattern_EventQuery_GetEvent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_EventQueryService_GetEvent_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvent", runtime.WithHTTPPathPattern("/v1/events/{id}"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/GetEvent", runtime.WithHTTPPathPattern("/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_EventQuery_GetEvent_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_EventQueryService_GetEvent_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_EventQuery_GetEvent_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_GetEvent_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_GetEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_GetEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvents", runtime.WithHTTPPathPattern("/v1/events"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/GetEvents", runtime.WithHTTPPathPattern("/v1/events"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_EventQuery_GetEvents_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_EventQueryService_GetEvents_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_EventQuery_GetEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_GetEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_Search_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_Search_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/Search", runtime.WithHTTPPathPattern("/v1/events:search"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/Search", runtime.WithHTTPPathPattern("/v1/events:search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_EventQuery_Search_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_EventQueryService_Search_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_EventQuery_Search_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_Search_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_Count_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_Count_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/Count", runtime.WithHTTPPathPattern("/v1/events:count"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/Count", runtime.WithHTTPPathPattern("/v1/events:count"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_EventQuery_Count_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_EventQueryService_Count_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_EventQuery_Count_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_Count_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_EventQuery_Frequency_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_EventQueryService_Frequency_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.eventQuery.v2.EventQuery/Frequency", runtime.WithHTTPPathPattern("/v1/events:frequency"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.event_query.v2.EventQueryService/Frequency", runtime.WithHTTPPathPattern("/v1/events:frequency"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_EventQuery_Frequency_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_EventQueryService_Frequency_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_EventQuery_Frequency_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_EventQueryService_Frequency_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -513,25 +513,25 @@ func RegisterEventQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 }
 
 var (
-	pattern_EventQuery_GetEvent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "events", "id"}, ""))
+	pattern_EventQueryService_GetEvent_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "events", "id"}, ""))
 
-	pattern_EventQuery_GetEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, ""))
+	pattern_EventQueryService_GetEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, ""))
 
-	pattern_EventQuery_Search_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, "search"))
+	pattern_EventQueryService_Search_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, "search"))
 
-	pattern_EventQuery_Count_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, "count"))
+	pattern_EventQueryService_Count_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, "count"))
 
-	pattern_EventQuery_Frequency_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, "frequency"))
+	pattern_EventQueryService_Frequency_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, "frequency"))
 )
 
 var (
-	forward_EventQuery_GetEvent_0 = runtime.ForwardResponseMessage
+	forward_EventQueryService_GetEvent_0 = runtime.ForwardResponseMessage
 
-	forward_EventQuery_GetEvents_0 = runtime.ForwardResponseMessage
+	forward_EventQueryService_GetEvents_0 = runtime.ForwardResponseMessage
 
-	forward_EventQuery_Search_0 = runtime.ForwardResponseMessage
+	forward_EventQueryService_Search_0 = runtime.ForwardResponseMessage
 
-	forward_EventQuery_Count_0 = runtime.ForwardResponseMessage
+	forward_EventQueryService_Count_0 = runtime.ForwardResponseMessage
 
-	forward_EventQuery_Frequency_0 = runtime.ForwardResponseMessage
+	forward_EventQueryService_Frequency_0 = runtime.ForwardResponseMessage
 )

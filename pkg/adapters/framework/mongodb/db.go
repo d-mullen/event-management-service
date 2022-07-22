@@ -3,10 +3,11 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/zenoss/zenkit/v5"
@@ -45,7 +46,7 @@ func NewMongoDatabaseConnection(ctx context.Context, cfg Config) (Database, erro
 		credential := options.Credential{
 			AuthMechanism: "MONGODB-X509",
 		}
-		clientOpts = clientOpts.SetAuth(credential)
+		clientOpts = clientOpts.SetAuth(credential).SetReadPreference(readpref.SecondaryPreferred())
 	}
 	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {

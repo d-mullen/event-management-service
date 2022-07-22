@@ -16,18 +16,18 @@ type Collection struct {
 }
 
 // Aggregate provides a mock function with given fields: ctx, pipeline, opts
-func (_m *Collection) Aggregate(ctx context.Context, pipeline interface{}, opts ...*options.AggregateOptions) (mongodb.Cursor, error) {
-	_va := make([]interface{}, len(opts))
+func (_m *Collection) Aggregate(ctx context.Context, pipeline any, opts ...*options.AggregateOptions) (mongodb.Cursor, error) {
+	_va := make([]any, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
-	var _ca []interface{}
+	var _ca []any
 	_ca = append(_ca, ctx, pipeline)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 mongodb.Cursor
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}, ...*options.AggregateOptions) mongodb.Cursor); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, any, ...*options.AggregateOptions) mongodb.Cursor); ok {
 		r0 = rf(ctx, pipeline, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -36,7 +36,7 @@ func (_m *Collection) Aggregate(ctx context.Context, pipeline interface{}, opts 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, interface{}, ...*options.AggregateOptions) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, any, ...*options.AggregateOptions) error); ok {
 		r1 = rf(ctx, pipeline, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -46,18 +46,18 @@ func (_m *Collection) Aggregate(ctx context.Context, pipeline interface{}, opts 
 }
 
 // Find provides a mock function with given fields: ctx, filter, opts
-func (_m *Collection) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (mongodb.Cursor, error) {
-	_va := make([]interface{}, len(opts))
+func (_m *Collection) Find(ctx context.Context, filter any, opts ...*options.FindOptions) (mongodb.Cursor, error) {
+	_va := make([]any, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
-	var _ca []interface{}
+	var _ca []any
 	_ca = append(_ca, ctx, filter)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 mongodb.Cursor
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}, ...*options.FindOptions) mongodb.Cursor); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, any, ...*options.FindOptions) mongodb.Cursor); ok {
 		r0 = rf(ctx, filter, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -66,7 +66,7 @@ func (_m *Collection) Find(ctx context.Context, filter interface{}, opts ...*opt
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, interface{}, ...*options.FindOptions) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, any, ...*options.FindOptions) error); ok {
 		r1 = rf(ctx, filter, opts...)
 	} else {
 		r1 = ret.Error(1)

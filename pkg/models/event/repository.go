@@ -84,7 +84,7 @@ type (
 	Filter struct {
 		Op    FilterOp
 		Field string
-		Value interface{}
+		Value any
 	}
 	SortOpt struct {
 		Field string

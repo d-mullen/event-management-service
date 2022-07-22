@@ -23,7 +23,7 @@ var (
 
 type (
 	EventQueryService struct {
-		eventquery.UnimplementedEventQueryServer
+		eventquery.UnimplementedEventQueryServiceServer
 		svr appEvent.Service
 	}
 )
@@ -34,10 +34,10 @@ func NewEventQueryService(eventQuerySvr appEvent.Service) *EventQueryService {
 	}
 }
 
-var _ eventquery.EventQueryServer = &EventQueryService{}
+var _ eventquery.EventQueryServiceServer = &EventQueryService{}
 
 func sortOrderFromProto(order eventquery.SortOrder) event.SortOrder {
-	if order == eventquery.SortOrder_DESC {
+	if order == eventquery.SortOrder_SORT_ORDER_DESC {
 		return event.SortOrderDescending
 	}
 	return event.SortOrderAscending
@@ -216,6 +216,7 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 							},
 						}
 					}
+					currOcc.Metadata = resultMD
 				}
 			}
 		}
@@ -351,12 +352,4 @@ func (handler *EventQueryService) Frequency(ctx context.Context, req *eventquery
 	}
 	responseProto.Results = freqResults
 	return responseProto, nil
-}
-
-func (handler *EventQueryService) SearchStream(_ *eventquery.SearchStreamRequest, _ eventquery.EventQuery_SearchStreamServer) error {
-	return errGrpcNotImplemented
-}
-
-func (handler *EventQueryService) EventsWithCountsStream(_ *eventquery.EventsWithCountsRequest, _ eventquery.EventQuery_EventsWithCountsStreamServer) error {
-	return errGrpcNotImplemented
 }

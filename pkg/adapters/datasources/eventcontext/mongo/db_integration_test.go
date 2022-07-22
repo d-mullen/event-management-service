@@ -4,8 +4,14 @@ package mongo_test
 
 import (
 	"context"
-	"github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
+	"fmt"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/spf13/viper"
+	redisCursors "github.com/zenoss/event-management-service/pkg/adapters/datasources/cursors/redis"
+	"github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
+	"github.com/zenoss/zenkit/v5"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	. "github.com/onsi/ginkgo/v2"
@@ -21,6 +27,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 		testCancel context.CancelFunc
 	)
 	BeforeEach(func() {
+		zenkit.InitConfigForTests(GinkgoT(), "event-management-service")
 		testCtx, testCancel = context.WithCancel(context.Background())
 		log := logrus.NewEntry(logrus.StandardLogger())
 		log.Logger.SetFormatter(&logrus.JSONFormatter{})
@@ -38,17 +45,28 @@ var _ = Describe("MongoDB Integration Test", func() {
 			DefaultTTL: 90 * 24 * time.Hour,
 			DBName:     "event-context-svc",
 		}
+		addresses := make(map[string]string)
+		for i, addr := range viper.GetStringSlice(zenkit.GCMemstoreAddressConfig) {
+			addresses[fmt.Sprintf("%d", i+1)] = addr
+		}
+		Expect(addresses).ToNot(BeEmpty())
+		redisClient := redis.NewRing(&redis.RingOptions{
+			Addrs:       addresses,
+			DialTimeout: 2 * time.Second,
+		})
+		cursorAdapter := redisCursors.NewAdapter(redisClient)
 		db, err := mongodb.NewMongoDatabaseConnection(testCtx, cfg)
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(db).ShouldNot(BeNil())
-		adapter, err := mongo.NewAdapter(testCtx, cfg, db)
+		adapter, err := mongo.NewAdapter(testCtx, cfg, db, cursorAdapter)
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(adapter).ShouldNot(BeNil())
 	})
 	Context("mongodb.Adapter.Find", func() {
 		var (
-			adapter *mongo.Adapter
-			cfg     mongodb.Config
+			cursorAdapter event.CursorRepository
+			adapter       *mongo.Adapter
+			cfg           mongodb.Config
 		)
 		BeforeEach(func() {
 			var err error
@@ -60,10 +78,21 @@ var _ = Describe("MongoDB Integration Test", func() {
 				DBName:     "event-context-svc",
 			}
 
+			addresses := make(map[string]string)
+			for i, addr := range viper.GetStringSlice(zenkit.GCMemstoreAddressConfig) {
+				addresses[fmt.Sprintf("%d", i+1)] = addr
+			}
+			Expect(addresses).ToNot(BeEmpty())
+			redisClient := redis.NewRing(&redis.RingOptions{
+				Addrs:       addresses,
+				DialTimeout: 2 * time.Second,
+			})
+			cursorAdapter = redisCursors.NewAdapter(redisClient)
+
 			db, err := mongodb.NewMongoDatabaseConnection(testCtx, cfg)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(db).ShouldNot(BeNil())
-			adapter, err = mongo.NewAdapter(testCtx, cfg, db)
+			adapter, err = mongo.NewAdapter(testCtx, cfg, db, cursorAdapter)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(adapter).ShouldNot(BeNil())
 		})

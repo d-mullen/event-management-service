@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -50,6 +51,7 @@ const (
 	OpNotIn                = "$nin"
 	OpOr                   = "$or"
 	OpAnd                  = "$and"
+	OpNot                  = "$not"
 )
 
 var domainMongoFilterMap = map[event.FilterOp]string{
@@ -63,6 +65,37 @@ var domainMongoFilterMap = map[event.FilterOp]string{
 	event.FilterOpNotIn:                OpNotIn,
 	event.FilterOpOr:                   OpOr,
 	event.FilterOpAnd:                  OpAnd,
+	event.FilterOpNot:                  OpNot,
+}
+
+func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
+	filterKind := reflect.TypeOf((*event.Filter)(nil)).Kind()
+	v := reflect.ValueOf(orig.Value)
+	if v.Kind() != filterKind {
+		return bson.D{{Key: orig.Field, Value: bson.E{Key: OpNotEqualTo, Value: orig.Value}}}, nil
+	}
+	otherFilter := v.Interface().(*event.Filter)
+	switch otherFilter.Op {
+	case event.FilterOpEqualTo:
+		return bson.D{{Key: otherFilter.Field, Value: bson.E{Key: OpNotEqualTo, Value: otherFilter.Value}}}, nil
+	case event.FilterOpIn:
+		return bson.D{{Key: otherFilter.Field, Value: bson.E{Key: OpNotIn, Value: otherFilter.Value}}}, nil
+	case event.FilterOpAnd, event.FilterOpOr, event.FilterOpNot:
+		newFilter, err := DomainFilterToMongoD(otherFilter)
+		if err != nil {
+			return nil, err
+		}
+		return bson.D{{Key: OpNot, Value: newFilter}}, nil
+	default:
+		otherOperator, ok := domainMongoFilterMap[otherFilter.Op]
+		if !ok {
+			return nil, errors.New("invalid filter operation")
+		}
+		return bson.D{
+			{Key: otherFilter.Field, Value: bson.E{Key: OpNot, Value: bson.E{Key: otherOperator, Value: otherFilter.Value}}}}, nil
+
+	}
+
 }
 
 func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
@@ -71,6 +104,8 @@ func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 		return nil, errors.New("invalid filter operation")
 	}
 	switch orig.Op {
+	case event.FilterOpNot:
+		return ApplyNotFilterTransform(orig)
 	case event.FilterOpAnd, event.FilterOpOr:
 		if reflect.TypeOf(orig.Value).Kind() != reflect.Slice {
 			return nil, errors.New("invalid filter values")
@@ -91,7 +126,7 @@ func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 			filterValues[i] = newFilter
 
 		}
-		return bson.D{{Key: orig.Field, Value: bson.D{{Key: op, Value: filterValues}}}}, nil
+		return bson.D{{Key: op, Value: filterValues}}, nil
 	case event.FilterOpIn, event.FilterOpNotIn:
 		if reflect.TypeOf(orig.Value).Kind() != reflect.Slice {
 			return nil, errors.New("invalid filter values")
@@ -111,7 +146,7 @@ func isActiveEventsOnly(q *event.Query) bool {
 	return true
 }
 
-func QueryToFindArguments(query *event.Query) (bson.D, []*options.FindOptions, error) {
+func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, error) {
 	filters := bson.D{{Key: "tenantId", Value: query.Tenant}}
 	moreFilters, err := getOccurrenceTemporalFilters(isActiveEventsOnly(query), query.TimeRange)
 	if err != nil {
@@ -139,13 +174,13 @@ func QueryToFindArguments(query *event.Query) (bson.D, []*options.FindOptions, e
 		}
 		filters = append(filters, anotherFilter...)
 	}
-	findOpts := make([]*options.FindOptions, 0)
+	findOpts := options.Find()
 	if query.PageInput != nil && len(query.PageInput.SortBy) > 0 {
 		sortBy := query.PageInput.SortBy[0]
-		findOpts = append(findOpts, options.Find().SetSort(bson.D{{Key: sortBy.Field, Value: sortBy.SortOrder}}))
+		findOpts.SetSort(&bson.D{{Key: sortBy.Field, Value: sortBy.SortOrder}})
 	}
 	if query.PageInput != nil && query.PageInput.Limit > 0 {
-		findOpts = append(findOpts, options.Find().SetLimit(int64(query.PageInput.Limit+1)))
+		findOpts.SetLimit(int64(query.PageInput.Limit + 1))
 	}
 	return filters, findOpts, nil
 }
@@ -154,10 +189,96 @@ type decodable interface {
 	*bson.M | *bson.D
 }
 
-func defaultDecodeFunc[D decodable](doc D, dest interface{}) error {
+func defaultDecodeFunc[D decodable](doc D, dest any) error {
 	docBytes, err := bson.Marshal(doc)
 	if err != nil {
 		return err
 	}
 	return bson.Unmarshal(docBytes, dest)
+}
+
+type (
+	MongoQuery struct {
+		Filter   primitive.D
+		FindOpts *options.FindOptions
+	}
+)
+
+func NextKey(sortField string, items []*bson.M) *bson.D {
+	if len(items) == 0 {
+		return nil
+	}
+	item := items[len(items)-1]
+	itemAsMap := make(map[string]any)
+	b, err := bson.Marshal(item)
+	if err != nil {
+		return nil
+	}
+	bson.Unmarshal(b, itemAsMap)
+	if len(sortField) == 0 {
+		return &bson.D{{Key: "_id", Value: itemAsMap["_id"]}}
+	}
+	return &bson.D{
+		{Key: "_id", Value: itemAsMap["_id"]},
+		{Key: sortField, Value: itemAsMap[sortField]},
+	}
+}
+
+func GeneratePaginationQuery(filter, sort, nextKey *bson.D) *bson.D {
+	var (
+		paginatedQuery bson.D
+		sortField      string
+		sortOperator   string
+	)
+
+	// if next key is nil, return the query unmodified
+	if nextKey == nil {
+		return filter
+	}
+
+	// copy the original query filter
+	if filter != nil {
+		for k, v := range filter.Map() {
+			paginatedQuery = append(paginatedQuery, bson.E{k, v})
+		}
+	}
+
+	if sort == nil {
+		paginatedQuery = append(paginatedQuery,
+			bson.E{Key: "_id", Value: bson.D{{Key: OpGreaterThan, Value: nextKey.Map()["_id"]}}})
+		return &paginatedQuery
+	}
+
+	i := 0
+	for k, v := range sort.Map() {
+		if i > 0 {
+			break
+		}
+		sortField = k
+		sortOperator = OpGreaterThan
+		if iv, ok := v.(event.SortOrder); ok && iv != event.SortOrderAscending {
+			sortOperator = OpLessThan
+		}
+		i++
+	}
+	pqM := bson.D{
+		{Key: sortField, Value: bson.D{{Key: sortOperator, Value: nextKey.Map()[sortField]}}},
+		{Key: OpAnd, Value: bson.D{
+			{Key: sortField, Value: nextKey.Map()[sortField]},
+			{Key: "_id", Value: bson.D{{Key: sortOperator, Value: nextKey.Map()[sortField]}}},
+		}},
+	}
+
+	if _, ok2 := paginatedQuery.Map()[OpOr]; !ok2 {
+		paginatedQuery = append(paginatedQuery, bson.E{Key: OpOr, Value: pqM})
+	} else {
+		paginatedQuery = bson.D{
+			{Key: OpAnd, Value: bson.A{
+				filter,
+				bson.D{{Key: OpOr, Value: pqM}},
+			}},
+		}
+	}
+	return &paginatedQuery
+
 }

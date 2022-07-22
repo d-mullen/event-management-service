@@ -14,11 +14,11 @@ type Cursor struct {
 }
 
 // All provides a mock function with given fields: ctx, results
-func (_m *Cursor) All(ctx context.Context, results interface{}) error {
+func (_m *Cursor) All(ctx context.Context, results any) error {
 	ret := _m.Called(ctx, results)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, any) error); ok {
 		r0 = rf(ctx, results)
 	} else {
 		r0 = ret.Error(0)
@@ -42,11 +42,11 @@ func (_m *Cursor) Close(ctx context.Context) error {
 }
 
 // Decode provides a mock function with given fields: val
-func (_m *Cursor) Decode(val interface{}) error {
+func (_m *Cursor) Decode(val any) error {
 	ret := _m.Called(val)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(any) error); ok {
 		r0 = rf(val)
 	} else {
 		r0 = ret.Error(0)

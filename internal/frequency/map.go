@@ -10,7 +10,7 @@ import (
 )
 
 type Bucket struct {
-	Key    map[string]interface{}
+	Key    map[string]any
 	Values []int64
 }
 
@@ -69,10 +69,10 @@ func (f *FrequencyMap) Get() (timestamps []int64, buckets []*Bucket) {
 	return
 }
 
-func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]interface{}) {
+func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]any) {
 	type FieldValues struct {
 		Field  string
-		Values []interface{}
+		Values []any
 	}
 	keys := make(map[string]struct{})
 	resultTS := temporalset.EmptyWithCapacity(len(data))
@@ -82,8 +82,8 @@ func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]in
 			Values: values,
 		}, temporalset.NewIntervalSet(intervalInput))
 	}
-	resultTS.EachInterval(func(ival interval.Interval, values []interface{}) {
-		data := make(map[string][]interface{}, len(values))
+	resultTS.EachInterval(func(ival interval.Interval, values []any) {
+		data := make(map[string][]any, len(values))
 		for _, v := range values {
 			fv := v.(*FieldValues)
 			data[fv.Field] = fv.Values
@@ -96,8 +96,8 @@ func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]in
 		}
 
 		permute(options, func(index []int) {
-			indexValues := make([]interface{}, len(index))
-			indexKeys := make(map[string]interface{}, len(index))
+			indexValues := make([]any, len(index))
+			indexKeys := make(map[string]any, len(index))
 			for i, j := range index {
 				field := f.groupBy[i]
 				if j < len(data[field]) {
@@ -123,7 +123,7 @@ func (f *FrequencyMap) Put(intervalInput interval.Interval, data map[string][]in
 	return
 }
 
-func (f *FrequencyMap) increment(key string, values map[string]interface{}, ival interval.Interval) {
+func (f *FrequencyMap) increment(key string, values map[string]any, ival interval.Interval) {
 	ival = ival.Intersect(interval.RightOpen(uint64(f.startTime), uint64(f.endTime)))
 	if ival.IsEmpty() {
 		return

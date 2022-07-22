@@ -4,17 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
+
 	"github.com/sirupsen/logrus"
-	"strings"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/event-management-service/pkg/models/scopes"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zingo/v4/interval"
 
-	"github.com/ryboe/q"
 	"github.com/zenoss/event-management-service/internal/frequency"
 	"github.com/zenoss/event-management-service/pkg/models/event"
+)
+
+const (
+	defaultFrequencyDownsampleRate = int64(5 * 60 * 60 * 1e3)
 )
 
 type Service interface {
@@ -73,9 +78,7 @@ func eventResultsToOccurrenceMaps(
 }
 
 func getEventTSResults(ctx context.Context, results []*event.Event, eventTS eventts.Repository) error {
-	log := zenkit.ContextLogger(ctx)
 	occurrenceMap, occInputMap := eventResultsToOccurrenceMaps(results)
-	log.Tracef("occurrenceInputMap: %#v", occInputMap)
 	occurrencesWithMD, err := eventTS.Get(ctx, &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			ByOccurrences: struct {
@@ -85,7 +88,6 @@ func getEventTSResults(ctx context.Context, results []*event.Event, eventTS even
 			},
 		},
 	})
-	log.WithField("occurrencesWithMetadata", occurrencesWithMD).Trace("got results from event-ts-svc")
 	if err != nil {
 		return err
 	}
@@ -131,44 +133,6 @@ func matchUnassignedOccurrences(
 	return "", false
 }
 
-func getEventTSFrequency(ctx context.Context,
-	freqReq *event.FrequencyRequest,
-	results []*event.Event,
-	eventTS eventts.Repository) (*eventts.FrequencyResponse, error) {
-	log := zenkit.ContextLogger(ctx)
-	latest := 1
-	if freqReq.CountInstances {
-		latest = 0
-	}
-	_, occurrenceInputMap := eventResultsToOccurrenceMaps(results)
-	req := &eventts.FrequencyRequest{
-		EventTimeseriesInput: eventts.EventTimeseriesInput{
-			ByOccurrences: struct {
-				OccurrenceMap map[string][]*eventts.OccurrenceInput
-			}{
-				OccurrenceMap: occurrenceInputMap,
-			},
-			Latest: uint64(latest),
-		},
-		Fields:        freqReq.Fields,
-		GroupBy:       freqReq.GroupBy,
-		Downsample:    freqReq.Downsample,
-		PersistCounts: freqReq.PersistCounts,
-	}
-	if freqReq.Filter != nil {
-		filters, err := EventFilterToEventTSFilter(freqReq.Filter)
-		if err != nil {
-			log.WithError(err).Warn("failed to convert filters")
-		}
-		req.Filters = filters
-	}
-	resp, err := eventTS.Frequency(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
 func TransformScopeFilter(ctx context.Context, timeRange event.TimeRange, tenantID string, filter *event.Filter, entityScopeProvider scopes.EntityScopeProvider, activeEntityAdapter scopes.ActiveEntityRepository) (*event.Filter, bool, error) {
 	log := zenkit.ContextLogger(ctx)
 	if filter == nil {
@@ -204,15 +168,39 @@ func TransformScopeFilter(ctx context.Context, timeRange event.TimeRange, tenant
 }
 
 func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, error) {
-	q.Q("service.Find: got query", query)
+	var (
+		resultMut sync.Mutex
+		results   = new(event.Page)
+	)
 	err := applyScopeFilterTransform(ctx, query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
 		return nil, err
 	}
-	q.Q(query)
-	results, err := svc.eventContext.Find(ctx, query)
-	if err != nil {
-		return nil, err
+	if query.PageInput == nil || (query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
+		queryGroup, gCtx := errgroup.WithContext(ctx)
+		queryGroup.SetLimit(5)
+		queries := SplitOutQueries(2000, "entity", query)
+		for _, query := range queries {
+			_q := query
+			queryGroup.Go(func() error {
+				currPage, err := svc.eventContext.Find(gCtx, _q)
+				if err != nil {
+					return err
+				}
+				resultMut.Lock()
+				results.Results = append(results.Results, currPage.Results...)
+				resultMut.Unlock()
+				return nil
+			})
+		}
+		if err = queryGroup.Wait(); err != nil {
+			return nil, err
+		}
+	} else {
+		results, err = svc.eventContext.Find(ctx, query)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(results.Results) > 0 && svc.eventTS != nil && shouldGetEventTSDetails(query) {
 		err = getEventTSResults(ctx, results.Results, svc.eventTS)
@@ -225,14 +213,23 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 
 func applyScopeFilterTransform(ctx context.Context, query *event.Query, provider scopes.EntityScopeProvider, activeEntityAdapter scopes.ActiveEntityRepository) error {
 	if query.Filter != nil {
-		if query.Filter.Op != event.FilterOpAnd {
+		if query.Filter.Op != event.FilterOpAnd && query.Filter.Op != event.FilterOpOr && query.Filter.Op != event.FilterOpNot {
 			inFilter, ok, err := TransformScopeFilter(ctx, query.TimeRange, query.Tenant, query.Filter, provider, activeEntityAdapter)
 			if err != nil {
 				return err
 			}
-			q.Q("service.Find: called TransformScopeFilter", query.Filter, ok, inFilter)
 			if ok {
 				query.Filter = inFilter
+			}
+		} else if query.Filter.Op == event.FilterOpNot {
+			if filter, ok := query.Filter.Value.(*event.Filter); ok {
+				inFilter, didTransform, err := TransformScopeFilter(ctx, query.TimeRange, query.Tenant, filter, provider, activeEntityAdapter)
+				if err != nil {
+					return err
+				}
+				if didTransform {
+					query.Filter.Value = inFilter
+				}
 			}
 		} else {
 			filterValue := query.Filter.Value
@@ -243,7 +240,6 @@ func applyScopeFilterTransform(ctx context.Context, query *event.Query, provider
 					if err != nil {
 						return err
 					}
-					q.Q("service.Find: called TransformScopeFilter", query.Filter, ok, inFilter)
 					if didTransform {
 						newFilters[i] = inFilter
 					} else {
@@ -287,29 +283,6 @@ func shouldGetEventTSDetails(query *event.Query) bool {
 	return false
 }
 
-func shouldGetEventTSCounts(req *event.FrequencyRequest) bool {
-	if req.CountInstances {
-		return true
-	}
-	for _, field := range req.Fields {
-		if !event.IsSupportedField(field) {
-			return true
-		}
-	}
-	for _, groupBy := range req.GroupBy {
-		if !event.IsSupportedField(groupBy) {
-			return true
-		}
-	}
-	filters, _ := EventFilterToEventTSFilter(req.Filter)
-	for _, filter := range filters {
-		if len(filter.Field) > 0 && !event.IsSupportedField(filter.Field) {
-			return true
-		}
-	}
-	return false
-}
-
 func toMap(src any) map[string]any {
 	results := make(map[string]any)
 	b, err := json.Marshal(src)
@@ -333,51 +306,62 @@ func bucketsToFrequencyResult(buckets []*frequency.Bucket) []*eventts.FrequencyR
 
 func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) (*eventts.FrequencyResponse, error) {
 	log := zenkit.ContextLogger(ctx)
-	err := applyScopeFilterTransform(ctx, &req.Query, svc.entityScopes, svc.activeEntities)
+	// construct query with combined fields from query and frequency request
+	requestedFields := make([]string, 0)
+	requestedFields = append(requestedFields, req.Fields...)
+	requestedFields = append(requestedFields, req.GroupBy...)
+	requestedFields = append(requestedFields, req.Query.Fields...)
+	updatedQuery := &event.Query{
+		Tenant:     req.Query.Tenant,
+		TimeRange:  req.TimeRange,
+		Severities: req.Severities,
+		Statuses:   req.Statuses,
+		Fields:     requestedFields,
+		Filter:     req.Query.Filter,
+		PageInput:  req.Query.PageInput,
+	}
+	resp, err := svc.Find(ctx, updatedQuery)
 	if err != nil {
-		log.WithError(err).Error("failed to get frequency")
+		log.WithField(logrus.ErrorKey, err).Error("failed to perform frequency")
 		return nil, err
 	}
-	resp, err := svc.eventContext.Find(ctx, &req.Query)
-	if err != nil {
-		return nil, err
+	downsample := defaultFrequencyDownsampleRate
+	if req.Downsample > 0 {
+		downsample = req.Downsample
 	}
-	if !shouldGetEventTSCounts(req) {
-		freqMap := frequency.NewFrequencyMap(req.GroupBy, req.TimeRange.Start, req.TimeRange.End, req.Downsample, req.PersistCounts)
-		for _, result := range resp.Results {
-			for _, occurrence := range result.Occurrences {
-				log.WithField("occurrence", occurrence).Trace("processing occurrence")
-				occAsMap := toMap(occurrence)
-				atOrAboveStartTime := interval.AtOrAbove(uint64(occurrence.StartTime))
-				if occurrence.Status != event.StatusClosed && occurrence.EndTime > 0 { // occurrence is active
-					atOrAboveStartTime = interval.Closed(uint64(occurrence.StartTime), uint64(occurrence.EndTime)) // occurrence is closed
+	freqMap := frequency.NewFrequencyMap(req.GroupBy, req.TimeRange.Start, req.TimeRange.End, downsample, req.PersistCounts)
+	for _, result := range resp.Results {
+		for _, occurrence := range result.Occurrences {
+			log.WithField("occurrence", occurrence).Trace("processing occurrence")
+			occAsMap := toMap(occurrence)
+			atOrAboveStartTime := interval.AtOrAbove(uint64(occurrence.StartTime))
+			if occurrence.Status != event.StatusClosed && occurrence.EndTime > 0 { // occurrence is active
+				atOrAboveStartTime = interval.Closed(uint64(occurrence.StartTime), uint64(occurrence.EndTime)) // occurrence is closed
+			}
+			for _, field := range req.Fields {
+				foundFieldValue := false
+				if v, ok := occAsMap[field]; ok {
+					freqMap.Put(atOrAboveStartTime, map[string][]any{field: {v}})
+					foundFieldValue = true
+				} else if occurrence.Metadata != nil {
+					if values, ok2 := occurrence.Metadata[field]; ok2 {
+						freqMap.Put(atOrAboveStartTime, map[string][]any{field: values})
+						foundFieldValue = true
+					}
 				}
-				for _, field := range req.Fields {
-					normalizedField := strings.ToLower(field)
-					if v, ok := occAsMap[normalizedField]; ok {
-						freqMap.Put(atOrAboveStartTime, map[string][]any{normalizedField: {v}})
-					} else if occurrence.Metadata != nil {
-						if values, ok2 := occurrence.Metadata[normalizedField]; ok2 {
-							freqMap.Put(atOrAboveStartTime, map[string][]any{normalizedField: values})
-						}
+				if !foundFieldValue && result.Dimensions != nil {
+					if dim, ok := result.Dimensions[field]; ok {
+						freqMap.Put(atOrAboveStartTime, map[string][]any{field: {dim}})
 					}
 				}
 			}
 		}
-		timestamps, buckets := freqMap.Get()
-		return &eventts.FrequencyResponse{
-			Timestamps: timestamps,
-			Results:    bucketsToFrequencyResult(buckets),
-		}, nil
 	}
-	if len(resp.Results) > 0 && svc.eventTS != nil {
-		freqResp, err := getEventTSFrequency(ctx, req, resp.Results, svc.eventTS)
-		if err != nil {
-			return nil, err
-		}
-		return freqResp, nil
-	}
-	return &eventts.FrequencyResponse{}, nil
+	timestamps, buckets := freqMap.Get()
+	return &eventts.FrequencyResponse{
+		Timestamps: timestamps,
+		Results:    bucketsToFrequencyResult(buckets),
+	}, nil
 }
 
 type (
@@ -390,61 +374,71 @@ type (
 
 func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventts.CountResponse, error) {
 	log := zenkit.ContextLogger(ctx)
-	err := applyScopeFilterTransform(ctx, &req.Query, svc.entityScopes, svc.activeEntities)
+	// construct query with combined fields from query and count request
+	updatedQuery := &event.Query{
+		Tenant:     req.Query.Tenant,
+		TimeRange:  req.TimeRange,
+		Severities: req.Severities,
+		Statuses:   req.Statuses,
+		Fields:     append(req.Fields, req.Fields...),
+		Filter:     req.Query.Filter,
+		PageInput:  req.Query.PageInput,
+	}
+	resp, err := svc.Find(ctx, updatedQuery)
 	if err != nil {
-		log.WithError(err).Error("failed to get count")
+		log.WithField(logrus.ErrorKey, err).Error("failed to perform count")
 		return nil, err
 	}
-	resp, err := svc.eventContext.Find(ctx, &req.Query)
-	if err != nil {
-		return nil, err
-	}
-	if !shouldGetEventTSCounts(&event.FrequencyRequest{
-		Query:  req.Query,
-		Fields: req.Fields,
-	}) {
-		results := make(countResult)
-		for _, result := range resp.Results {
-			for _, occurrence := range result.Occurrences {
-				log.WithField("occurrence", occurrence).Trace("processing occurrence")
-				occAsMap := toMap(occurrence)
-				for _, field := range req.Fields {
-					normalizedField := strings.ToLower(field)
-					result, ok := results[normalizedField]
-					if !ok {
-						result = make(map[fieldValueKey]uint64)
-						results[normalizedField] = result
-					}
-					if v, ok := occAsMap[normalizedField]; ok {
-						valueKey := fieldValueKey{field: normalizedField, value: v}
-						cnt := result[valueKey]
-						result[valueKey] = cnt + 1
-					} else if occurrence.Metadata != nil {
-						if values, ok2 := occurrence.Metadata[normalizedField]; ok2 {
-							for _, v := range values {
-								valueKey := fieldValueKey{field: normalizedField, value: v}
-								cnt := result[valueKey]
-								result[valueKey] = cnt + 1
-							}
+	countResults := make(countResult)
+	for _, eventResult := range resp.Results {
+		for _, occurrence := range eventResult.Occurrences {
+			log.WithField("occurrence", occurrence).Trace("processing occurrence")
+			occAsMap := toMap(occurrence)
+			for _, field := range req.Fields {
+				countResult, ok := countResults[field]
+				if !ok {
+					countResult = make(map[fieldValueKey]uint64)
+					countResults[field] = countResult
+				}
+				foundFieldValue := false
+				if v, ok := occAsMap[field]; ok {
+					foundFieldValue = true
+					valueKey := fieldValueKey{field: field, value: v}
+					cnt := countResult[valueKey]
+					countResult[valueKey] = cnt + 1
+				} else if occurrence.Metadata != nil {
+					if values, ok2 := occurrence.Metadata[field]; ok2 {
+						foundFieldValue = true
+						for _, v := range values {
+							valueKey := fieldValueKey{field: field, value: v}
+							cnt := countResult[valueKey]
+							countResult[valueKey] = cnt + 1
 						}
+					}
+				}
+				if !foundFieldValue && eventResult.Dimensions != nil {
+					if dim, ok := eventResult.Dimensions[field]; ok {
+						valueKey := fieldValueKey{field: field, value: dim}
+						cnt := countResult[valueKey]
+						countResult[valueKey] = cnt + 1
+
 					}
 				}
 			}
 		}
-		resp := &eventts.CountResponse{
-			Results: make(map[string][]*eventts.CountResult),
-		}
-		for field, countResult := range results {
-			results := make([]*eventts.CountResult, 0)
-			for vk, counts := range countResult {
-				results = append(results, &eventts.CountResult{
-					Value: vk.value,
-					Count: counts,
-				})
-			}
-			resp.Results[field] = results
-		}
-		return resp, nil
 	}
-	return nil, errors.New("unimplemented")
+	countResp := &eventts.CountResponse{
+		Results: make(map[string][]*eventts.CountResult),
+	}
+	for field, countResult := range countResults {
+		results := make([]*eventts.CountResult, 0)
+		for vk, counts := range countResult {
+			results = append(results, &eventts.CountResult{
+				Value: vk.value,
+				Count: counts,
+			})
+		}
+		countResp.Results[field] = results
+	}
+	return countResp, nil
 }

@@ -29,7 +29,7 @@ func toMillis(t time.Time) int64 {
 	return t.UnixNano() / int64(time.Millisecond)
 }
 
-func marshal(value interface{}) ([]byte, error) {
+func marshal(value any) ([]byte, error) {
 	var b []byte
 	switch v := value.(type) {
 	case time.Time:
@@ -50,7 +50,7 @@ func marshal(value interface{}) ([]byte, error) {
 	return b, nil
 }
 
-func mustMarshal(value interface{}) []byte {
+func mustMarshal(value any) []byte {
 	b, err := marshal(value)
 	if err != nil {
 		panic(err)

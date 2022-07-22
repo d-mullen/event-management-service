@@ -30,7 +30,7 @@ type (
 		Timestamp int64
 		ID        string
 		EventID   string
-		Metadata  map[string][]interface{}
+		Metadata  map[string][]any
 	}
 	OccurrenceOptional struct {
 		Result *Occurrence
@@ -45,7 +45,7 @@ type (
 	Filter struct {
 		Operation Operation
 		Field     string
-		Values    []interface{}
+		Values    []any
 	}
 	EventTimeseriesInput struct {
 		ByEventIDs struct {
@@ -76,7 +76,7 @@ type (
 		PersistCounts bool
 	}
 	FrequencyResult struct {
-		Key    map[string]interface{}
+		Key    map[string]any
 		Values []int64
 	}
 	FrequencyResponse struct {

@@ -70,7 +70,7 @@ var _ = Describe("DTO Tests", func() {
 					Clause: &eventquery.Clause_Filter{
 						Filter: &eventquery.Filter{
 							Field:    "f1",
-							Operator: eventquery.Filter_EQUALS,
+							Operator: eventquery.Filter_OPERATOR_EQUALS,
 							Value:    mustToValue(1),
 						},
 					},

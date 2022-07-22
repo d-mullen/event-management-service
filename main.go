@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
+	redisCursors "github.com/zenoss/event-management-service/pkg/adapters/datasources/cursors/redis"
 	eventContextMongo "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
 	eventTSGrpc "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventts"
 	"github.com/zenoss/event-management-service/pkg/adapters/scopes/activeents"
@@ -76,7 +79,21 @@ func main() {
 				log.WithField(logrus.ErrorKey, err).Error("failed to connect to mongodb")
 				return err
 			}
-			eventContextAdapter, err := eventContextMongo.NewAdapter(ctx, cfg, db)
+
+			addresses := make(map[string]string)
+			for i, addr := range viper.GetStringSlice(zenkit.GCMemstoreAddressConfig) {
+				addresses[fmt.Sprintf("%d", i+1)] = addr
+			}
+			if len(addresses) == 0 {
+				log.Errorf("failed to connect to memorystore: config \"%s\" not found", zenkit.GCMemstoreAddressConfig)
+				return fmt.Errorf("memorystore addresses not found")
+			}
+			redisClient := redis.NewRing(&redis.RingOptions{
+				Addrs:       addresses,
+				DialTimeout: 2 * time.Second,
+			})
+			cursorsAdapter := redisCursors.NewAdapter(redisClient)
+			eventContextAdapter, err := eventContextMongo.NewAdapter(ctx, cfg, db, cursorsAdapter)
 			if err != nil {
 				log.WithField(logrus.ErrorKey, err).Error("failed to connect to event-ts-svc")
 				return err
@@ -102,10 +119,10 @@ func main() {
 				eventContextAdapter,
 				eventTSAdapter,
 				entityScopeAdapter,
-				activeents.NewInMemoryActiveEntityAdapter(8*1024, activeents.DefaultBucketSize))
+				activeents.NewInMemoryActiveEntityAdapter(8*1024, viper.GetDuration(config.ActiveEntityStoreBucketSize)))
 			eventsQuerySvc := eventQueryGrpc.NewEventQueryService(eventApp)
 			log.Debug("registering event query service")
-			eventQueryProto.RegisterEventQueryServer(svr, eventsQuerySvc)
+			eventQueryProto.RegisterEventQueryServiceServer(svr, eventsQuerySvc)
 		}
 
 		return nil

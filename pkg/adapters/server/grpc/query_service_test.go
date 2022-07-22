@@ -2,9 +2,10 @@ package grpc_test
 
 import (
 	"context"
-	"github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
 	"sync"
 	"testing"
+
+	"github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -127,11 +128,6 @@ var _ = Describe("Query gRPC Service Tests", func() {
 					},
 					Fields: nil,
 				},
-				PageInput: &eventquery.PageInput{
-					Cursor:    "",
-					Direction: 0,
-					Limit:     0,
-				},
 			})
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(resp).ShouldNot(BeNil())
@@ -161,12 +157,12 @@ var _ = Describe("Query gRPC Service Tests", func() {
 				Query: &eventquery.Query{TimeRange: &eventquery.TimeRange{Start: 0, End: 10}, Severities: []eventPb.Severity{eventPb.Severity_SEVERITY_DEFAULT}, Statuses: []eventPb.Status{eventPb.Status_STATUS_OPEN}, PageInput: &eventquery.PageInput{Limit: 100}, Fields: nil},
 				Fields: []*eventquery.Field{{
 					Field:      "severity",
-					Aggregator: eventquery.Aggregator_FIRST,
+					Aggregator: eventquery.Aggregator_AGGREGATOR_FIRST,
 					Label:      "",
 				}},
 				GroupBy: []*eventquery.Field{{
 					Field:      "severity",
-					Aggregator: eventquery.Aggregator_FIRST,
+					Aggregator: eventquery.Aggregator_AGGREGATOR_FIRST,
 					Label:      "",
 				}},
 				Downsample:     0,

@@ -24,7 +24,7 @@ import (
 )
 
 type Values interface {
-	GetValues() []interface{}
+	GetValues() []any
 	String() string
 	Bytes() []byte
 }
@@ -35,7 +35,7 @@ func ValuesFromBytes(b []byte) Values {
 	return values(string(b))
 }
 
-func (vs values) GetValues() (values []interface{}) {
+func (vs values) GetValues() (values []any) {
 	dec := rowkey.NewRowKeyDecoderFromString(string(vs))
 	defer dec.Free()
 
@@ -63,7 +63,7 @@ func (vs values) Bytes() []byte {
 	return []byte(vs)
 }
 
-func ToValues(vals ...interface{}) Values {
+func ToValues(vals ...any) Values {
 	b := new(bytes.Buffer)
 	for _, value := range vals {
 		b.Write(mustMarshal(value))

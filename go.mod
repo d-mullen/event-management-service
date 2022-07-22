@@ -15,18 +15,20 @@ require (
 	github.com/stretchr/testify v1.7.2
 	github.com/zenoss/event-context-svc v0.0.0-20210208232835-5442223405f6
 	github.com/zenoss/zenkit/v5 v5.6.0
-	github.com/zenoss/zing-proto/v11 v11.18.2
+	github.com/zenoss/zing-proto/v11 v11.18.3
 	github.com/zenoss/zingo/v4 v4.4.3
 	go.mongodb.org/mongo-driver v1.9.1
 	go.opencensus.io v0.23.0
 	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	google.golang.org/grpc v1.46.2
 	google.golang.org/protobuf v1.28.0
 )
 
 require github.com/hashicorp/golang-lru v0.5.4
+
+require github.com/google/uuid v1.3.0
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
@@ -68,6 +70,7 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.1 // indirect
+	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -92,5 +95,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/zenoss/zing-proto/v11 => ../../zing-proto

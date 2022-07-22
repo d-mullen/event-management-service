@@ -15,11 +15,11 @@ type Database struct {
 
 // Collection provides a mock function with given fields: name, opts
 func (_m *Database) Collection(name string, opts ...*options.CollectionOptions) mongodb.Collection {
-	_va := make([]interface{}, len(opts))
+	_va := make([]any, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
 	}
-	var _ca []interface{}
+	var _ca []any
 	_ca = append(_ca, name)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)

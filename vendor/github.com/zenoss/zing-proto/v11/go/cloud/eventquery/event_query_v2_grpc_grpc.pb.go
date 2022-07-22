@@ -18,78 +18,78 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// EventQueryClient is the client API for EventQuery service.
+// EventQueryServiceClient is the client API for EventQueryService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type EventQueryClient interface {
+type EventQueryServiceClient interface {
 	GetEvent(ctx context.Context, in *GetEventRequest, opts ...grpc.CallOption) (*GetEventResponse, error)
 	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error)
 	Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 	Count(ctx context.Context, in *CountRequest, opts ...grpc.CallOption) (*CountResponse, error)
 	Frequency(ctx context.Context, in *FrequencyRequest, opts ...grpc.CallOption) (*FrequencyResponse, error)
-	SearchStream(ctx context.Context, in *SearchStreamRequest, opts ...grpc.CallOption) (EventQuery_SearchStreamClient, error)
-	EventsWithCountsStream(ctx context.Context, in *EventsWithCountsRequest, opts ...grpc.CallOption) (EventQuery_EventsWithCountsStreamClient, error)
+	SearchStream(ctx context.Context, in *SearchStreamRequest, opts ...grpc.CallOption) (EventQueryService_SearchStreamClient, error)
+	EventsWithCountsStream(ctx context.Context, in *EventsWithCountsStreamRequest, opts ...grpc.CallOption) (EventQueryService_EventsWithCountsStreamClient, error)
 }
 
-type eventQueryClient struct {
+type eventQueryServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewEventQueryClient(cc grpc.ClientConnInterface) EventQueryClient {
-	return &eventQueryClient{cc}
+func NewEventQueryServiceClient(cc grpc.ClientConnInterface) EventQueryServiceClient {
+	return &eventQueryServiceClient{cc}
 }
 
-func (c *eventQueryClient) GetEvent(ctx context.Context, in *GetEventRequest, opts ...grpc.CallOption) (*GetEventResponse, error) {
+func (c *eventQueryServiceClient) GetEvent(ctx context.Context, in *GetEventRequest, opts ...grpc.CallOption) (*GetEventResponse, error) {
 	out := new(GetEventResponse)
-	err := c.cc.Invoke(ctx, "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvent", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.event_query.v2.EventQueryService/GetEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eventQueryClient) GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error) {
+func (c *eventQueryServiceClient) GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error) {
 	out := new(GetEventsResponse)
-	err := c.cc.Invoke(ctx, "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvents", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.event_query.v2.EventQueryService/GetEvents", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eventQueryClient) Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
+func (c *eventQueryServiceClient) Search(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
 	out := new(SearchResponse)
-	err := c.cc.Invoke(ctx, "/zenoss.cloud.eventQuery.v2.EventQuery/Search", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.event_query.v2.EventQueryService/Search", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eventQueryClient) Count(ctx context.Context, in *CountRequest, opts ...grpc.CallOption) (*CountResponse, error) {
+func (c *eventQueryServiceClient) Count(ctx context.Context, in *CountRequest, opts ...grpc.CallOption) (*CountResponse, error) {
 	out := new(CountResponse)
-	err := c.cc.Invoke(ctx, "/zenoss.cloud.eventQuery.v2.EventQuery/Count", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.event_query.v2.EventQueryService/Count", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eventQueryClient) Frequency(ctx context.Context, in *FrequencyRequest, opts ...grpc.CallOption) (*FrequencyResponse, error) {
+func (c *eventQueryServiceClient) Frequency(ctx context.Context, in *FrequencyRequest, opts ...grpc.CallOption) (*FrequencyResponse, error) {
 	out := new(FrequencyResponse)
-	err := c.cc.Invoke(ctx, "/zenoss.cloud.eventQuery.v2.EventQuery/Frequency", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.event_query.v2.EventQueryService/Frequency", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eventQueryClient) SearchStream(ctx context.Context, in *SearchStreamRequest, opts ...grpc.CallOption) (EventQuery_SearchStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventQuery_ServiceDesc.Streams[0], "/zenoss.cloud.eventQuery.v2.EventQuery/SearchStream", opts...)
+func (c *eventQueryServiceClient) SearchStream(ctx context.Context, in *SearchStreamRequest, opts ...grpc.CallOption) (EventQueryService_SearchStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventQueryService_ServiceDesc.Streams[0], "/zenoss.cloud.event_query.v2.EventQueryService/SearchStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &eventQuerySearchStreamClient{stream}
+	x := &eventQueryServiceSearchStreamClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -99,29 +99,29 @@ func (c *eventQueryClient) SearchStream(ctx context.Context, in *SearchStreamReq
 	return x, nil
 }
 
-type EventQuery_SearchStreamClient interface {
-	Recv() (*SearchResponse, error)
+type EventQueryService_SearchStreamClient interface {
+	Recv() (*SearchStreamResponse, error)
 	grpc.ClientStream
 }
 
-type eventQuerySearchStreamClient struct {
+type eventQueryServiceSearchStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *eventQuerySearchStreamClient) Recv() (*SearchResponse, error) {
-	m := new(SearchResponse)
+func (x *eventQueryServiceSearchStreamClient) Recv() (*SearchStreamResponse, error) {
+	m := new(SearchStreamResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *eventQueryClient) EventsWithCountsStream(ctx context.Context, in *EventsWithCountsRequest, opts ...grpc.CallOption) (EventQuery_EventsWithCountsStreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventQuery_ServiceDesc.Streams[1], "/zenoss.cloud.eventQuery.v2.EventQuery/EventsWithCountsStream", opts...)
+func (c *eventQueryServiceClient) EventsWithCountsStream(ctx context.Context, in *EventsWithCountsStreamRequest, opts ...grpc.CallOption) (EventQueryService_EventsWithCountsStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventQueryService_ServiceDesc.Streams[1], "/zenoss.cloud.event_query.v2.EventQueryService/EventsWithCountsStream", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &eventQueryEventsWithCountsStreamClient{stream}
+	x := &eventQueryServiceEventsWithCountsStreamClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -131,244 +131,244 @@ func (c *eventQueryClient) EventsWithCountsStream(ctx context.Context, in *Event
 	return x, nil
 }
 
-type EventQuery_EventsWithCountsStreamClient interface {
-	Recv() (*EventsWithCountsResponse, error)
+type EventQueryService_EventsWithCountsStreamClient interface {
+	Recv() (*EventsWithCountsStreamResponse, error)
 	grpc.ClientStream
 }
 
-type eventQueryEventsWithCountsStreamClient struct {
+type eventQueryServiceEventsWithCountsStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *eventQueryEventsWithCountsStreamClient) Recv() (*EventsWithCountsResponse, error) {
-	m := new(EventsWithCountsResponse)
+func (x *eventQueryServiceEventsWithCountsStreamClient) Recv() (*EventsWithCountsStreamResponse, error) {
+	m := new(EventsWithCountsStreamResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-// EventQueryServer is the server API for EventQuery service.
-// All implementations must embed UnimplementedEventQueryServer
+// EventQueryServiceServer is the server API for EventQueryService service.
+// All implementations must embed UnimplementedEventQueryServiceServer
 // for forward compatibility
-type EventQueryServer interface {
+type EventQueryServiceServer interface {
 	GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error)
 	GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error)
 	Search(context.Context, *SearchRequest) (*SearchResponse, error)
 	Count(context.Context, *CountRequest) (*CountResponse, error)
 	Frequency(context.Context, *FrequencyRequest) (*FrequencyResponse, error)
-	SearchStream(*SearchStreamRequest, EventQuery_SearchStreamServer) error
-	EventsWithCountsStream(*EventsWithCountsRequest, EventQuery_EventsWithCountsStreamServer) error
-	mustEmbedUnimplementedEventQueryServer()
+	SearchStream(*SearchStreamRequest, EventQueryService_SearchStreamServer) error
+	EventsWithCountsStream(*EventsWithCountsStreamRequest, EventQueryService_EventsWithCountsStreamServer) error
+	mustEmbedUnimplementedEventQueryServiceServer()
 }
 
-// UnimplementedEventQueryServer must be embedded to have forward compatible implementations.
-type UnimplementedEventQueryServer struct {
+// UnimplementedEventQueryServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedEventQueryServiceServer struct {
 }
 
-func (UnimplementedEventQueryServer) GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error) {
+func (UnimplementedEventQueryServiceServer) GetEvent(context.Context, *GetEventRequest) (*GetEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvent not implemented")
 }
-func (UnimplementedEventQueryServer) GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error) {
+func (UnimplementedEventQueryServiceServer) GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
 }
-func (UnimplementedEventQueryServer) Search(context.Context, *SearchRequest) (*SearchResponse, error) {
+func (UnimplementedEventQueryServiceServer) Search(context.Context, *SearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Search not implemented")
 }
-func (UnimplementedEventQueryServer) Count(context.Context, *CountRequest) (*CountResponse, error) {
+func (UnimplementedEventQueryServiceServer) Count(context.Context, *CountRequest) (*CountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Count not implemented")
 }
-func (UnimplementedEventQueryServer) Frequency(context.Context, *FrequencyRequest) (*FrequencyResponse, error) {
+func (UnimplementedEventQueryServiceServer) Frequency(context.Context, *FrequencyRequest) (*FrequencyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Frequency not implemented")
 }
-func (UnimplementedEventQueryServer) SearchStream(*SearchStreamRequest, EventQuery_SearchStreamServer) error {
+func (UnimplementedEventQueryServiceServer) SearchStream(*SearchStreamRequest, EventQueryService_SearchStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchStream not implemented")
 }
-func (UnimplementedEventQueryServer) EventsWithCountsStream(*EventsWithCountsRequest, EventQuery_EventsWithCountsStreamServer) error {
+func (UnimplementedEventQueryServiceServer) EventsWithCountsStream(*EventsWithCountsStreamRequest, EventQueryService_EventsWithCountsStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method EventsWithCountsStream not implemented")
 }
-func (UnimplementedEventQueryServer) mustEmbedUnimplementedEventQueryServer() {}
+func (UnimplementedEventQueryServiceServer) mustEmbedUnimplementedEventQueryServiceServer() {}
 
-// UnsafeEventQueryServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to EventQueryServer will
+// UnsafeEventQueryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to EventQueryServiceServer will
 // result in compilation errors.
-type UnsafeEventQueryServer interface {
-	mustEmbedUnimplementedEventQueryServer()
+type UnsafeEventQueryServiceServer interface {
+	mustEmbedUnimplementedEventQueryServiceServer()
 }
 
-func RegisterEventQueryServer(s grpc.ServiceRegistrar, srv EventQueryServer) {
-	s.RegisterService(&EventQuery_ServiceDesc, srv)
+func RegisterEventQueryServiceServer(s grpc.ServiceRegistrar, srv EventQueryServiceServer) {
+	s.RegisterService(&EventQueryService_ServiceDesc, srv)
 }
 
-func _EventQuery_GetEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EventQueryService_GetEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetEventRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventQueryServer).GetEvent(ctx, in)
+		return srv.(EventQueryServiceServer).GetEvent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvent",
+		FullMethod: "/zenoss.cloud.event_query.v2.EventQueryService/GetEvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventQueryServer).GetEvent(ctx, req.(*GetEventRequest))
+		return srv.(EventQueryServiceServer).GetEvent(ctx, req.(*GetEventRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventQuery_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EventQueryService_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetEventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventQueryServer).GetEvents(ctx, in)
+		return srv.(EventQueryServiceServer).GetEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/zenoss.cloud.eventQuery.v2.EventQuery/GetEvents",
+		FullMethod: "/zenoss.cloud.event_query.v2.EventQueryService/GetEvents",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventQueryServer).GetEvents(ctx, req.(*GetEventsRequest))
+		return srv.(EventQueryServiceServer).GetEvents(ctx, req.(*GetEventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventQuery_Search_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EventQueryService_Search_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventQueryServer).Search(ctx, in)
+		return srv.(EventQueryServiceServer).Search(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/zenoss.cloud.eventQuery.v2.EventQuery/Search",
+		FullMethod: "/zenoss.cloud.event_query.v2.EventQueryService/Search",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventQueryServer).Search(ctx, req.(*SearchRequest))
+		return srv.(EventQueryServiceServer).Search(ctx, req.(*SearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventQuery_Count_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EventQueryService_Count_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventQueryServer).Count(ctx, in)
+		return srv.(EventQueryServiceServer).Count(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/zenoss.cloud.eventQuery.v2.EventQuery/Count",
+		FullMethod: "/zenoss.cloud.event_query.v2.EventQueryService/Count",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventQueryServer).Count(ctx, req.(*CountRequest))
+		return srv.(EventQueryServiceServer).Count(ctx, req.(*CountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventQuery_Frequency_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EventQueryService_Frequency_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FrequencyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventQueryServer).Frequency(ctx, in)
+		return srv.(EventQueryServiceServer).Frequency(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/zenoss.cloud.eventQuery.v2.EventQuery/Frequency",
+		FullMethod: "/zenoss.cloud.event_query.v2.EventQueryService/Frequency",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventQueryServer).Frequency(ctx, req.(*FrequencyRequest))
+		return srv.(EventQueryServiceServer).Frequency(ctx, req.(*FrequencyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EventQuery_SearchStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _EventQueryService_SearchStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(SearchStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(EventQueryServer).SearchStream(m, &eventQuerySearchStreamServer{stream})
+	return srv.(EventQueryServiceServer).SearchStream(m, &eventQueryServiceSearchStreamServer{stream})
 }
 
-type EventQuery_SearchStreamServer interface {
-	Send(*SearchResponse) error
+type EventQueryService_SearchStreamServer interface {
+	Send(*SearchStreamResponse) error
 	grpc.ServerStream
 }
 
-type eventQuerySearchStreamServer struct {
+type eventQueryServiceSearchStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *eventQuerySearchStreamServer) Send(m *SearchResponse) error {
+func (x *eventQueryServiceSearchStreamServer) Send(m *SearchStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _EventQuery_EventsWithCountsStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(EventsWithCountsRequest)
+func _EventQueryService_EventsWithCountsStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventsWithCountsStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(EventQueryServer).EventsWithCountsStream(m, &eventQueryEventsWithCountsStreamServer{stream})
+	return srv.(EventQueryServiceServer).EventsWithCountsStream(m, &eventQueryServiceEventsWithCountsStreamServer{stream})
 }
 
-type EventQuery_EventsWithCountsStreamServer interface {
-	Send(*EventsWithCountsResponse) error
+type EventQueryService_EventsWithCountsStreamServer interface {
+	Send(*EventsWithCountsStreamResponse) error
 	grpc.ServerStream
 }
 
-type eventQueryEventsWithCountsStreamServer struct {
+type eventQueryServiceEventsWithCountsStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *eventQueryEventsWithCountsStreamServer) Send(m *EventsWithCountsResponse) error {
+func (x *eventQueryServiceEventsWithCountsStreamServer) Send(m *EventsWithCountsStreamResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-// EventQuery_ServiceDesc is the grpc.ServiceDesc for EventQuery service.
+// EventQueryService_ServiceDesc is the grpc.ServiceDesc for EventQueryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var EventQuery_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "zenoss.cloud.eventQuery.v2.EventQuery",
-	HandlerType: (*EventQueryServer)(nil),
+var EventQueryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "zenoss.cloud.event_query.v2.EventQueryService",
+	HandlerType: (*EventQueryServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GetEvent",
-			Handler:    _EventQuery_GetEvent_Handler,
+			Handler:    _EventQueryService_GetEvent_Handler,
 		},
 		{
 			MethodName: "GetEvents",
-			Handler:    _EventQuery_GetEvents_Handler,
+			Handler:    _EventQueryService_GetEvents_Handler,
 		},
 		{
 			MethodName: "Search",
-			Handler:    _EventQuery_Search_Handler,
+			Handler:    _EventQueryService_Search_Handler,
 		},
 		{
 			MethodName: "Count",
-			Handler:    _EventQuery_Count_Handler,
+			Handler:    _EventQueryService_Count_Handler,
 		},
 		{
 			MethodName: "Frequency",
-			Handler:    _EventQuery_Frequency_Handler,
+			Handler:    _EventQueryService_Frequency_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "SearchStream",
-			Handler:       _EventQuery_SearchStream_Handler,
+			Handler:       _EventQueryService_SearchStream_Handler,
 			ServerStreams: true,
 		},
 		{
 			StreamName:    "EventsWithCountsStream",
-			Handler:       _EventQuery_EventsWithCountsStream_Handler,
+			Handler:       _EventQueryService_EventsWithCountsStream_Handler,
 			ServerStreams: true,
 		},
 	},

@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zenoss/event-management-service/internal/batchops"
@@ -12,9 +16,9 @@ import (
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/zenkit/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/exp/slices"
-	"sync"
-	"time"
 )
 
 const (
@@ -23,17 +27,28 @@ const (
 	CollNotes       = "note"
 )
 
+const (
+	CursorConfigKeyNextKey = "nextKey"
+)
+
 type Adapter struct {
-	db          mongodb.Database
-	collections map[string]mongodb.Collection
-	ttlMap      map[string]time.Duration
+	db           mongodb.Database
+	collections  map[string]mongodb.Collection
+	ttlMap       map[string]time.Duration
+	queryCursors event.CursorRepository
 }
 
 var _ event.Repository = &Adapter{}
 
-func NewAdapter(_ context.Context, cfg mongodb.Config, database mongodb.Database) (*Adapter, error) {
+func NewAdapter(_ context.Context,
+	cfg mongodb.Config,
+	database mongodb.Database,
+	queryCursors event.CursorRepository) (*Adapter, error) {
 	if database == nil {
 		return nil, errors.New("invalid argument: nil database")
+	}
+	if queryCursors == nil {
+		return nil, errors.New("invalid argument: nil query cursor adapter")
 	}
 	// since collection names won't change while service is up and running
 	// it's reasonable to store the handles
@@ -50,6 +65,7 @@ func NewAdapter(_ context.Context, cfg mongodb.Config, database mongodb.Database
 		ttlMap: map[string]time.Duration{
 			"zing_ttl_default": cfg.DefaultTTL,
 		},
+		queryCursors: queryCursors,
 	}, nil
 }
 
@@ -63,9 +79,15 @@ func (db *Adapter) Get(_ context.Context, _ *event.GetRequest) ([]*event.Event, 
 
 func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, error) {
 	var (
-		hasNext bool
-		limit   int
-		log     = zenkit.ContextLogger(ctx)
+		hasNext     bool
+		limit       int
+		log         = zenkit.ContextLogger(ctx)
+		queryCursor *event.Cursor
+		sortField   string
+		filters     primitive.D
+		prevNextKey *primitive.D
+		sortOpt     *primitive.D
+		findOpt     *options.FindOptions
 	)
 	ctx, span := instrumentation.StartSpan(ctx, "mongodb.Adapter.Find")
 	defer span.End()
@@ -73,49 +95,75 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find events")
 	}
-	if pi := query.PageInput; pi != nil {
-		limit = int(pi.Limit)
+	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
+		limit = int(pi.Limit) + 1
 	}
-	filters, findOpts, err := QueryToFindArguments(query)
-	if err != nil {
-		return nil, err
+
+	if pi := query.PageInput; pi != nil && len(pi.Cursor) > 0 {
+		queryCursor, err = db.queryCursors.Get(ctx, pi.Cursor)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to process cursor")
+		}
+		log.WithField("queryCursor", queryCursor).Debug("got query cursor from store")
+		filters, findOpt, err = QueryToFindArguments(&queryCursor.Query)
+		if err != nil {
+			return nil, err
+		}
+		if nextKeyAny, ok := queryCursor.Config[CursorConfigKeyNextKey]; ok {
+			if pNK, ok2 := nextKeyAny.(*primitive.D); ok2 {
+				prevNextKey = pNK
+			}
+		}
+	} else {
+		filters, findOpt, err = QueryToFindArguments(query)
+		if err != nil {
+			return nil, err
+		}
 	}
+	// generate the key for the next page
+	if sortAny := findOpt.Sort; sortAny != nil {
+		if sortD, ok := sortAny.(*bson.D); ok {
+			sortOpt = sortD
+			data, _ := bson.Marshal(sortD)
+			sortRaw := bson.Raw(data)
+			elms, err := sortRaw.Elements()
+			if err == nil && len(elms) > 0 {
+				sortField = elms[0].Key()
+			}
+		}
+	}
+	// generate pagination query
+	paginatedFilter := GeneratePaginationQuery(&filters, sortOpt, prevNextKey)
+	log.WithField("paginationFilter", paginatedFilter).Debug("got pagination filter")
 	instrumentation.AnnotateSpan("occurrence.Find",
 		fmt.Sprintf("executing %s.Find", CollOccurrences),
 		span,
 		map[string]any{
-			"filter":   filters,
-			"findOpts": findOpts,
+			"filter":  paginatedFilter,
+			"findOpt": findOpt,
+			"nextKey": prevNextKey,
 		}, nil)
-	cursor, err := db.collections[CollOccurrences].Find(ctx, filters, findOpts...)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find events with aggregation")
-	}
-	defer func() {
-		err := cursor.Close(ctx)
-		if err != nil {
-			log.Warnf("failure closing cursor: %q", err)
-		}
-	}()
 	docs := make([]*bson.M, 0)
-	for cursor.Next(ctx) {
-		if err := cursor.Err(); err != nil {
-			return nil, errors.Wrap(err, "failed to find events with cursor")
-		}
-		result := &bson.M{}
-		if err := cursor.Decode(result); err != nil {
-			log.Errorf("failed to decode result: %q", err)
-			continue
-		}
-		docs = append(docs, result)
-		if limit > 0 && len(docs) == limit {
-			break
-		}
+	err = mongodb.FindWithRetry(
+		ctx,
+		*paginatedFilter,
+		[]*options.FindOptions{findOpt},
+		db.collections[CollOccurrences].Find,
+		func(result *bson.M) (bool, string, error) {
+			if limit > 0 && len(docs) == limit {
+				// If limit has been set; then it will equal requestedLimit+1
+				// So if we have scanned the the extra result, there is a next result
+				hasNext = true
+				return false, "", nil
+			}
+			docs = append(docs, result)
+			id, ok := (*result)["_id"].(string)
+			return ok, id, nil
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find occurrences with retry")
 	}
-	if err := cursor.Err(); err != nil {
-		log.WithField(logrus.ErrorKey, err).Warn("error occurred while iterating over occurrence cursor")
-	}
-	hasNext = !(cursor.ID() == 0)
 	instrumentation.AnnotateSpan("occurrenceResults",
 		"got occurrence query results",
 		span,
@@ -148,36 +196,59 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 			eventIDs = append(eventIDs, newResult.ID)
 		}
 	}
-
+	nextKey := NextKey(sortField, docs)
+	cursorInput := &event.Cursor{
+		Query: *query,
+		ID:    uuid.New().String(),
+		Config: map[string]any{
+			CursorConfigKeyNextKey: nextKey,
+		},
+	}
+	resultCursorString, err := db.queryCursors.New(ctx, cursorInput)
+	if err != nil {
+		log.WithField(logrus.ErrorKey, err).Error("failed to create query cursor")
+	}
+	instrumentation.AnnotateSpan("newCursor",
+		"created new cursor",
+		span,
+		map[string]any{
+			"cursorInput": cursorInput,
+		}, nil)
 	if slices.Contains(query.Fields, "notes") {
-		// TODO: only get notes if requested
-		notesInFilter := bson.D{{Key: "occid", Value: bson.D{{Key: OpIn, Value: occurrenceIDs}}}}
-		log.WithFields(logrus.Fields{
-			"filters": notesInFilter,
-		}).Debugf("executing %s.Find", "note")
-		notesCursor, err := db.collections[CollNotes].Find(ctx, notesInFilter)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to find notes")
-		}
-		defer func() {
-			err := notesCursor.Close(ctx)
-			if err != nil {
-				log.Warnf("failed to close notes cursor: %q", err)
-			}
-		}()
-		notesDocs := make([]bson.M, 0)
+		noteMut := sync.Mutex{}
 		allNotes := make([]*Note, 0)
-		err = notesCursor.All(ctx, &notesDocs)
+		err := batchops.DoConcurrently(ctx, 500, 10, occurrenceIDs,
+			func(batch []string) ([]*Note, error) {
+				notesInFilter := bson.D{{Key: "occid", Value: bson.D{{Key: OpIn, Value: batch}}}}
+				log.WithFields(logrus.Fields{
+					"filters": notesInFilter,
+				}).Debugf("executing %s.Find", "note")
+				notes := make([]*Note, 0)
+				err := mongodb.FindWithRetry[*Note](
+					ctx,
+					notesInFilter,
+					[]*options.FindOptions{},
+					db.collections[CollNotes].Find,
+					func(note *Note) (bool, string, error) {
+						notes = append(notes, note)
+						return true, note.ID, nil
+					},
+				)
+				if err != nil {
+					return nil, err
+				}
+				return notes, nil
+			},
+			func(notes []*Note) (bool, error) {
+				noteMut.Lock()
+				defer noteMut.Unlock()
+				allNotes = append(allNotes, notes...)
+				return true, nil
+			},
+		)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to retrieve note results")
-		}
-		for _, doc := range notesDocs {
-			newNote := &Note{}
-			err = defaultDecodeFunc(&doc, newNote)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal notes bytes")
-			}
-			allNotes = append(allNotes, newNote)
+			log.WithField(logrus.ErrorKey, err).Error("failed to find notes")
+			return nil, err
 		}
 		for _, note := range allNotes {
 			occ, ok := occMap[note.OccID]
@@ -191,45 +262,36 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		}
 	}
 
-	if slices.Contains(query.Fields, "dimensions") || slices.Contains(query.Fields, "entity") {
-		// TODO: only get event docs if requested; otherwise we can construct partial
-		// event docs from the occurrence docs
+	if slices.Contains(query.Fields, "dimensions") {
 		eventMapMut := sync.Mutex{}
 		eventMap := make(map[string]*EventDimensions)
 		err := batchops.DoConcurrently(ctx, 500, 10, eventIDs,
-			func(batch []string) (mongodb.Cursor, error) {
+			func(batch []string) ([]*EventDimensions, error) {
 				eventInFilter := bson.D{{Key: OpIn, Value: batch}}
 				log.WithFields(logrus.Fields{
 					"filters": eventInFilter,
 				}).Debugf("executing %s.Find", "event")
-				eventCursor, err := db.collections[CollEvents].Find(ctx, bson.D{{Key: "_id", Value: eventInFilter}})
+				eventDocs := make([]*EventDimensions, 0)
+				err := mongodb.FindWithRetry[*EventDimensions](
+					ctx,
+					bson.D{{Key: "_id", Value: eventInFilter}},
+					[]*options.FindOptions{},
+					db.collections[CollEvents].Find,
+					func(r *EventDimensions) (bool, string, error) {
+						eventDocs = append(eventDocs, r)
+						return true, r.ID, nil
+					},
+				)
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to find events")
 				}
-				return eventCursor, nil
+				return eventDocs, nil
 			},
-			func(eventCursor mongodb.Cursor) (bool, error) {
-				defer func() {
-					err := eventCursor.Close(ctx)
-					if err != nil {
-						log.Warnf("failed to close events cursor: %q", err)
-					}
-				}()
-				for eventCursor.Next(ctx) {
-					if err := eventCursor.Err(); err != nil {
-						return false, errors.Wrap(err, "failed to find events with cursor")
-					}
-					result := &EventDimensions{}
-					if err := eventCursor.Decode(result); err != nil {
-						log.Errorf("failed to decode result: %q", err)
-						continue
-					}
-					eventMapMut.Lock()
-					eventMap[result.ID] = result
-					eventMapMut.Unlock()
-				}
-				if eventCursor.Err() != nil {
-					return false, eventCursor.Err()
+			func(eventDocs []*EventDimensions) (bool, error) {
+				eventMapMut.Lock()
+				defer eventMapMut.Unlock()
+				for _, doc := range eventDocs {
+					eventMap[doc.ID] = doc
 				}
 				return true, nil
 			})
@@ -261,6 +323,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 	return &event.Page{
 		Results: modelResults,
 		HasNext: hasNext,
+		Cursor:  resultCursorString,
 	}, nil
 }
 

@@ -16,7 +16,7 @@ var (
 	limiterTraceSpan = rate.NewLimiter(rate.Every(50*time.Millisecond), 100)
 )
 
-func mustMarshal(v interface{}, errFunc func(error)) string {
+func mustMarshal(v any, errFunc func(error)) string {
 	b, err := json.Marshal(v)
 	if err != nil {
 		if errFunc != nil {
@@ -40,5 +40,5 @@ func StartSpan(ctx context.Context, name string) (context.Context, *trace.Span) 
 func AnnotateSpan(key, message string, span *trace.Span, attributes map[string]any, errHandler func(error)) {
 	span.Annotate([]trace.Attribute{
 		trace.StringAttribute(key, mustMarshal(attributes, errHandler)),
-	}, "got request for active events")
+	}, message)
 }
