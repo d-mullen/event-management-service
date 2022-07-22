@@ -116,6 +116,33 @@ func (_c *MockFeatureFlagsServer_FeaturesEnabled_Call) Return(_a0 *FeaturesEnabl
 	return _c
 }
 
+// mustEmbedUnimplementedFeatureFlagsServer provides a mock function with given fields:
+func (_m *MockFeatureFlagsServer) mustEmbedUnimplementedFeatureFlagsServer() {
+	_m.Called()
+}
+
+// MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedFeatureFlagsServer'
+type MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedFeatureFlagsServer is a helper method to define mock.On call
+func (_e *MockFeatureFlagsServer_Expecter) mustEmbedUnimplementedFeatureFlagsServer() *MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call {
+	return &MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call{Call: _e.mock.On("mustEmbedUnimplementedFeatureFlagsServer")}
+}
+
+func (_c *MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call) Run(run func()) *MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call) Return() *MockFeatureFlagsServer_mustEmbedUnimplementedFeatureFlagsServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockFeatureFlagsServer creates a new instance of MockFeatureFlagsServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockFeatureFlagsServer(t testing.TB) *MockFeatureFlagsServer {
 	mock := &MockFeatureFlagsServer{}

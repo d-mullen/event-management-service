@@ -237,6 +237,33 @@ func (_c *MockDataReceiverServiceServer_PutModels_Call) Return(_a0 *ModelStatusR
 	return _c
 }
 
+// mustEmbedUnimplementedDataReceiverServiceServer provides a mock function with given fields:
+func (_m *MockDataReceiverServiceServer) mustEmbedUnimplementedDataReceiverServiceServer() {
+	_m.Called()
+}
+
+// MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedDataReceiverServiceServer'
+type MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedDataReceiverServiceServer is a helper method to define mock.On call
+func (_e *MockDataReceiverServiceServer_Expecter) mustEmbedUnimplementedDataReceiverServiceServer() *MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call {
+	return &MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call{Call: _e.mock.On("mustEmbedUnimplementedDataReceiverServiceServer")}
+}
+
+func (_c *MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call) Run(run func()) *MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call) Return() *MockDataReceiverServiceServer_mustEmbedUnimplementedDataReceiverServiceServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockDataReceiverServiceServer creates a new instance of MockDataReceiverServiceServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockDataReceiverServiceServer(t testing.TB) *MockDataReceiverServiceServer {
 	mock := &MockDataReceiverServiceServer{}

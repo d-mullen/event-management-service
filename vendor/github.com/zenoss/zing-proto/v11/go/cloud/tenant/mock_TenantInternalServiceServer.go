@@ -398,6 +398,33 @@ func (_c *MockTenantInternalServiceServer_ListTenants_Call) Return(_a0 *ListTena
 	return _c
 }
 
+// mustEmbedUnimplementedTenantInternalServiceServer provides a mock function with given fields:
+func (_m *MockTenantInternalServiceServer) mustEmbedUnimplementedTenantInternalServiceServer() {
+	_m.Called()
+}
+
+// MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedTenantInternalServiceServer'
+type MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedTenantInternalServiceServer is a helper method to define mock.On call
+func (_e *MockTenantInternalServiceServer_Expecter) mustEmbedUnimplementedTenantInternalServiceServer() *MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call {
+	return &MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call{Call: _e.mock.On("mustEmbedUnimplementedTenantInternalServiceServer")}
+}
+
+func (_c *MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call) Run(run func()) *MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call) Return() *MockTenantInternalServiceServer_mustEmbedUnimplementedTenantInternalServiceServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockTenantInternalServiceServer creates a new instance of MockTenantInternalServiceServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockTenantInternalServiceServer(t testing.TB) *MockTenantInternalServiceServer {
 	mock := &MockTenantInternalServiceServer{}

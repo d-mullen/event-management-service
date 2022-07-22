@@ -116,6 +116,33 @@ func (_c *MockYamrIngestServer_PutBulk_Call) Return(_a0 *PutBulkResponse, _a1 er
 	return _c
 }
 
+// mustEmbedUnimplementedYamrIngestServer provides a mock function with given fields:
+func (_m *MockYamrIngestServer) mustEmbedUnimplementedYamrIngestServer() {
+	_m.Called()
+}
+
+// MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedYamrIngestServer'
+type MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedYamrIngestServer is a helper method to define mock.On call
+func (_e *MockYamrIngestServer_Expecter) mustEmbedUnimplementedYamrIngestServer() *MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call {
+	return &MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call{Call: _e.mock.On("mustEmbedUnimplementedYamrIngestServer")}
+}
+
+func (_c *MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call) Run(run func()) *MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call) Return() *MockYamrIngestServer_mustEmbedUnimplementedYamrIngestServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockYamrIngestServer creates a new instance of MockYamrIngestServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockYamrIngestServer(t testing.TB) *MockYamrIngestServer {
 	mock := &MockYamrIngestServer{}

@@ -17,7 +17,7 @@ import (
 	"net/url"
 
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -155,8 +155,7 @@ func runGRPCServer(ctx context.Context, name string, f ServiceRegistrationFunc, 
 			// ZING-4277
 			// Added HTTPProtoErrorHandler for ZING-6662 messsaging issue.
 			gwmux := runtime.NewServeMux(
-				runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: false}),
-				runtime.WithProtoErrorHandler(HTTPProtoErrorHandler))
+				runtime.WithErrorHandler(HTTPProtoErrorHandler))
 
 			// handler that proxies to the grpc server, if json content
 			// it goes through the grpc gateway for transcoding.
@@ -232,7 +231,7 @@ func HTTPProtoErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler
 
 	// Early return if no err or error code is not one of the replaced ones below.
 	if err == nil || !codeSet[int(code)] {
-		runtime.DefaultHTTPProtoErrorHandler(ctx, mux, marshaler, w, request, err)
+		runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, request, err)
 		return
 	}
 
@@ -275,7 +274,7 @@ func HTTPProtoErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler
 		s := status.New(code, message)
 		err = s.Err()
 	}
-	runtime.DefaultHTTPProtoErrorHandler(ctx, mux, marshaler, w, request, err)
+	runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, request, err)
 }
 
 var (

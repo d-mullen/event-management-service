@@ -342,6 +342,33 @@ func (_c *MockYamrQueryServer_Suggest_Call) Return(_a0 *SuggestResponse, _a1 err
 	return _c
 }
 
+// mustEmbedUnimplementedYamrQueryServer provides a mock function with given fields:
+func (_m *MockYamrQueryServer) mustEmbedUnimplementedYamrQueryServer() {
+	_m.Called()
+}
+
+// MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedYamrQueryServer'
+type MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedYamrQueryServer is a helper method to define mock.On call
+func (_e *MockYamrQueryServer_Expecter) mustEmbedUnimplementedYamrQueryServer() *MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call {
+	return &MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call{Call: _e.mock.On("mustEmbedUnimplementedYamrQueryServer")}
+}
+
+func (_c *MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call) Run(run func()) *MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call) Return() *MockYamrQueryServer_mustEmbedUnimplementedYamrQueryServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockYamrQueryServer creates a new instance of MockYamrQueryServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockYamrQueryServer(t testing.TB) *MockYamrQueryServer {
 	mock := &MockYamrQueryServer{}

@@ -324,6 +324,33 @@ func (_c *MockEventTSServiceServer_GetRawEvents_Call) Return(_a0 *RawEventsRespo
 	return _c
 }
 
+// mustEmbedUnimplementedEventTSServiceServer provides a mock function with given fields:
+func (_m *MockEventTSServiceServer) mustEmbedUnimplementedEventTSServiceServer() {
+	_m.Called()
+}
+
+// MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedEventTSServiceServer'
+type MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedEventTSServiceServer is a helper method to define mock.On call
+func (_e *MockEventTSServiceServer_Expecter) mustEmbedUnimplementedEventTSServiceServer() *MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call {
+	return &MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call{Call: _e.mock.On("mustEmbedUnimplementedEventTSServiceServer")}
+}
+
+func (_c *MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call) Run(run func()) *MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call) Return() *MockEventTSServiceServer_mustEmbedUnimplementedEventTSServiceServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockEventTSServiceServer creates a new instance of MockEventTSServiceServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEventTSServiceServer(t testing.TB) *MockEventTSServiceServer {
 	mock := &MockEventTSServiceServer{}

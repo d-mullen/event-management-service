@@ -210,6 +210,33 @@ func (_c *MockEventContextIngestServer_UpdateEvent_Call) Return(_a0 *UpdateEvent
 	return _c
 }
 
+// mustEmbedUnimplementedEventContextIngestServer provides a mock function with given fields:
+func (_m *MockEventContextIngestServer) mustEmbedUnimplementedEventContextIngestServer() {
+	_m.Called()
+}
+
+// MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedEventContextIngestServer'
+type MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedEventContextIngestServer is a helper method to define mock.On call
+func (_e *MockEventContextIngestServer_Expecter) mustEmbedUnimplementedEventContextIngestServer() *MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call {
+	return &MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call{Call: _e.mock.On("mustEmbedUnimplementedEventContextIngestServer")}
+}
+
+func (_c *MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call) Run(run func()) *MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call) Return() *MockEventContextIngestServer_mustEmbedUnimplementedEventContextIngestServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockEventContextIngestServer creates a new instance of MockEventContextIngestServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEventContextIngestServer(t testing.TB) *MockEventContextIngestServer {
 	mock := &MockEventContextIngestServer{}

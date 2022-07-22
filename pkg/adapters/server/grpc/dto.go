@@ -28,18 +28,10 @@ func FilterProtoToEventFilter(filterPb *eventquery.Filter) (*event.Filter, error
 	if !ok {
 		return nil, errInvalidFilter
 	}
-	mv := filterPb.GetValue().AsMap()
-	keys := make([]string, 0, len(mv))
-	for k := range mv {
-		keys = append(keys, k)
-		if len(keys) > 0 {
-			break
-		}
-	}
 	return &event.Filter{
 		Field: filterPb.Field,
 		Op:    op,
-		Value: mv[keys[0]],
+		Value: filterPb.GetValue().AsInterface(),
 	}, nil
 }
 
@@ -115,17 +107,9 @@ func ClauseProtoToEventFilter(clause *eventquery.Clause) (*event.Filter, error) 
 	case *eventquery.Clause_Filter:
 		return FilterProtoToEventFilter(v.Filter)
 	case *eventquery.Clause_In:
-		inAsMap := v.In.Values.AsMap()
-		keys := make([]string, 0, len(inAsMap))
-		for k := range inAsMap {
-			keys = append(keys, k)
-			if len(keys) > 0 {
-				break
-			}
-		}
 		return &event.Filter{
 			Field: v.In.GetField(),
-			Value: inAsMap[keys[0]],
+			Value: v.In.Values.AsSlice(),
 		}, nil
 	case *eventquery.Clause_WithScope:
 		fmt.Printf("%v", v)

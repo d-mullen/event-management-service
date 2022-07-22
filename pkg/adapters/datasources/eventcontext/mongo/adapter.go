@@ -112,6 +112,9 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 			break
 		}
 	}
+	if err := cursor.Err(); err != nil {
+		log.WithField(logrus.ErrorKey, err).Warn("error occurred while iterating over occurrence cursor")
+	}
 	hasNext = !(cursor.ID() == 0)
 	instrumentation.AnnotateSpan("occurrenceResults",
 		"got occurrence query results",
@@ -172,7 +175,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 			newNote := &Note{}
 			err = defaultDecodeFunc(&doc, newNote)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to umarshal notes bytes")
+				return nil, errors.Wrap(err, "failed to unmarshal notes bytes")
 			}
 			allNotes = append(allNotes, newNote)
 		}
@@ -224,6 +227,9 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 					eventMapMut.Lock()
 					eventMap[result.ID] = result
 					eventMapMut.Unlock()
+				}
+				if eventCursor.Err() != nil {
+					return false, eventCursor.Err()
 				}
 				return true, nil
 			})

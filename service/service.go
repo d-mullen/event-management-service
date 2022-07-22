@@ -17,6 +17,7 @@ import (
 
 // EventManagementService implements the interface proto.EventManagementServer
 type EventManagementService struct {
+	proto.UnimplementedEventManagementServer
 	eventCtxClient   ecproto.EventContextIngestClient
 	eventCtxClientv2 ecproto.EventContextIngestClient
 }

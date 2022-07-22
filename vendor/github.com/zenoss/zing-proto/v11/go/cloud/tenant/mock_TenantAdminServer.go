@@ -774,6 +774,33 @@ func (_c *MockTenantAdminServer_SetAdminSettings_Call) Return(_a0 *SetAdminSetti
 	return _c
 }
 
+// mustEmbedUnimplementedTenantAdminServer provides a mock function with given fields:
+func (_m *MockTenantAdminServer) mustEmbedUnimplementedTenantAdminServer() {
+	_m.Called()
+}
+
+// MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedTenantAdminServer'
+type MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedTenantAdminServer is a helper method to define mock.On call
+func (_e *MockTenantAdminServer_Expecter) mustEmbedUnimplementedTenantAdminServer() *MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call {
+	return &MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call{Call: _e.mock.On("mustEmbedUnimplementedTenantAdminServer")}
+}
+
+func (_c *MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call) Run(run func()) *MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call) Return() *MockTenantAdminServer_mustEmbedUnimplementedTenantAdminServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockTenantAdminServer creates a new instance of MockTenantAdminServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockTenantAdminServer(t testing.TB) *MockTenantAdminServer {
 	mock := &MockTenantAdminServer{}

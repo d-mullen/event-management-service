@@ -342,6 +342,33 @@ func (_c *MockYamrServiceServer_StreamingSearch_Call) Return(_a0 error) *MockYam
 	return _c
 }
 
+// mustEmbedUnimplementedYamrServiceServer provides a mock function with given fields:
+func (_m *MockYamrServiceServer) mustEmbedUnimplementedYamrServiceServer() {
+	_m.Called()
+}
+
+// MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedYamrServiceServer'
+type MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedYamrServiceServer is a helper method to define mock.On call
+func (_e *MockYamrServiceServer_Expecter) mustEmbedUnimplementedYamrServiceServer() *MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call {
+	return &MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call{Call: _e.mock.On("mustEmbedUnimplementedYamrServiceServer")}
+}
+
+func (_c *MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call) Run(run func()) *MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call) Return() *MockYamrServiceServer_mustEmbedUnimplementedYamrServiceServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockYamrServiceServer creates a new instance of MockYamrServiceServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockYamrServiceServer(t testing.TB) *MockYamrServiceServer {
 	mock := &MockYamrServiceServer{}

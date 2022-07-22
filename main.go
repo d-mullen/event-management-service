@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"math/rand"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	eventContextMongo "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
 	eventTSGrpc "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventts"
+	"github.com/zenoss/event-management-service/pkg/adapters/scopes/activeents"
 	eventQueryGrpc "github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
-	"math/rand"
-	"time"
 
 	"github.com/zenoss/event-management-service/config"
 	"github.com/zenoss/event-management-service/metrics"
@@ -65,6 +67,9 @@ func main() {
 		}
 
 		if viper.GetBool(config.EventQueryEnabled) {
+			if viper.IsSet(config.ActiveEntityStoreMinBucketSize) {
+				activeents.SetBucketSizeFloor(viper.GetDuration(config.ActiveEntityStoreMinBucketSize))
+			}
 			cfg := MongoConfigFromEnv(nil)
 			db, err := mongodb.NewMongoDatabaseConnection(ctx, cfg)
 			if err != nil {
@@ -96,7 +101,8 @@ func main() {
 			eventApp := event.NewService(
 				eventContextAdapter,
 				eventTSAdapter,
-				entityScopeAdapter)
+				entityScopeAdapter,
+				activeents.NewInMemoryActiveEntityAdapter(8*1024, activeents.DefaultBucketSize))
 			eventsQuerySvc := eventQueryGrpc.NewEventQueryService(eventApp)
 			log.Debug("registering event query service")
 			eventQueryProto.RegisterEventQueryServer(svr, eventsQuerySvc)

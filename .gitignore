@@ -27,3 +27,5 @@ coverage/
 
 # Swap files
 *.swp
+
+redis-data

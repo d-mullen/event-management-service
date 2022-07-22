@@ -9,6 +9,16 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+func mustToList(values ...any) *structpb.ListValue {
+	lv, _ := structpb.NewList(values)
+	return lv
+}
+
+func mustToValue(v any) *structpb.Value {
+	vv, _ := structpb.NewValue(v)
+	return vv
+}
+
 func mustToStruct(v map[string]any) *structpb.Struct {
 	s, _ := structpb.NewStruct(v)
 	return s
@@ -50,7 +60,7 @@ var _ = Describe("DTO Tests", func() {
 			// 	}
 			//   }`
 			req := &eventquery.SearchRequest{}
-			q1, err := grpc.QueryProtoToEventQuery("acme", nil, nil)
+			q1, err := grpc.QueryProtoToEventQuery("acme", nil)
 			Ω(err).Should(HaveOccurred())
 			Ω(q1).Should(BeNil())
 
@@ -61,13 +71,13 @@ var _ = Describe("DTO Tests", func() {
 						Filter: &eventquery.Filter{
 							Field:    "f1",
 							Operator: eventquery.Filter_EQUALS,
-							Value:    mustToStruct(map[string]any{"f1": 1}),
+							Value:    mustToValue(1),
 						},
 					},
 				},
 			}
 
-			r2, err := grpc.QueryProtoToEventQuery("acme", req.Query, nil)
+			r2, err := grpc.QueryProtoToEventQuery("acme", req.Query)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(r2).ShouldNot(BeNil())
 
@@ -77,12 +87,12 @@ var _ = Describe("DTO Tests", func() {
 					Clause: &eventquery.Clause_In{
 						In: &eventquery.In{
 							Field:  "f2",
-							Values: mustToStruct(map[string]any{"f2": []any{1, 2}}),
+							Values: mustToList(1, 2),
 						},
 					},
 				},
 			}
-			r3, err := grpc.QueryProtoToEventQuery("acme", req.Query, nil)
+			r3, err := grpc.QueryProtoToEventQuery("acme", req.Query)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(r3).ShouldNot(BeNil())
 
@@ -100,7 +110,7 @@ var _ = Describe("DTO Tests", func() {
 					},
 				},
 			}
-			r4, err := grpc.QueryProtoToEventQuery("acme", req.Query, nil)
+			r4, err := grpc.QueryProtoToEventQuery("acme", req.Query)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(r4).ShouldNot(BeNil())
 			GinkgoWriter.Printf("%#v", r4)

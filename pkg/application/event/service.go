@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
@@ -25,16 +26,22 @@ type Service interface {
 }
 
 type service struct {
-	eventContext event.Repository
-	eventTS      eventts.Repository
-	entityScopes scopes.EntityScopeProvider
+	eventContext   event.Repository
+	eventTS        eventts.Repository
+	entityScopes   scopes.EntityScopeProvider
+	activeEntities scopes.ActiveEntityRepository
 }
 
 func NewService(
 	r event.Repository,
 	eventTSRepo eventts.Repository,
-	entityScopeProvider scopes.EntityScopeProvider) Service {
-	return &service{eventContext: r, eventTS: eventTSRepo, entityScopes: entityScopeProvider}
+	entityScopeProvider scopes.EntityScopeProvider,
+	activeEntityAdapter scopes.ActiveEntityRepository) Service {
+	return &service{
+		eventContext:   r,
+		eventTS:        eventTSRepo,
+		entityScopes:   entityScopeProvider,
+		activeEntities: activeEntityAdapter}
 }
 
 func (svc *service) Add(_ context.Context, _ *event.Event) (*event.Event, error) {
@@ -162,27 +169,35 @@ func getEventTSFrequency(ctx context.Context,
 	return resp, nil
 }
 
-func TransformScopeFilter(ctx context.Context, filter *event.Filter, provider scopes.EntityScopeProvider) (*event.Filter, bool, error) {
+func TransformScopeFilter(ctx context.Context, timeRange event.TimeRange, tenantID string, filter *event.Filter, entityScopeProvider scopes.EntityScopeProvider, activeEntityAdapter scopes.ActiveEntityRepository) (*event.Filter, bool, error) {
 	log := zenkit.ContextLogger(ctx)
 	if filter == nil {
 		return nil, false, errors.New("got nil filter")
 	}
-	if provider == nil {
+	if entityScopeProvider == nil {
 		return nil, false, errors.New("got nil provider")
 	}
 	if filter.Op != event.FilterOpScope {
 		return nil, false, nil
 	}
 	if scope, ok := filter.Value.(*event.Scope); ok {
-		eventIds, err := provider.GetEntityIDs(ctx, scope.Cursor)
+		entityIDs, err := entityScopeProvider.GetEntityIDs(ctx, scope.Cursor)
 		if err != nil {
 			log.WithError(err).Error("failed to get entity ids")
 			return nil, false, err
 		}
+		if activeEntityAdapter != nil {
+			entityIDs2, err := activeEntityAdapter.Get(ctx, timeRange, tenantID, entityIDs)
+			if err != nil {
+				log.WithField(logrus.ErrorKey, err).Warn("failed to get active entity ids")
+			} else {
+				entityIDs = entityIDs2
+			}
+		}
 		return &event.Filter{
 			Field: "entity",
 			Op:    event.FilterOpIn,
-			Value: eventIds,
+			Value: entityIDs,
 		}, true, nil
 	}
 	return nil, false, nil
@@ -190,7 +205,7 @@ func TransformScopeFilter(ctx context.Context, filter *event.Filter, provider sc
 
 func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, error) {
 	q.Q("service.Find: got query", query)
-	err := applyScopeFilterTransform(ctx, query, svc.entityScopes)
+	err := applyScopeFilterTransform(ctx, query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
 		return nil, err
 	}
@@ -208,10 +223,10 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	return results, nil
 }
 
-func applyScopeFilterTransform(ctx context.Context, query *event.Query, provider scopes.EntityScopeProvider) error {
+func applyScopeFilterTransform(ctx context.Context, query *event.Query, provider scopes.EntityScopeProvider, activeEntityAdapter scopes.ActiveEntityRepository) error {
 	if query.Filter != nil {
 		if query.Filter.Op != event.FilterOpAnd {
-			inFilter, ok, err := TransformScopeFilter(ctx, query.Filter, provider)
+			inFilter, ok, err := TransformScopeFilter(ctx, query.TimeRange, query.Tenant, query.Filter, provider, activeEntityAdapter)
 			if err != nil {
 				return err
 			}
@@ -224,7 +239,7 @@ func applyScopeFilterTransform(ctx context.Context, query *event.Query, provider
 			if filters, ok := filterValue.([]*event.Filter); ok {
 				newFilters := make([]*event.Filter, len(filters))
 				for i, filter := range filters {
-					inFilter, didTransform, err := TransformScopeFilter(ctx, filter, provider)
+					inFilter, didTransform, err := TransformScopeFilter(ctx, query.TimeRange, query.Tenant, filter, provider, activeEntityAdapter)
 					if err != nil {
 						return err
 					}
@@ -318,7 +333,7 @@ func bucketsToFrequencyResult(buckets []*frequency.Bucket) []*eventts.FrequencyR
 
 func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) (*eventts.FrequencyResponse, error) {
 	log := zenkit.ContextLogger(ctx)
-	err := applyScopeFilterTransform(ctx, &req.Query, svc.entityScopes)
+	err := applyScopeFilterTransform(ctx, &req.Query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
 		log.WithError(err).Error("failed to get frequency")
 		return nil, err
@@ -375,7 +390,7 @@ type (
 
 func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventts.CountResponse, error) {
 	log := zenkit.ContextLogger(ctx)
-	err := applyScopeFilterTransform(ctx, &req.Query, svc.entityScopes)
+	err := applyScopeFilterTransform(ctx, &req.Query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
 		log.WithError(err).Error("failed to get count")
 		return nil, err

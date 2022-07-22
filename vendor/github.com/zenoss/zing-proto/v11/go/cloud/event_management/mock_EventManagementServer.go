@@ -163,6 +163,33 @@ func (_c *MockEventManagementServer_SetStatus_Call) Return(_a0 *EventStatusRespo
 	return _c
 }
 
+// mustEmbedUnimplementedEventManagementServer provides a mock function with given fields:
+func (_m *MockEventManagementServer) mustEmbedUnimplementedEventManagementServer() {
+	_m.Called()
+}
+
+// MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedEventManagementServer'
+type MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedEventManagementServer is a helper method to define mock.On call
+func (_e *MockEventManagementServer_Expecter) mustEmbedUnimplementedEventManagementServer() *MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call {
+	return &MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call{Call: _e.mock.On("mustEmbedUnimplementedEventManagementServer")}
+}
+
+func (_c *MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call) Run(run func()) *MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call) Return() *MockEventManagementServer_mustEmbedUnimplementedEventManagementServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockEventManagementServer creates a new instance of MockEventManagementServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEventManagementServer(t testing.TB) *MockEventManagementServer {
 	mock := &MockEventManagementServer{}

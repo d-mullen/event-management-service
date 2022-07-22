@@ -1,4 +1,4 @@
-ZENKIT_BUILD_VERSION := 1.9.1
+ZENKIT_BUILD_VERSION := 1.12.0
 PACKAGE              := github.com/zenoss/zenkit
 ROOTDIR              ?= $(CURDIR)
 NETRC                ?= ~/.netrc
@@ -111,10 +111,9 @@ lint: | $(GOLINT) ; $(info $(M) running golint…) @ ## Check packages with goli
 test: COVERAGE_PROFILE := $(COVERAGE_DIR)/profile.out
 test: COVERAGE_HTML    := $(COVERAGE_DIR)/index.html
 test: COVERAGE_XML     := $(COVERAGE_DIR)/coverage.xml
-test: | $(GINKGO) $(GOCOVMERGE) $(GOCOV) $(GOCOVXML) ; $(info $(M) running tests...) @ ## Execute tests with ginkgo.
+test: | $(GINKGO) $(GOCOV) $(GOCOVXML) ; $(info $(M) running tests...) @ ## Execute tests with ginkgo.
 	$Q mkdir -p $(COVERAGE_DIR)
-# TODO: cover policy_framework package with tests (ZING-18724)
-	$Q $(GINKGO) --skip-package=policy_framework -r -cover -coverprofile=$(COVERAGE_PROFILE) -covermode=count --junit-report=junit.xml
+	$Q $(GINKGO) -r -cover -coverprofile=profile.out -covermode=count -output-dir=$(COVERAGE_DIR) --junit-report=junit.xml
 	$Q $(GO) tool cover -html=$(COVERAGE_PROFILE) -o $(COVERAGE_HTML)
 	$Q $(GOCOV) convert $(COVERAGE_PROFILE) | $(GOCOVXML) > $(COVERAGE_XML)
 
@@ -135,10 +134,7 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all files.
 
 .PHONY: clean
 clean: ; $(info $(M) cleaning…) @ ## Cleanup everything.
-	$Q rm -rf \
-		$(COVERAGE_DIR) \
-		*.coverprofile junit.xml \
-		**/*.coverprofile **/junit.xml
+	$Q rm -rf $(COVERAGE_DIR)
 
 .PHONY: help
 help:

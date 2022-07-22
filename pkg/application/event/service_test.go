@@ -3,6 +3,8 @@ package event_test
 import (
 	"context"
 
+	"github.com/zenoss/event-management-service/pkg/adapters/scopes/activeents"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
@@ -25,7 +27,7 @@ var _ = Describe("eventquery.Service", func() {
 	BeforeEach(func() {
 		eventsRepo = eventContextMocks.NewRepository(suiteTestingT)
 		eventTSRepo = eventTSMocks.NewRepository(suiteTestingT)
-		svc = event.NewService(eventsRepo, eventTSRepo, nil)
+		svc = event.NewService(eventsRepo, eventTSRepo, nil, activeents.NewInMemoryActiveEntityAdapter(1024, activeents.DefaultBucketSize))
 	})
 
 	Context("Service.Find", func() {

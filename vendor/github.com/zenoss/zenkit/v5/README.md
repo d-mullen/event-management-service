@@ -1,5 +1,4 @@
-zenkit
-======
+# zenkit
 
 _zenkit_ is a Go microservice toolkit. Its purpose is to pull together
 best-of-breed technologies in a known good configuration. With its companion
@@ -205,6 +204,36 @@ installed them, so you can keep running `make test`.
    may also simply use `go build {{Name}}`, then run the resulting binary
    manually, although if supporting services are required, the `docker-compose`
    functionality the Makefile implements is very convenient.
+
+## Migration
+
+Sometimes you may find that updating the zenkit dependency in a project
+requires making other changes in the project to compensate. For example, on
+the (hopefully) rare occasions when backwards-incompatible changes are made.
+
+### Migration to v5.6.0
+
+#### Updating to go1.17
+
+Migrating to zenkit v5.6.0 is a good time to update your project's Golang
+version to 1.17. Ensure that you have the latest go1.17 installed on your
+development system, and update `go.mod` to `go 1.17`.
+
+#### Updating ZENKIT_BUILD_VERSION to 1.12.0
+
+Migrating to zenkit v5.6.0 is a good time to update your project's
+ZENKIT_BUILD_VERSION to 1.12.0 or later. Usually this is done in `Dockerfile`
+and `Makefile`.
+
+#### Fixing RegisterEndpointFunc Errors
+
+If you have updated to zenkit v5.6.0, and now have compilation errors that
+look like the following, you must also update to zing-proto v11.18.0 or later.
+
+```
+# github.com/zenoss/dictionary-svc
+./main.go:108:60: cannot use dictionary.RegisterDictionaryHandlerFromEndpoint (type func(context.Context, *"github.com/grpc-ecosystem/grpc-gateway/runtime".ServeMux, string, []grpc.DialOption) error) as type zenkit.RegisterEndpointFunc in argument to zenkit.RunGRPCServerWithEndpoint
+```
 
 ## Issues?
 [Zenoss Jira](https://jira.zenoss.com). Open an issue, ZING project, Zenkit

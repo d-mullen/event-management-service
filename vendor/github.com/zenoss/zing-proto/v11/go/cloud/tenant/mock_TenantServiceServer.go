@@ -774,6 +774,33 @@ func (_c *MockTenantServiceServer_UpdateTenantTheme_Call) Return(_a0 *TenantThem
 	return _c
 }
 
+// mustEmbedUnimplementedTenantServiceServer provides a mock function with given fields:
+func (_m *MockTenantServiceServer) mustEmbedUnimplementedTenantServiceServer() {
+	_m.Called()
+}
+
+// MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedTenantServiceServer'
+type MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedTenantServiceServer is a helper method to define mock.On call
+func (_e *MockTenantServiceServer_Expecter) mustEmbedUnimplementedTenantServiceServer() *MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call {
+	return &MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call{Call: _e.mock.On("mustEmbedUnimplementedTenantServiceServer")}
+}
+
+func (_c *MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call) Run(run func()) *MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call) Return() *MockTenantServiceServer_mustEmbedUnimplementedTenantServiceServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockTenantServiceServer creates a new instance of MockTenantServiceServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockTenantServiceServer(t testing.TB) *MockTenantServiceServer {
 	mock := &MockTenantServiceServer{}

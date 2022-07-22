@@ -59,6 +59,33 @@ func (_c *MockYamrResolverServer_Resolve_Call) Return(_a0 error) *MockYamrResolv
 	return _c
 }
 
+// mustEmbedUnimplementedYamrResolverServer provides a mock function with given fields:
+func (_m *MockYamrResolverServer) mustEmbedUnimplementedYamrResolverServer() {
+	_m.Called()
+}
+
+// MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedYamrResolverServer'
+type MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedYamrResolverServer is a helper method to define mock.On call
+func (_e *MockYamrResolverServer_Expecter) mustEmbedUnimplementedYamrResolverServer() *MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call {
+	return &MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call{Call: _e.mock.On("mustEmbedUnimplementedYamrResolverServer")}
+}
+
+func (_c *MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call) Run(run func()) *MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call) Return() *MockYamrResolverServer_mustEmbedUnimplementedYamrResolverServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockYamrResolverServer creates a new instance of MockYamrResolverServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockYamrResolverServer(t testing.TB) *MockYamrResolverServer {
 	mock := &MockYamrResolverServer{}

@@ -260,6 +260,11 @@ spec:
               configMapKeyRef:
                 name: auth0-common
                 key: JWKS_URL
+          - name: EVENT_MANAGEMENT_SERVICE_GCLOUD_MEMORYSTORE_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                name: project-common
+                key: K8S_REDIS_ADDRESS
           - name: EVENT_MANAGEMENT_SERVICE_EVENTMANAGEMENT_ENABLED
             value: "0"
           - name: EVENT_MANAGEMENT_SERVICE_EVENT_QUERY_ENABLED

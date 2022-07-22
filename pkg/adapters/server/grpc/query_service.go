@@ -23,6 +23,7 @@ var (
 
 type (
 	EventQueryService struct {
+		eventquery.UnimplementedEventQueryServer
 		svr appEvent.Service
 	}
 )
@@ -71,12 +72,12 @@ func ProtoSortByToDomain(orig *eventquery.SortBy) (*event.SortOpt, error) {
 	}
 }
 
-func QueryProtoToEventQuery(tenantID string, query *eventquery.Query, pageInput *eventquery.PageInput) (*event.Query, error) {
+func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Query, error) {
 	if query == nil {
 		return nil, status.Error(codes.InvalidArgument, "nil query found on request")
 	}
 	if tr := query.TimeRange; tr == nil || tr.End < tr.Start {
-		return nil, status.Error(codes.InvalidArgument, "invalid timerange")
+		return nil, status.Error(codes.InvalidArgument, "invalid time range")
 	}
 	result := &event.Query{
 		Tenant: tenantID,
@@ -121,12 +122,12 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query, pageInput 
 		pageInput.SortBy = sortBys
 		result.PageInput = pageInput
 	}
-	if pageInput != nil {
+	if query.PageInput != nil {
 		if result.PageInput == nil {
 			result.PageInput = &event.PageInput{}
 		}
-		result.PageInput.Cursor = pageInput.Cursor
-		result.PageInput.Limit = uint64(pageInput.Limit)
+		result.PageInput.Cursor = query.PageInput.Cursor
+		result.PageInput.Limit = uint64(query.PageInput.Limit)
 	}
 	return result, nil
 }
@@ -139,7 +140,7 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 	if err != nil {
 		return nil, err
 	}
-	findReq, err := QueryProtoToEventQuery(ident.TenantName(), req.Query, req.PageInput)
+	findReq, err := QueryProtoToEventQuery(ident.TenantName(), req.Query)
 	if err != nil {
 		log.WithError(err).Error("failed to convert request to domain query")
 		return nil, err
@@ -240,7 +241,7 @@ func (handler *EventQueryService) Count(ctx context.Context, req *eventquery.Cou
 	if err != nil {
 		return nil, err
 	}
-	findReq, err := QueryProtoToEventQuery(ident.TenantName(), req.Query, nil)
+	findReq, err := QueryProtoToEventQuery(ident.TenantName(), req.Query)
 	if err != nil {
 		log.WithError(err).Error("failed to convert request to domain query")
 		return nil, err
@@ -289,7 +290,7 @@ func (handler *EventQueryService) Frequency(ctx context.Context, req *eventquery
 	if err != nil {
 		return nil, err
 	}
-	findReq, err := QueryProtoToEventQuery(ident.TenantName(), req.Query, nil)
+	findReq, err := QueryProtoToEventQuery(ident.TenantName(), req.Query)
 	if err != nil {
 		log.WithError(err).Error("failed to convert request to domain query")
 		return nil, err

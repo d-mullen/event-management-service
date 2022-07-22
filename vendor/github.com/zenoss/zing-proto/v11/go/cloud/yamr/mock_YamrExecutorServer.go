@@ -59,6 +59,33 @@ func (_c *MockYamrExecutorServer_Execute_Call) Return(_a0 error) *MockYamrExecut
 	return _c
 }
 
+// mustEmbedUnimplementedYamrExecutorServer provides a mock function with given fields:
+func (_m *MockYamrExecutorServer) mustEmbedUnimplementedYamrExecutorServer() {
+	_m.Called()
+}
+
+// MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedYamrExecutorServer'
+type MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedYamrExecutorServer is a helper method to define mock.On call
+func (_e *MockYamrExecutorServer_Expecter) mustEmbedUnimplementedYamrExecutorServer() *MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call {
+	return &MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call{Call: _e.mock.On("mustEmbedUnimplementedYamrExecutorServer")}
+}
+
+func (_c *MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call) Run(run func()) *MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call) Return() *MockYamrExecutorServer_mustEmbedUnimplementedYamrExecutorServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockYamrExecutorServer creates a new instance of MockYamrExecutorServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockYamrExecutorServer(t testing.TB) *MockYamrExecutorServer {
 	mock := &MockYamrExecutorServer{}

@@ -1,16 +1,20 @@
 package config
 
 import (
+	"time"
+
 	"github.com/spf13/viper"
 )
 
 const (
 	DefaultBackendDatabase = "mongo"
 	// same defaults in deployment.yaml
-	DefaultMongoDBAddr              = "zing-mongodb"
-	DefaultMongoDBCACertificate     = "/mongo-user/ca.crt"
-	DefaultMongoDBClientCertificate = "/mongo-user/user.pem"
-	DefaultMongoDBName              = "event-context-svc"
+	DefaultMongoDBAddr                    = "zing-mongodb"
+	DefaultMongoDBCACertificate           = "/mongo-user/ca.crt"
+	DefaultMongoDBClientCertificate       = "/mongo-user/user.pem"
+	DefaultMongoDBName                    = "event-context-svc"
+	DefaultActiveEntityStoreMinBucketSize = time.Hour
+	DefaultActiveEntityStoreTTL           = 24 * time.Hour
 
 	// EventManagementEnabledConfig determines if the API endpoint for event management is enabled for this server
 	EventManagementEnabledConfig = "eventmanagement.enabled"
@@ -30,6 +34,12 @@ const (
 	MongoAdmDBCACertificate = "mongo.adm.certificateCAPath"
 	// The name of the privileged client certificate and private key file.
 	MongoAdmDBClientCertificate = "mongo.adm.ClientCertificate"
+
+	// ActiveEntityStore Configuration
+	// ActiveEntityStoreMinBucketSize - the mininum time bucket size (duration) used to generate active entity record keys
+	ActiveEntityStoreMinBucketSize = "active.entity.store.min.bucket.size"
+	// ActiveEntityStoreDefaultTTL - the default duration for expiring active entity records
+	ActiveEntityStoreDefaultTTL = "active.entity.store.default.ttl"
 )
 
 // InitDefaults sets defaults values for this server's configuration
@@ -40,4 +50,6 @@ func init() {
 	viper.SetDefault(MongoDBCACertificate, DefaultMongoDBCACertificate)
 	viper.SetDefault(MongoDBClientCertificate, DefaultMongoDBClientCertificate)
 	viper.SetDefault(MongoDBName, DefaultMongoDBName)
+	viper.SetDefault(ActiveEntityStoreDefaultTTL, DefaultActiveEntityStoreTTL)
+	viper.SetDefault(ActiveEntityStoreMinBucketSize, DefaultActiveEntityStoreMinBucketSize)
 }

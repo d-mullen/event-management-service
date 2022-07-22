@@ -333,6 +333,33 @@ func (_c *MockEventQueryServer_SearchStream_Call) Return(_a0 error) *MockEventQu
 	return _c
 }
 
+// mustEmbedUnimplementedEventQueryServer provides a mock function with given fields:
+func (_m *MockEventQueryServer) mustEmbedUnimplementedEventQueryServer() {
+	_m.Called()
+}
+
+// MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedEventQueryServer'
+type MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedEventQueryServer is a helper method to define mock.On call
+func (_e *MockEventQueryServer_Expecter) mustEmbedUnimplementedEventQueryServer() *MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call {
+	return &MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call{Call: _e.mock.On("mustEmbedUnimplementedEventQueryServer")}
+}
+
+func (_c *MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call) Run(run func()) *MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call) Return() *MockEventQueryServer_mustEmbedUnimplementedEventQueryServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockEventQueryServer creates a new instance of MockEventQueryServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockEventQueryServer(t testing.TB) *MockEventQueryServer {
 	mock := &MockEventQueryServer{}

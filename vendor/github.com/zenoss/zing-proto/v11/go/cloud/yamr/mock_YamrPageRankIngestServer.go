@@ -58,6 +58,33 @@ func (_c *MockYamrPageRankIngestServer_Update_Call) Return(_a0 error) *MockYamrP
 	return _c
 }
 
+// mustEmbedUnimplementedYamrPageRankIngestServer provides a mock function with given fields:
+func (_m *MockYamrPageRankIngestServer) mustEmbedUnimplementedYamrPageRankIngestServer() {
+	_m.Called()
+}
+
+// MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'mustEmbedUnimplementedYamrPageRankIngestServer'
+type MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call struct {
+	*mock.Call
+}
+
+// mustEmbedUnimplementedYamrPageRankIngestServer is a helper method to define mock.On call
+func (_e *MockYamrPageRankIngestServer_Expecter) mustEmbedUnimplementedYamrPageRankIngestServer() *MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call {
+	return &MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call{Call: _e.mock.On("mustEmbedUnimplementedYamrPageRankIngestServer")}
+}
+
+func (_c *MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call) Run(run func()) *MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call) Return() *MockYamrPageRankIngestServer_mustEmbedUnimplementedYamrPageRankIngestServer_Call {
+	_c.Call.Return()
+	return _c
+}
+
 // NewMockYamrPageRankIngestServer creates a new instance of MockYamrPageRankIngestServer. It also registers the testing.TB interface on the mock and a cleanup function to assert the mocks expectations.
 func NewMockYamrPageRankIngestServer(t testing.TB) *MockYamrPageRankIngestServer {
 	mock := &MockYamrPageRankIngestServer{}
