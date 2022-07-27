@@ -10,19 +10,16 @@ services:
       MONGO_INITDB_ROOT_USERNAME: zing-user
       MONGO_INITDB_ROOT_PASSWORD: .H1ddenPassw0rd.
     ports:
-      - "27017:27017"
+      - 27018:27018
     networks:
       default:
         aliases:
           - zing-mongodb
   redis:
-    # user: "${PG_UID:-1000}:${PG_GID:-1000}"
     restart: "no"
     image: redis
     ports:
       - "6379"
-    # volumes:
-    #   - $PWD/redis-data:/data:rw
     command: redis-server --appendonly yes
   test:
     privileged: true
@@ -34,3 +31,4 @@ services:
       - redis
     environment:
       EVENT_MANAGEMENT_SERVICE_GCLOUD_MEMORYSTORE_ADDRESS: redis:6379
+      EVENT_MANAGEMENT_SERVICE_GCLOUD_MONGO_ADDRESS: mongodb

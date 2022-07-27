@@ -176,7 +176,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	if err != nil {
 		return nil, err
 	}
-	if query.PageInput == nil || (query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
+	if query.PageInput == nil || (query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
 		queryGroup, gCtx := errgroup.WithContext(ctx)
 		queryGroup.SetLimit(5)
 		queries := SplitOutQueries(2000, "entity", query)

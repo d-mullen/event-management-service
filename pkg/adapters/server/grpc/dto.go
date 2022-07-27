@@ -108,6 +108,7 @@ func ClauseProtoToEventFilter(clause *eventquery.Clause) (*event.Filter, error) 
 		return FilterProtoToEventFilter(v.Filter)
 	case *eventquery.Clause_In:
 		return &event.Filter{
+			Op:    event.FilterOpIn,
 			Field: v.In.GetField(),
 			Value: v.In.Values.AsSlice(),
 		}, nil

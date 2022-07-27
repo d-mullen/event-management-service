@@ -5,6 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"go.mongodb.org/mongo-driver/bson"
@@ -60,8 +61,16 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 				nextKey *bson.D
 			}
 		}
+
+		testCase2 struct {
+			orig     *event.Filter
+			expected struct {
+				filter *bson.D
+				err    error
+			}
+		}
 	)
-	DescribeTable(
+	var _ = DescribeTable(
 		"GeneratePaginationQuery Table-driven Tests",
 		func(tc testCase) {
 			query, sort, nextKey := tc.query, tc.sort, tc.nextKey
@@ -193,6 +202,129 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 					},
 				},
 				nextKey: &bson.D{{"_id", 2}, {"f1", 1}},
+			},
+		}),
+	)
+	var _ = DescribeTable(
+		"DomainFilterToMongoD Table-driven Tests",
+		func(tc testCase2) {
+			orig := tc.orig
+			expected := tc.expected
+
+			actual, actualErr := mongo.DomainFilterToMongoD(orig)
+
+			if tc.expected.err != nil {
+				Expect(actualErr).To(HaveOccurred())
+				Expect(actualErr).To(MatchError(tc.expected.err.Error()))
+			} else {
+				Expect(actualErr).NotTo(HaveOccurred())
+			}
+
+			Expect(mustMarshal(actual)).To(MatchJSON(mustMarshal(expected.filter)))
+		},
+		Entry("case 1: invalid filter operation", testCase2{
+			orig: &event.Filter{
+				Op:    "",
+				Field: "field1",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: nil,
+				err:    errors.Errorf("invalid filter operation: %v", ""),
+			},
+		}),
+		Entry("case 2: invalid filter operation", testCase2{
+			orig: &event.Filter{
+				Op:    "badFilter",
+				Field: "field1",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: nil,
+				err:    errors.Errorf("invalid filter operation: %v", "badFilter"),
+			},
+		}),
+		Entry("case 3: not clause 1", testCase2{
+			orig: &event.Filter{
+				Op: event.FilterOpNot,
+				Value: &event.Filter{
+					Field: "field1",
+					Op:    event.FilterOpEqualTo,
+					Value: 1,
+				},
+			},
+			expected: struct {
+				filter *bson.D
+				err    error
+			}{
+				filter: &bson.D{
+					{Key: "field1", Value: bson.E{Key: mongo.OpNotEqualTo, Value: 1}},
+				},
+				err: nil,
+			},
+		}),
+		Entry("case 4: and clause 1", testCase2{
+			orig: &event.Filter{
+				Op: event.FilterOpAnd,
+				Value: &event.Filter{
+					Field: "field1",
+					Op:    event.FilterOpEqualTo,
+					Value: 1,
+				},
+			},
+			expected: struct {
+				filter *bson.D
+				err    error
+			}{
+				filter: nil,
+				err:    errors.New("invalid filter values"),
+			},
+		}),
+		Entry("case 4: and clause 2", testCase2{
+			orig: &event.Filter{
+				Op: event.FilterOpAnd,
+				Value: []*event.Filter{
+					{
+						Field: "field1",
+						Op:    event.FilterOpEqualTo,
+						Value: 1,
+					},
+					{
+						Field: "field2",
+						Op:    event.FilterOpEqualTo,
+						Value: "bar",
+					},
+				},
+			},
+			expected: struct {
+				filter *bson.D
+				err    error
+			}{
+				filter: &bson.D{
+					{
+						Key: mongo.OpAnd,
+						// TODO: fix the overnesting of filter documents
+						Value: bson.A{
+							bson.D{{Key: "field1", Value: bson.D{{Key: mongo.OpEqualTo, Value: 1}}}},
+							bson.D{{Key: "field2", Value: bson.D{{Key: mongo.OpEqualTo, Value: "bar"}}}},
+						},
+					},
+				},
+				err: nil,
+			},
+		}),
+		Entry("case 5: nil filter", testCase2{
+			orig: nil,
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: nil,
+				err:    errors.New("invalid filter: got nil value"),
 			},
 		}),
 	)

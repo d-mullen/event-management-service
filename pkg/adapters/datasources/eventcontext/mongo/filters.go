@@ -99,9 +99,12 @@ func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
 }
 
 func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
+	if orig == nil {
+		return nil, errors.New("invalid filter: got nil value")
+	}
 	op, ok := domainMongoFilterMap[orig.Op]
 	if !ok {
-		return nil, errors.New("invalid filter operation")
+		return nil, errors.Errorf("invalid filter operation: %v", orig.Op)
 	}
 	switch orig.Op {
 	case event.FilterOpNot:
