@@ -90,8 +90,10 @@ func main() {
 			}
 			redisClient := redis.NewRing(&redis.RingOptions{
 				Addrs:       addresses,
-				DialTimeout: 2 * time.Second,
+				DialTimeout: 5 * time.Second,
 			})
+			redisCursors.SetInitialCursorTTL(viper.GetDuration(config.QueryCursorIntialTTL))
+			redisCursors.SetExtendedCursorTTL(viper.GetDuration(config.QueryCursorExtendedTTL))
 			cursorsAdapter := redisCursors.NewAdapter(redisClient)
 			eventContextAdapter, err := eventContextMongo.NewAdapter(ctx, cfg, db, cursorsAdapter)
 			if err != nil {

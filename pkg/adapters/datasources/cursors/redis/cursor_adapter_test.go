@@ -60,21 +60,29 @@ var _ = Describe("Redis Cursor Adapter Tests", func() {
 		).
 			Return(redis.NewStatusResult("", nil)).
 			Run(func(args mock.Arguments) {
-				GinkgoWriter.Write([]byte(fmt.Sprintf("args: %v", args)))
+				GinkgoWriter.Write([]byte(fmt.Sprintf("args: %v\n", args)))
 			})
 		cursor, err := adapter.New(testCtx, req)
 
 		Expect(err).ToNot(HaveOccurred())
 		Expect(cursor).ToNot(BeEmpty())
 
-		client.On("GetEx",
+		client.On("Get",
+			mock.AnythingOfType("*context.cancelCtx"),
+			mock.AnythingOfType("string"),
+		).
+			Return(redis.NewStringResult(string(cursorBytes), nil)).
+			Run(func(args mock.Arguments) {
+				GinkgoWriter.Write([]byte(fmt.Sprintf("args: %v\n", args)))
+			})
+		client.On("Expire",
 			mock.AnythingOfType("*context.cancelCtx"),
 			mock.AnythingOfType("string"),
 			mock.AnythingOfType("time.Duration"),
 		).
-			Return(redis.NewStringResult(string(cursorBytes), nil)).
+			Return(redis.NewBoolResult(true, nil)).
 			Run(func(args mock.Arguments) {
-				GinkgoWriter.Write([]byte(fmt.Sprintf("args: %v", args)))
+				GinkgoWriter.Write([]byte(fmt.Sprintf("args: %v\n", args)))
 			})
 		actual, err := adapter.Get(testCtx, cursor)
 		Expect(err).ToNot(HaveOccurred())

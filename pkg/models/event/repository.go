@@ -37,10 +37,17 @@ const (
 	ScopeEntity ScopeEnum = iota
 )
 
+type PageDirection int
+
+const (
+	PageDirectionForward = iota
+	PageDirectionBackward
+)
+
 type (
 	TimeRange struct {
-		Start int64
-		End   int64
+		Start int64 `json:"start"`
+		End   int64 `json:"end"`
 	}
 
 	Scope struct {
@@ -48,13 +55,13 @@ type (
 		Cursor    string
 	}
 	Query struct {
-		Tenant     string
-		TimeRange  TimeRange
-		Severities []Severity
-		Statuses   []Status
-		Fields     []string
-		Filter     *Filter
-		PageInput  *PageInput
+		Tenant     string     `json:"tenant,omitempty"`
+		TimeRange  TimeRange  `json:"timeRange,omitempty"`
+		Severities []Severity `json:"severities,omitempty"`
+		Statuses   []Status   `json:"statuses,omitempty"`
+		Fields     []string   `json:"fields,omitempty"`
+		Filter     *Filter    `json:"filter,omitempty"`
+		PageInput  *PageInput `json:"pageInput,omitempty"`
 	}
 	GetRequest struct {
 		Tenant          string
@@ -82,18 +89,19 @@ type (
 	}
 
 	Filter struct {
-		Op    FilterOp
-		Field string
-		Value any
+		Op    FilterOp `json:"op"`
+		Field string   `json:"field"`
+		Value any      `json:"value"`
 	}
 	SortOpt struct {
 		Field string
 		SortOrder
 	}
 	PageInput struct {
-		Limit  uint64
-		Cursor string
-		SortBy []SortOpt
+		Direction PageDirection
+		Limit     uint64
+		Cursor    string
+		SortBy    []SortOpt
 	}
 	Page struct {
 		Results []*Event

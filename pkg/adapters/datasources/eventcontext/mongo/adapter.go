@@ -3,11 +3,9 @@ package mongo
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zenoss/event-management-service/internal/batchops"
@@ -32,10 +30,11 @@ const (
 )
 
 type Adapter struct {
-	db           mongodb.Database
-	collections  map[string]mongodb.Collection
-	ttlMap       map[string]time.Duration
-	queryCursors event.CursorRepository
+	db          mongodb.Database
+	collections map[string]mongodb.Collection
+	ttlMap      map[string]time.Duration
+	cursorRepo  event.CursorRepository
+	pager       Pager
 }
 
 var _ event.Repository = &Adapter{}
@@ -65,7 +64,8 @@ func NewAdapter(_ context.Context,
 		ttlMap: map[string]time.Duration{
 			"zing_ttl_default": cfg.DefaultTTL,
 		},
-		queryCursors: queryCursors,
+		cursorRepo: queryCursors,
+		pager:      NewSkipLimitPager(),
 	}, nil
 }
 
@@ -79,78 +79,35 @@ func (db *Adapter) Get(_ context.Context, _ *event.GetRequest) ([]*event.Event, 
 
 func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, error) {
 	var (
-		hasNext     bool
-		limit       int
-		log         = zenkit.ContextLogger(ctx)
-		queryCursor *event.Cursor
-		sortField   string
-		filters     primitive.D
-		prevNextKey *primitive.D
-		sortOpt     *primitive.D
-		findOpt     *options.FindOptions
+		hasNext bool
+		limit   int
+		log     = zenkit.ContextLogger(ctx)
+		filters primitive.D
+		findOpt *options.FindOptions
 	)
 	ctx, span := instrumentation.StartSpan(ctx, "mongodb.Adapter.Find")
 	defer span.End()
 	err := query.Validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find events")
+		return nil, errors.Wrap(err, "failed to find events: invalid query")
 	}
 	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
 		limit = int(pi.Limit) + 1
 	}
 
-	if pi := query.PageInput; pi != nil && len(pi.Cursor) > 0 {
-		queryCursor, err = db.queryCursors.Get(ctx, pi.Cursor)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to process cursor")
-		}
-		log.WithField("queryCursor", queryCursor).Debug("got query cursor from store")
-		filters, findOpt, err = QueryToFindArguments(&queryCursor.Query)
-		if err != nil {
-			return nil, err
-		}
-		if nextKeyAny, ok := queryCursor.Config[CursorConfigKeyNextKey]; ok {
-			if pNK, ok2 := nextKeyAny.(*primitive.D); ok2 {
-				prevNextKey = pNK
-			}
-		}
-	} else {
-		filters, findOpt, err = QueryToFindArguments(query)
-		if err != nil {
-			return nil, err
-		}
+	filters, findOpt, err = db.pager.GetPaginationQuery(ctx, query, db.cursorRepo)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get pagination parameters")
 	}
-	// generate the key for the next page
-	if sortAny := findOpt.Sort; sortAny != nil {
-		if sortD, ok := sortAny.(*bson.D); ok {
-			sortOpt = sortD
-			data, _ := bson.Marshal(sortD)
-			sortRaw := bson.Raw(data)
-			elms, err := sortRaw.Elements()
-			if err == nil && len(elms) > 0 {
-				sortField = elms[0].Key()
-			}
-		}
-	}
-	// generate pagination query
-	paginatedFilter := GeneratePaginationQuery(&filters, sortOpt, prevNextKey)
-	log.WithField("paginationFilter", paginatedFilter).Debug("got pagination filter")
-	instrumentation.AnnotateSpan("occurrence.Find",
-		fmt.Sprintf("executing %s.Find", CollOccurrences),
-		span,
-		map[string]any{
-			"filter":  paginatedFilter,
-			"findOpt": findOpt,
-			"nextKey": prevNextKey,
-		}, nil)
+
 	docs := make([]*bson.M, 0)
 	err = mongodb.FindWithRetry(
 		ctx,
-		*paginatedFilter,
+		filters,
 		[]*options.FindOptions{findOpt},
 		db.collections[CollOccurrences].Find,
 		func(result *bson.M) (bool, string, error) {
-			if limit > 0 && len(docs) == limit {
+			if limit > 0 && len(docs)+1 == limit {
 				// If limit has been set; then it will equal requestedLimit+1
 				// So if we have scanned the the extra result, there is a next result
 				hasNext = true
@@ -196,24 +153,6 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 			eventIDs = append(eventIDs, newResult.ID)
 		}
 	}
-	nextKey := NextKey(sortField, docs)
-	cursorInput := &event.Cursor{
-		Query: *query,
-		ID:    uuid.New().String(),
-		Config: map[string]any{
-			CursorConfigKeyNextKey: nextKey,
-		},
-	}
-	resultCursorString, err := db.queryCursors.New(ctx, cursorInput)
-	if err != nil {
-		log.WithField(logrus.ErrorKey, err).Error("failed to create query cursor")
-	}
-	instrumentation.AnnotateSpan("newCursor",
-		"created new cursor",
-		span,
-		map[string]any{
-			"cursorInput": cursorInput,
-		}, nil)
 	if slices.Contains(query.Fields, "notes") {
 		noteMut := sync.Mutex{}
 		allNotes := make([]*Note, 0)
@@ -320,10 +259,14 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		return nil, err
 	}
 
+	resultsCursor, err := UpsertCursor(ctx, db.cursorRepo, db.pager, query, docs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to upsert cursor")
+	}
 	return &event.Page{
 		Results: modelResults,
 		HasNext: hasNext,
-		Cursor:  resultCursorString,
+		Cursor:  resultsCursor,
 	}, nil
 }
 

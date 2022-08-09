@@ -4,11 +4,13 @@ package mongodb_test
 
 import (
 	"context"
+	"os"
+	"sync"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"sync"
-	"time"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	. "github.com/onsi/ginkgo/v2"
@@ -17,14 +19,21 @@ import (
 	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
 )
 
-var _ = Describe("MongoDB Integration Test", func() {
+var _ = Describe("MongoDB Integration Test", Ordered, func() {
 	var (
 		testCtx            context.Context
 		testCancel         context.CancelFunc
 		testOnce           = sync.Once{}
 		testDBName         = "testDB"
 		testCollectionName = "testCollection"
+		mongoAddr          = "mongodb"
 	)
+	BeforeAll(func() {
+		if addr := os.Getenv("MONGO_ADDRESS"); len(addr) > 0 {
+			mongoAddr = addr
+		}
+	})
+
 	BeforeEach(func() {
 		testCtx, testCancel = context.WithCancel(context.Background())
 		log := logrus.NewEntry(logrus.StandardLogger())
@@ -39,7 +48,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 		BeforeEach(func() {
 			testOnce.Do(func() {
 				cfg := mongodb.Config{
-					Address:    "mongodb",
+					Address:    mongoAddr,
 					Username:   "zing-user",
 					Password:   ".H1ddenPassw0rd.",
 					DefaultTTL: 90 * 24 * time.Hour,
@@ -60,7 +69,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 		})
 		It("should connect to the configured MongoDB and make a query", func() {
 			cfg := mongodb.Config{
-				Address:    "mongodb",
+				Address:    mongoAddr,
 				Username:   "zing-user",
 				Password:   ".H1ddenPassw0rd.",
 				DefaultTTL: 90 * 24 * time.Hour,

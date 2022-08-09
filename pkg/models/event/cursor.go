@@ -14,5 +14,6 @@ type (
 	CursorRepository interface {
 		New(context.Context, *Cursor) (string, error)
 		Get(context.Context, string) (*Cursor, error)
+		Update(context.Context, string, *Cursor) error
 	}
 )

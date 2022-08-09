@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: zing-user
       MONGO_INITDB_ROOT_PASSWORD: .H1ddenPassw0rd.
     ports:
-      - 27018:27018
+      - 27018:27017
     networks:
       default:
         aliases:
@@ -31,4 +31,4 @@ services:
       - redis
     environment:
       EVENT_MANAGEMENT_SERVICE_GCLOUD_MEMORYSTORE_ADDRESS: redis:6379
-      EVENT_MANAGEMENT_SERVICE_GCLOUD_MONGO_ADDRESS: mongodb
+      EVENT_MANAGEMENT_SERVICE_MONGO_ADDRESS: mongodb

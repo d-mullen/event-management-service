@@ -118,10 +118,10 @@ func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 		filterKind := reflect.TypeOf((*event.Filter)(nil)).Kind()
 		for i := 0; i < t.Len(); i++ {
 			v := t.Index(i)
-			if v.Kind() != filterKind {
-				return nil, errors.Errorf("invalid filter values: %v", orig.Value)
+			otherFilter, ok := v.Interface().(*event.Filter)
+			if !ok {
+				return nil, errors.Errorf("invalid filter values: %v %v != %T", orig.Value, v.Kind(), filterKind)
 			}
-			otherFilter := v.Interface().(*event.Filter)
 			newFilter, err := DomainFilterToMongoD(otherFilter)
 			if err != nil {
 				return nil, err

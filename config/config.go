@@ -16,6 +16,8 @@ const (
 	DefaultActiveEntityStoreBucketSize    = 30 * 24 * time.Hour
 	DefaultActiveEntityStoreMinBucketSize = time.Hour
 	DefaultActiveEntityStoreTTL           = 24 * time.Hour
+	DefaultQueryCursorInitialTTL          = 30 * time.Minute
+	DefaultQueryCursorExtendedTTL         = 30 * time.Minute
 
 	// EventManagementEnabledConfig determines if the API endpoint for event management is enabled for this server
 	EventManagementEnabledConfig = "eventmanagement.enabled"
@@ -44,6 +46,11 @@ const (
 	ActiveEntityStoreMinBucketSize = "active.entity.store.min.bucket.size"
 	// ActiveEntityStoreDefaultTTL - the default duration for expiring active entity records
 	ActiveEntityStoreDefaultTTL = "active.entity.store.default.ttl"
+
+	// QueryCursorInitialTTL - the initial TTL for expiring query result cursors
+	QueryCursorIntialTTL = "query.cursor.initial.ttl"
+	// QueryCursorExtendedTTL - the duration used to extend the TTL for expiring query result cursors
+	QueryCursorExtendedTTL = "query.cursor.extended.ttl"
 )
 
 // InitDefaults sets defaults values for this server's configuration
@@ -57,4 +64,6 @@ func init() {
 	viper.SetDefault(ActiveEntityStoreDefaultTTL, DefaultActiveEntityStoreTTL)
 	viper.SetDefault(ActiveEntityStoreBucketSize, DefaultActiveEntityStoreBucketSize)
 	viper.SetDefault(ActiveEntityStoreMinBucketSize, DefaultActiveEntityStoreMinBucketSize)
+	viper.SetDefault(QueryCursorIntialTTL, DefaultQueryCursorInitialTTL)
+	viper.SetDefault(QueryCursorExtendedTTL, DefaultQueryCursorExtendedTTL)
 }

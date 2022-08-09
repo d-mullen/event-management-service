@@ -22,15 +22,30 @@ const (
 	cursorKeyPrefix = "eqs-cursors"
 )
 
+var (
+	initialTTL  = 30 * time.Minute
+	extendedTTL = 30 * time.Minute
+)
+
 type (
 	RedisCommander interface {
 		GetEx(ctx context.Context, key string, expiration time.Duration) *redis.StringCmd
+		Get(ctx context.Context, key string) *redis.StringCmd
 		Set(ctx context.Context, key string, value any, expiration time.Duration) *redis.StatusCmd
+		Expire(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd
 	}
 	cursorAdapter struct {
 		client RedisCommander
 	}
 )
+
+func SetInitialCursorTTL(ttl time.Duration) {
+	initialTTL = ttl
+}
+
+func SetExtendedCursorTTL(ttl time.Duration) {
+	extendedTTL = ttl
+}
 
 func CursorToString(c *event.Cursor) string {
 	b, err := json.Marshal(c)
@@ -44,6 +59,9 @@ func CursorToString(c *event.Cursor) string {
 	}
 	keys := make([]string, 0, len(asMap))
 	for k := range asMap {
+		if k == "Config" {
+			continue
+		}
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -83,7 +101,11 @@ func (a *cursorAdapter) New(ctx context.Context, req *event.Cursor) (string, err
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal cursor: %q", err)
 	}
-	cmd := a.client.Set(ctx, fmt.Sprintf("%s-%s", cursorKeyPrefix, cur), cursorBytes, time.Hour)
+	cmd := a.client.Set(
+		ctx,
+		fmt.Sprintf("%s-%s", cursorKeyPrefix, cur),
+		cursorBytes,
+		initialTTL)
 	if err := cmd.Err(); err != nil {
 		return "", err
 	}
@@ -91,7 +113,7 @@ func (a *cursorAdapter) New(ctx context.Context, req *event.Cursor) (string, err
 }
 
 func (a *cursorAdapter) Get(ctx context.Context, key string) (*event.Cursor, error) {
-	cmd := a.client.GetEx(ctx, fmt.Sprintf("%s-%s", cursorKeyPrefix, key), 30*time.Minute)
+	cmd := a.client.Get(ctx, fmt.Sprintf("%s-%s", cursorKeyPrefix, key))
 	b, err := cmd.Bytes()
 	if err != nil {
 		return nil, err
@@ -101,5 +123,12 @@ func (a *cursorAdapter) Get(ctx context.Context, key string) (*event.Cursor, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal cursor: %q", err)
 	}
+	if boolCmd := a.client.Expire(ctx, fmt.Sprintf("%s-%s", cursorKeyPrefix, key), extendedTTL); boolCmd.Err() != nil {
+		return nil, fmt.Errorf("failed to set expiration: %q", err)
+	}
 	return cursor, nil
+}
+
+func (a *cursorAdapter) Update(ctx context.Context, key string, _ *event.Cursor) error {
+	return fmt.Errorf("unimplemented")
 }

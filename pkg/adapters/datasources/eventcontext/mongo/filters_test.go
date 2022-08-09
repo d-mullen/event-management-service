@@ -16,10 +16,8 @@ func mustMarshal(val any) []byte {
 	if val == nil {
 		return nil
 	}
-	b, err := json.Marshal(val)
-	if err != nil {
-		panic(err)
-	}
+	b, err := json.MarshalIndent(val, "", "  ")
+	Expect(err).ToNot(HaveOccurred())
 	return b
 }
 

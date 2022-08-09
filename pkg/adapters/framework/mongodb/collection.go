@@ -13,6 +13,8 @@ type (
 	Collection interface {
 		Find(ctx context.Context, filter any, opts ...*options.FindOptions) (Cursor, error)
 		Aggregate(ctx context.Context, pipeline any, opts ...*options.AggregateOptions) (Cursor, error)
+		InsertMany(ctx context.Context, documents []interface{},
+			opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error)
 	}
 	Cursor interface {
 		ID() int64
