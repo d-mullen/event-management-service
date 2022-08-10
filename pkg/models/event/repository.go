@@ -61,13 +61,14 @@ type (
 		Cursor    string
 	}
 	Query struct {
-		Tenant     string     `json:"tenant,omitempty"`
-		TimeRange  TimeRange  `json:"timeRange,omitempty"`
-		Severities []Severity `json:"severities,omitempty"`
-		Statuses   []Status   `json:"statuses,omitempty"`
-		Fields     []string   `json:"fields,omitempty"`
-		Filter     *Filter    `json:"filter,omitempty"`
-		PageInput  *PageInput `json:"pageInput,omitempty"`
+		ShouldApplyOccurrenceIntervals bool       `json:"shouldApplyOccurrenceIntervals,omitempty"`
+		Tenant                         string     `json:"tenant,omitempty"`
+		TimeRange                      TimeRange  `json:"timeRange,omitempty"`
+		Severities                     []Severity `json:"severities,omitempty"`
+		Statuses                       []Status   `json:"statuses,omitempty"`
+		Fields                         []string   `json:"fields,omitempty"`
+		Filter                         *Filter    `json:"filter,omitempty"`
+		PageInput                      *PageInput `json:"pageInput,omitempty"`
 	}
 	GetRequest struct {
 		Tenant          string

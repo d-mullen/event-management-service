@@ -3,12 +3,12 @@ package event
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/event-management-service/pkg/models/scopes"
 	"github.com/zenoss/zenkit/v5"
@@ -54,10 +54,12 @@ func (svc *service) Add(_ context.Context, _ *event.Event) (*event.Event, error)
 }
 
 func eventResultsToOccurrenceMaps(
-	results []*event.Event) (map[string]*event.Occurrence, map[string][]*eventts.OccurrenceInput) {
+	results []*event.Event) (map[string]*event.Occurrence,
+	map[string][]*eventts.OccurrenceInput, map[string]*event.Event) {
 
 	occurrenceMap := make(map[string]*event.Occurrence)
 	occInputMap := make(map[string][]*eventts.OccurrenceInput)
+	eventMap := make(map[string]*event.Event)
 	for _, eventResult := range results {
 		occInputSlice := make([]*eventts.OccurrenceInput, len(eventResult.Occurrences))
 		for i, occ := range eventResult.Occurrences {
@@ -71,17 +73,19 @@ func eventResultsToOccurrenceMaps(
 				IsActive: occ.Status != event.StatusClosed,
 			}
 			occurrenceMap[occ.ID] = occ
+			eventMap[occ.ID] = eventResult
 		}
 		occInputMap[eventResult.ID] = occInputSlice
 	}
-	return occurrenceMap, occInputMap
+	return occurrenceMap, occInputMap, eventMap
 }
 
 func getEventTSResults(ctx context.Context, results []*event.Event, eventTS eventts.Repository, query *event.Query) error {
-	occurrenceMap, occInputMap := eventResultsToOccurrenceMaps(results)
+	occurrenceMap, occInputMap, _ := eventResultsToOccurrenceMaps(results)
 	var (
-		tsFilters []*eventts.Filter
-		tsFields  []string
+		shouldApplyOccurrenceIntervals bool
+		tsFilters                      []*eventts.Filter
+		tsFields                       []string
 	)
 	if query != nil {
 		tsFilters, _ = eventFilterToEventTSFilter(query.Filter)
@@ -108,14 +112,17 @@ func getEventTSResults(ctx context.Context, results []*event.Event, eventTS even
 				Field:     "_zv_status",
 				Values:    tsStatuses})
 		}
+		shouldApplyOccurrenceIntervals = query.ShouldApplyOccurrenceIntervals
 	}
 
 	occurrencesWithMD, err := eventTS.Get(ctx, &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			ByOccurrences: struct {
-				OccurrenceMap map[string][]*eventts.OccurrenceInput
+				ShouldApplyIntervals bool
+				OccurrenceMap        map[string][]*eventts.OccurrenceInput
 			}{
-				OccurrenceMap: occInputMap,
+				ShouldApplyIntervals: shouldApplyOccurrenceIntervals,
+				OccurrenceMap:        occInputMap,
 			},
 			Filters:      tsFilters,
 			ResultFields: tsFields,
@@ -146,6 +153,88 @@ func getEventTSResults(ctx context.Context, results []*event.Event, eventTS even
 		}
 	}
 	return nil
+}
+
+func doGetTimeseriesDataStage(
+	ctx context.Context,
+	query event.Query,
+	prevResults []*event.Event,
+	eventTSRepo eventts.Repository,
+) ([]*event.Event, error) {
+	occurrenceMap, occurrenceInputMap, eventsByOccurrence := eventResultsToOccurrenceMaps(prevResults)
+	tsFilters, err := eventFilterToEventTSFilter(query.Filter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert event-ts filters before getting event-ts data")
+	}
+
+	if len(query.Severities) > 0 { // severity filter
+		tsSeverities := make([]any, len(query.Severities))
+		for i, sev := range query.Severities {
+			tsSeverities[i] = int(sev)
+		}
+		tsFilters = append(tsFilters, &eventts.Filter{
+			Operation: eventts.Operation_OP_IN,
+			Field:     "_zv_severity",
+			Values:    tsSeverities})
+	}
+
+	if len(query.Statuses) > 0 { // status filter
+		tsStatuses := make([]any, len(query.Statuses))
+		for i, status := range query.Statuses {
+			tsStatuses[i] = int(status)
+		}
+		tsFilters = append(tsFilters, &eventts.Filter{
+			Operation: eventts.Operation_OP_IN,
+			Field:     "_zv_status",
+			Values:    tsStatuses})
+	}
+	getRequest := &eventts.GetRequest{
+		EventTimeseriesInput: eventts.EventTimeseriesInput{
+			TimeRange: eventts.TimeRange{
+				Start: query.TimeRange.Start,
+				End:   query.TimeRange.End,
+			},
+			ByOccurrences: struct {
+				ShouldApplyIntervals bool
+				OccurrenceMap        map[string][]*eventts.OccurrenceInput
+			}{
+				ShouldApplyIntervals: query.ShouldApplyOccurrenceIntervals,
+				OccurrenceMap:        occurrenceInputMap,
+			},
+			Fields:  query.Fields,
+			Filters: tsFilters,
+		},
+	}
+	occurrencesWithMD, err := eventTSRepo.Get(ctx, getRequest)
+	if err != nil {
+		return nil, err
+	}
+	newResults := make([]*event.Event, 0, len(occurrencesWithMD))
+	for _, occurrenceWithMD := range occurrencesWithMD {
+		occResult, ok := occurrenceMap[occurrenceWithMD.ID]
+		if !ok {
+			occID, didMatch := matchUnassignedOccurrences(occurrenceWithMD, occurrenceInputMap)
+			if !didMatch || len(occID) == 0 {
+				continue
+			}
+			ok2 := false
+			occResult, ok2 = occurrenceMap[occID]
+			if !ok2 {
+				continue
+			}
+		}
+		if result, ok3 := eventsByOccurrence[occurrenceWithMD.ID]; ok3 {
+			newResults = append(newResults, result)
+		}
+		if len(occResult.Metadata) == 0 {
+			occResult.Metadata = occurrenceWithMD.Metadata
+			continue
+		}
+		for k, v := range occurrenceWithMD.Metadata {
+			occResult.Metadata[k] = v
+		}
+	}
+	return newResults, nil
 }
 
 func matchUnassignedOccurrences(
@@ -203,7 +292,7 @@ func TransformScopeFilter(ctx context.Context, timeRange event.TimeRange, tenant
 func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, error) {
 	var (
 		resultMut sync.Mutex
-		results   = new(event.Page)
+		resp      = new(event.Page)
 	)
 	err := applyScopeFilterTransform(ctx, query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
@@ -221,7 +310,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 					return err
 				}
 				resultMut.Lock()
-				results.Results = append(results.Results, currPage.Results...)
+				resp.Results = append(resp.Results, currPage.Results...)
 				resultMut.Unlock()
 				return nil
 			})
@@ -230,18 +319,22 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 			return nil, err
 		}
 	} else {
-		results, err = svc.eventContext.Find(ctx, query)
+		resp, err = svc.eventContext.Find(ctx, query)
 		if err != nil {
 			return nil, err
 		}
 	}
-	if len(results.Results) > 0 && svc.eventTS != nil && shouldGetEventTSDetails(query) {
-		err = getEventTSResults(ctx, results.Results, svc.eventTS, query)
+	if len(resp.Results) > 0 && svc.eventTS != nil {
+		// err = getEventTSResults(ctx, results.Results, svc.eventTS, query)
+		eventsWithMD, err := doGetTimeseriesDataStage(ctx, *query, resp.Results, svc.eventTS)
 		if err != nil {
 			return nil, err
 		}
+		if len(eventsWithMD) > 0 {
+			resp.Results = eventsWithMD
+		}
 	}
-	return results, nil
+	return resp, nil
 }
 
 func applyScopeFilterTransform(ctx context.Context, query *event.Query, provider scopes.EntityScopeProvider, activeEntityAdapter scopes.ActiveEntityRepository) error {

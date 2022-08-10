@@ -13,10 +13,10 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
 	github.com/zenoss/event-context-svc v0.0.0-20210208232835-5442223405f6
-	github.com/zenoss/zenkit/v5 v5.7.0
-	github.com/zenoss/zing-proto/v11 v11.19.14
-	github.com/zenoss/zingo/v4 v4.4.4
-	go.mongodb.org/mongo-driver v1.10.1
+	github.com/zenoss/zenkit/v5 v5.6.0
+	github.com/zenoss/zing-proto/v11 v11.19.11-0.20220808231523-8a132d6bc42e
+	github.com/zenoss/zingo/v4 v4.4.3
+	go.mongodb.org/mongo-driver v1.9.1
 	go.opencensus.io v0.23.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde

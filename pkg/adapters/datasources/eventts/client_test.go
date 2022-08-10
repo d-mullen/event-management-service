@@ -42,16 +42,13 @@ var _ = DescribeTable(
 		nil,
 		&eventts.GetRequest{
 			EventTimeseriesInput: eventts.EventTimeseriesInput{
+				TimeRange: eventts.TimeRange{Start: 0, End: 10000},
 				ByEventIDs: struct {
-					IDs       []string
-					TimeRange eventts.TimeRange
-				}{
-					IDs: []string{"event1", "event2"},
-					TimeRange: eventts.TimeRange{
-						Start: 0,
-						End:   10000,
-					},
-				},
+					IDs []string
+				}{IDs: []string{"event1", "event2"}},
+				Latest:  0,
+				Fields:  []string{},
+				Filters: []*eventts.Filter{},
 			},
 		},
 		&eventtsPb.EventTSRequest{
@@ -67,8 +64,10 @@ var _ = DescribeTable(
 		&eventts.GetRequest{
 			EventTimeseriesInput: eventts.EventTimeseriesInput{
 				ByOccurrences: struct {
-					OccurrenceMap map[string][]*eventts.OccurrenceInput
+					ShouldApplyIntervals bool
+					OccurrenceMap        map[string][]*eventts.OccurrenceInput
 				}{
+					ShouldApplyIntervals: false,
 					OccurrenceMap: map[string][]*eventts.OccurrenceInput{
 						"event1": {{
 							ID:      "event1:1",
@@ -184,15 +183,14 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 			getEventStreamMock.On("Recv").Return(nil, io.EOF).Once()
 			results, err := repo.Get(ctx, &eventts.GetRequest{
 				EventTimeseriesInput: eventts.EventTimeseriesInput{
+					TimeRange: eventts.TimeRange{
+						Start: 0,
+						End:   10,
+					},
 					ByEventIDs: struct {
-						IDs       []string
-						TimeRange eventts.TimeRange
+						IDs []string
 					}{
 						IDs: []string{"event1", "event2"},
-						TimeRange: eventts.TimeRange{
-							Start: 0,
-							End:   10,
-						},
 					},
 				},
 			})
@@ -244,7 +242,8 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 				result, err = repo.Get(ctx, &eventts.GetRequest{
 					EventTimeseriesInput: eventts.EventTimeseriesInput{
 						ByOccurrences: struct {
-							OccurrenceMap map[string][]*eventts.OccurrenceInput
+							ShouldApplyIntervals bool
+							OccurrenceMap        map[string][]*eventts.OccurrenceInput
 						}{
 							OccurrenceMap: map[string][]*eventts.OccurrenceInput{
 								"event1": {
@@ -300,7 +299,8 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 				ch := repo.GetStream(ctx, &eventts.GetRequest{
 					EventTimeseriesInput: eventts.EventTimeseriesInput{
 						ByOccurrences: struct {
-							OccurrenceMap map[string][]*eventts.OccurrenceInput
+							ShouldApplyIntervals bool
+							OccurrenceMap        map[string][]*eventts.OccurrenceInput
 						}{
 							OccurrenceMap: map[string][]*eventts.OccurrenceInput{
 								"event1": {
@@ -370,7 +370,8 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 				ch2 := repo.GetStream(ctx, &eventts.GetRequest{
 					EventTimeseriesInput: eventts.EventTimeseriesInput{
 						ByOccurrences: struct {
-							OccurrenceMap map[string][]*eventts.OccurrenceInput
+							ShouldApplyIntervals bool
+							OccurrenceMap        map[string][]*eventts.OccurrenceInput
 						}{
 							OccurrenceMap: map[string][]*eventts.OccurrenceInput{
 								"event1": {

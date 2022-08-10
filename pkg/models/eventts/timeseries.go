@@ -48,14 +48,16 @@ type (
 		Values    []any
 	}
 	EventTimeseriesInput struct {
+		TimeRange  TimeRange
 		ByEventIDs struct {
-			IDs       []string
-			TimeRange TimeRange
+			IDs []string
 		}
 		ByOccurrences struct {
-			OccurrenceMap map[string][]*OccurrenceInput
+			ShouldApplyIntervals bool
+			OccurrenceMap        map[string][]*OccurrenceInput
 		}
 		Latest  uint64
+		Fields  []string
 		Filters []*Filter
 		// Fields we want in our result. If omitted, results will include predetermined information
 		ResultFields []string

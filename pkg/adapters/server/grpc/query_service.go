@@ -85,6 +85,7 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 			Start: query.TimeRange.Start,
 			End:   query.TimeRange.End,
 		},
+		ShouldApplyOccurrenceIntervals: query.FilterTimeseriesByOccurrenceIntervals,
 	}
 	severities := make([]event.Severity, len(query.Severities))
 	for i, sev := range query.Severities {

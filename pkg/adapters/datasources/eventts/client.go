@@ -193,20 +193,29 @@ func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSReques
 			}
 			occurrenceMap[eventID].Occurrences = currOccSlice
 		}
-		output.EventIds = eventIDs
-		maxEnd = time.Now().UnixMilli() // TODO: HACK!!!
-		output.TimeRange = &common.TimeRange{
-			Start: minStart,
-			End:   maxEnd,
+		if req.ByOccurrences.ShouldApplyIntervals {
+			if maxEnd <= 0 {
+				maxEnd = time.Now().UnixMilli() // TODO: HACK!!!
+			}
+			output.TimeRange = &common.TimeRange{
+				Start: minStart,
+				End:   maxEnd,
+			}
+		} else {
+			output.TimeRange = &common.TimeRange{
+				Start: req.TimeRange.Start,
+				End:   req.TimeRange.End,
+			}
 		}
+		output.EventIds = eventIDs
 		output.OccurrenceMap = occurrenceMap
 		return output, nil
 	}
 	if len(req.ByEventIDs.IDs) > 0 {
 		output.EventIds = req.ByEventIDs.IDs
 		output.TimeRange = &common.TimeRange{
-			Start: req.ByEventIDs.TimeRange.Start,
-			End:   req.ByEventIDs.TimeRange.End,
+			Start: req.TimeRange.Start,
+			End:   req.TimeRange.End,
 		}
 		return output, nil
 	}
