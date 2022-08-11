@@ -14,6 +14,7 @@ import (
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zingo/v4/interval"
 
+	"github.com/zenoss/event-management-service/internal/batchops"
 	"github.com/zenoss/event-management-service/internal/frequency"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 )
@@ -325,10 +326,29 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		}
 	}
 	if len(resp.Results) > 0 && svc.eventTS != nil {
-		// err = getEventTSResults(ctx, results.Results, svc.eventTS, query)
-		eventsWithMD, err := doGetTimeseriesDataStage(ctx, *query, resp.Results, svc.eventTS)
+		// err = getEventTSResults(ctx, resp.Results, svc.eventTS)
+		eventsWithMD := make([]*event.Event, 0)
+		batchMut := sync.Mutex{}
+		err = batchops.DoConcurrently(
+			ctx,
+			100, 15,
+			resp.Results,
+			func(batch []*event.Event) ([]*event.Event, error) {
+				batchResults, err := doGetTimeseriesDataStage(ctx, *query, batch, svc.eventTS)
+				if err != nil {
+					return nil, err
+				}
+				return batchResults, err
+			},
+			func(currResults []*event.Event) (bool, error) {
+				batchMut.Lock()
+				eventsWithMD = append(eventsWithMD, currResults...)
+				batchMut.Unlock()
+				return true, nil
+			})
+		// eventsWithMD, err := doGetTimeseriesDataStage(ctx, *query, resp.Results, svc.eventTS)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to concurrently get event time-series data")
 		}
 		if len(eventsWithMD) > 0 {
 			resp.Results = eventsWithMD
