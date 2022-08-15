@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
@@ -77,7 +76,7 @@ func (db *Adapter) Get(_ context.Context, _ *event.GetRequest) ([]*event.Event, 
 	panic("not implemented") // TODO: Implement
 }
 
-func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, error) {
+func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.FindOption) (*event.Page, error) {
 	var (
 		hasNext bool
 		limit   int
@@ -91,13 +90,17 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find events: invalid query")
 	}
-	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
-		limit = int(pi.Limit) + 1
-	}
 
 	filters, findOpt, err = db.pager.GetPaginationQuery(ctx, query, db.cursorRepo)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get pagination parameters")
+	}
+
+	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
+		limit = int(pi.Limit) + 1
+	}
+	if findOpt.Limit != nil && *findOpt.Limit > 0 {
+		limit = int(*findOpt.Limit)
 	}
 
 	docs := make([]*bson.M, 0)
@@ -121,38 +124,94 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find occurrences with retry")
 	}
+
+	opt := event.MergeFindOptions(opts...)
+	filteredOccurrences := make([]*event.Occurrence, 0)
+	filteredOccurrences, err = convertBulk[*bson.M, *event.Occurrence](docs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to convert documents")
+	}
+	filteredOccurrences, err = opt.ApplyOccurrenceProcessors(ctx, filteredOccurrences)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to apply occurrence post-processors")
+	}
+
+	if limit > 0 && hasNext {
+		numRemoved := len(filteredOccurrences) - limit - 1
+		offset := len(docs)
+		retries := 0
+		for numRemoved > 0 && retries < 100 {
+			newLimit := numRemoved + 1
+			hasNext = false
+			currDocs := make([]*bson.M, 0)
+			err = mongodb.FindWithRetry(
+				ctx,
+				filters,
+				[]*options.FindOptions{findOpt.
+					SetSkip(int64(offset)).
+					SetLimit(int64(newLimit)),
+				},
+				db.collections[CollOccurrences].Find,
+				func(result *bson.M) (bool, string, error) {
+					if newLimit > 0 && len(currDocs)+1 == newLimit {
+						hasNext = true
+						return false, "", nil
+					}
+					currDocs = append(currDocs, result)
+					id, ok := (*result)["_id"].(string)
+					return ok, id, nil
+				},
+			)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to find occurrences with retry")
+			}
+			var currOccurrences []*event.Occurrence
+			currOccurrences, err = convertBulk[*bson.M, *event.Occurrence](currDocs)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to convert occurrence docs")
+			}
+			currOccurrences, err = opt.ApplyOccurrenceProcessors(ctx, currOccurrences)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to apply occurrence post-processors")
+			}
+			docs = append(docs, currDocs...)
+			offset = len(docs)
+
+			filteredOccurrences = append(filteredOccurrences, currOccurrences...)
+			numRemoved = len(filteredOccurrences) - limit - 1
+			retries++
+		}
+	}
+
 	instrumentation.AnnotateSpan("occurrenceResults",
 		"got occurrence query results",
 		span,
 		map[string]any{
-			"count": len(docs),
+			"count":                   len(docs),
+			"rawOccurrenceCount":      len(docs),
+			"filteredOccurrenceCount": len(filteredOccurrences),
 		}, nil)
 
-	results := make([]*Event, 0)
-	occMap := make(map[string]*Occurrence)
+	results := make([]*event.Event, 0)
+	occMap := make(map[string]*event.Occurrence)
 	eventIDs := make([]string, 0)
-	occurrenceIDs := make([]string, 0, len(docs))
-	for _, doc := range docs {
-		occurrence := &Occurrence{}
-		err := defaultDecodeFunc(doc, occurrence)
-		if err != nil {
-			log.Errorf("failed to unmarshal document: %q", err)
-		} else {
-			occurrenceIDs = append(occurrenceIDs, occurrence.ID)
-			occMap[occurrence.ID] = occurrence
-			newResult := &Event{
-				ID:          occurrence.EventID,
-				Tenant:      occurrence.Tenant,
-				Entity:      occurrence.Entity,
-				Occurrences: []*Occurrence{occurrence},
-			}
-			if occurrence.Status != event.StatusClosed {
-				newResult.LastActiveOccurrence = occurrence
-			}
-			results = append(results, newResult)
-			eventIDs = append(eventIDs, newResult.ID)
+	occurrenceIDs := make([]string, 0, len(filteredOccurrences))
+	for _, occurrence := range filteredOccurrences {
+		occurrenceIDs = append(occurrenceIDs, occurrence.ID)
+		occMap[occurrence.ID] = occurrence
+		newResult := &event.Event{
+			ID:          occurrence.EventID,
+			Tenant:      occurrence.Tenant,
+			Entity:      occurrence.Entity,
+			Occurrences: []*event.Occurrence{occurrence},
 		}
+		if occurrence.Status != event.StatusClosed {
+			newResult.LastActiveOccurrence = occurrence
+		}
+		results = append(results, newResult)
+		eventIDs = append(eventIDs, newResult.ID)
 	}
+
 	if slices.Contains(query.Fields, "notes") {
 		noteMut := sync.Mutex{}
 		allNotes := make([]*Note, 0)
@@ -189,13 +248,18 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 			log.WithField(logrus.ErrorKey, err).Error("failed to find notes")
 			return nil, err
 		}
-		for _, note := range allNotes {
+		var allNotes2 []*event.Note
+		allNotes2, err = convertBulk[*Note, *event.Note](allNotes)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to convert note struct")
+		}
+		for _, note := range allNotes2 {
 			occ, ok := occMap[note.OccID]
 			if !ok {
 				continue
 			}
 			if len(occ.Notes) == 0 {
-				occ.Notes = make([]*Note, 0)
+				occ.Notes = make([]*event.Note, 0)
 			}
 			occ.Notes = append(occ.Notes, note)
 		}
@@ -240,7 +304,9 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		for _, result := range results {
 			if other, ok := eventMap[result.ID]; ok {
 				result.Dimensions = other.Dimensions
-				result.Entity = other.Entity
+				if len(other.Entity) > 0 {
+					result.Entity = other.Entity
+				}
 			} else {
 				log.
 					WithField("currResult", result).
@@ -249,22 +315,12 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query) (*event.Page, e
 		}
 	}
 
-	modelResults := make([]*event.Event, 0)
-	bytes, err := json.Marshal(results)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(bytes, &modelResults)
-	if err != nil {
-		return nil, err
-	}
-
 	resultsCursor, err := UpsertCursor(ctx, db.cursorRepo, db.pager, query, docs)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to upsert cursor")
 	}
 	return &event.Page{
-		Results: modelResults,
+		Results: results,
 		HasNext: hasNext,
 		Cursor:  resultsCursor,
 	}, nil

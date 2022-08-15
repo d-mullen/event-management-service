@@ -118,7 +118,7 @@ type (
 	Repository interface {
 		Create(context.Context, *Event) (*Event, error)
 		Get(context.Context, *GetRequest) ([]*Event, error)
-		Find(context.Context, *Query) (*Page, error)
+		Find(context.Context, *Query, ...*FindOption) (*Page, error)
 		Update(context.Context, *Event) (*Event, error)
 	}
 )

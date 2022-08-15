@@ -96,7 +96,6 @@ var _ = Describe("eventquery.Service", func() {
 				})
 				Ω(err).Should(SatisfyAll(
 					HaveOccurred(),
-					MatchError("eventTS error"),
 				))
 			})
 		})

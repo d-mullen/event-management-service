@@ -19,7 +19,7 @@ services:
     restart: "no"
     image: redis
     ports:
-      - "6379"
+      - "46379:6379"
     command: redis-server --appendonly yes
   test:
     privileged: true

@@ -1,9 +1,11 @@
 package mongo
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/zenoss/event-management-service/pkg/models/event"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type (
@@ -57,4 +59,36 @@ type (
 		CreatedAt time.Time `json:"createdAt,omitempty"  bson:"createdAt"`
 		UpdatedAt time.Time `json:"updatedAt,omitempty"  bson:"updatedAt"`
 	}
+
+	decodeableOrDao interface {
+		decodable | *Note | *EventDimensions | *Occurrence
+	}
 )
+
+func (occ *Occurrence) ToModelType() (*event.Occurrence, error) {
+	b, err := json.Marshal(occ)
+	if err != nil {
+		return nil, err
+	}
+	var out *event.Occurrence
+	err = json.Unmarshal(b, out)
+	return out, err
+}
+
+func convertBulk[D decodeableOrDao, O any](in []D) ([]O, error) {
+	out := make([]O, 0)
+	for _, currVal := range in {
+		docBytes, err := bson.MarshalExtJSON(currVal, true, false)
+		if err != nil {
+			return nil, err
+		}
+		var currDest O
+		err = bson.UnmarshalExtJSON(docBytes, true, &currDest)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, currDest)
+
+	}
+	return out, nil
+}

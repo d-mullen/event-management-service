@@ -25,8 +25,8 @@ const (
 type (
 	// Event is a structured record of a notable change in state of a managed resource
 	Event struct {
-		ID                   string         `json:"id,omitempty"`
-		Tenant               string         `json:"tenant,omitempty"`
+		ID                   string         `json:"id,omitempty" bson:"_id"`
+		Tenant               string         `json:"tenant" bson:"tenantId"`
 		Entity               string         `json:"entity,omitempty"`
 		Name                 string         `json:"name,omitempty"`
 		Dimensions           map[string]any `json:"dimensions,omitempty"`
@@ -39,9 +39,9 @@ type (
 
 	// Occurrence represents a specific episode of the state changes represented by an event
 	Occurrence struct {
-		ID            string           `json:"id,omitempty"`
-		EventID       string           `json:"eventID,omitempty"`
-		Tenant        string           `json:"tenant,omitempty"`
+		ID            string           `json:"id,omitempty" bson:"_id"`
+		EventID       string           `json:"eventID,omitempty"  bson:"eventId"`
+		Tenant        string           `json:"tenant" bson:"tenantId"`
 		Summary       string           `json:"summary,omitempty"`
 		Body          string           `json:"body,omitempty"`
 		Type          string           `json:"type,omitempty"`
@@ -60,8 +60,8 @@ type (
 	}
 	// Note represents annotations that can be added to an event occurrence
 	Note struct {
-		ID        string    `json:"id,omitempty"`
-		OccID     string    `json:"occID,omitempty"`
+		ID        string    `json:"id,omitempty" bson:"_id"`
+		OccID     string    `json:"occID,omitempty"  bson:"occid"`
 		Content   string    `json:"content,omitempty"`
 		CreatedBy string    `json:"createdBy,omitempty"`
 		UpdatedBy string    `json:"updatedBy,omitempty"`
