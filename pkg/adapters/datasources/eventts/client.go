@@ -12,6 +12,7 @@ import (
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	eventtsProto "github.com/zenoss/zing-proto/v11/go/cloud/eventts"
 	"github.com/zenoss/zingo/v4/protobufutils"
+	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -150,7 +151,10 @@ func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSReques
 	output := &eventtsProto.EventTSRequest{
 		// Count:        0,   // TODO
 	}
-	if len(req.ResultFields) == 0 {
+
+	// temporary workaround until clients are updated to pass explicit fields
+	_, usedCatchall := slices.BinarySearch(req.ResultFields, "metadata")
+	if len(req.ResultFields) == 0 || usedCatchall {
 		output.ResultFields = []string{"_zv_status",
 			"_zv_severity",
 			"_zv_summary",
