@@ -149,11 +149,6 @@ func isActiveEventsOnly(q *event.Query) bool {
 
 func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, error) {
 	filters := bson.D{{Key: "tenantId", Value: query.Tenant}}
-	moreFilters, err := getOccurrenceTemporalFilters(isActiveEventsOnly(query), query.TimeRange)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to make query plan")
-	}
-	filters = append(filters, moreFilters...)
 	if len(query.Statuses) > 0 {
 		if len(query.Statuses) == 1 {
 			filters = append(filters, bson.E{Key: "status", Value: query.Statuses[0]})
@@ -168,6 +163,11 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: OpIn, Value: query.Severities}}})
 		}
 	}
+	temporalFilters, err := getOccurrenceTemporalFilters(isActiveEventsOnly(query), query.TimeRange)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to make query plan")
+	}
+	filters = append(filters, temporalFilters...)
 	if query.Filter != nil {
 		anotherFilter, err := DomainFilterToMongoD(query.Filter)
 		if err != nil {
