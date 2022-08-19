@@ -60,8 +60,19 @@ func (repo *eventTSRepo) getStream(ctx context.Context, req *eventts.GetRequest,
 	if err != nil {
 		return err
 	}
+	ewcReq := &eventtsProto.EventsWithCountsRequest{
+		EventIds:      reqProto.EventIds,
+		TimeRange:     reqProto.TimeRange,
+		OccurrenceMap: reqProto.OccurrenceMap,
+		EventParams: &eventtsProto.EventsWithCountsRequest_EventsParams{
+			ResultFields: reqProto.ResultFields,
+		},
+		Limit:   1,
+		Filters: reqProto.Filters,
+	}
 	log.WithField("get_eventts_proto", mustMarshal(reqProto)).Trace("making event-ts request")
-	stream, err := repo.client.GetEventsStream(ctx, reqProto)
+	// stream, err := repo.client.GetEventsStream(ctx, reqProto)
+	stream, err := repo.client.EventsWithCountsStream(ctx, ewcReq)
 	if err != nil {
 		return err
 	}

@@ -3,8 +3,9 @@ package eventts_test
 import (
 	"context"
 	"fmt"
-	eventts2 "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventts"
 	"io"
+
+	eventts2 "github.com/zenoss/event-management-service/pkg/adapters/datasources/eventts"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -131,18 +132,21 @@ var _ = DescribeTable(
 
 var _ = Describe("EventTSService Adapter Unit-tests", func() {
 	var (
-		ctx                context.Context
-		cancel             context.CancelFunc
-		repo               eventts.Repository
-		eventTSMockClient  *eventtsPb.MockEventTSServiceClient
-		getEventStreamMock *eventtsPb.MockEventTSService_GetEventsStreamClient
-		mockCtx            = mock.AnythingOfType("*context.cancelCtx")
-		mockEventTSReq     = mock.AnythingOfType("*eventts.EventTSRequest")
+		ctx               context.Context
+		cancel            context.CancelFunc
+		repo              eventts.Repository
+		eventTSMockClient *eventtsPb.MockEventTSServiceClient
+		// getEventStreamMock *eventtsPb.MockEventTSService_GetEventsStreamClient
+		ewcStreamMock *eventtsPb.MockEventTSService_EventsWithCountsStreamClient
+		mockCtx       = mock.AnythingOfType("*context.cancelCtx")
+		// mockEventTSReq     = mock.AnythingOfType("*eventts.EventTSRequest")
+		mockEWCReq = mock.AnythingOfType("*eventts.EventsWithCountsRequest")
 	)
 	BeforeEach(func() {
 		ctx, cancel = context.WithCancel(context.Background())
 		eventTSMockClient = &eventtsPb.MockEventTSServiceClient{}
-		getEventStreamMock = &eventtsPb.MockEventTSService_GetEventsStreamClient{}
+		// getEventStreamMock = &eventtsPb.MockEventTSService_GetEventsStreamClient{}
+		ewcStreamMock = &eventtsPb.MockEventTSService_EventsWithCountsStreamClient{}
 		repo = eventts2.NewAdapter(eventTSMockClient)
 	})
 	AfterEach(func() {
@@ -151,10 +155,10 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 	Context("Get", func() {
 		It("should get event timeseries results result", func() {
 
-			eventTSMockClient.On("GetEventsStream", mockCtx, mockEventTSReq).
-				Return(getEventStreamMock, nil).Once()
-			getEventStreamMock.On("Recv").
-				Return(&eventtsPb.EventTSResponse{
+			eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
+				Return(ewcStreamMock, nil).Once()
+			ewcStreamMock.On("Recv").
+				Return(&eventtsPb.EventsWithCountsResponse{
 					Results: []*eventtsPb.EventTSResult{
 						{
 							Series: []*eventtsPb.EventTSSeries{{
@@ -180,7 +184,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 						},
 					},
 				}, nil).Once()
-			getEventStreamMock.On("Recv").Return(nil, io.EOF).Once()
+			ewcStreamMock.On("Recv").Return(nil, io.EOF).Once()
 			results, err := repo.Get(ctx, &eventts.GetRequest{
 				EventTimeseriesInput: eventts.EventTimeseriesInput{
 					TimeRange: eventts.TimeRange{
@@ -201,7 +205,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 			It("it should fail", func() {
 
 				By("passing up an error when event-ts-svc fails to return stream")
-				eventTSMockClient.On("GetEventsStream", mockCtx, mockEventTSReq).
+				eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
 					Return(nil, status.Error(codes.Unknown, "test error")).Once()
 
 				result, err := repo.Get(ctx, &eventts.GetRequest{})
@@ -209,10 +213,10 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 				Ω(result).Should(BeNil())
 
 				By("by passing up an error when an error occurs in the stream")
-				eventTSMockClient.On("GetEventsStream", mockCtx, mockEventTSReq).
-					Return(getEventStreamMock, nil).Once()
-				getEventStreamMock.On("Recv").
-					Return(&eventtsPb.EventTSResponse{
+				eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
+					Return(ewcStreamMock, nil).Once()
+				ewcStreamMock.On("Recv").
+					Return(&eventtsPb.EventsWithCountsResponse{
 						Results: []*eventtsPb.EventTSResult{
 							{
 								Series: []*eventtsPb.EventTSSeries{{
@@ -238,7 +242,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 							},
 						},
 					}, nil).Once()
-				getEventStreamMock.On("Recv").Return(nil, status.Error(codes.Unknown, "stream error")).Once()
+				ewcStreamMock.On("Recv").Return(nil, status.Error(codes.Unknown, "stream error")).Once()
 				result, err = repo.Get(ctx, &eventts.GetRequest{
 					EventTimeseriesInput: eventts.EventTimeseriesInput{
 						ByOccurrences: struct {
@@ -266,10 +270,10 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 	Context("GetStream", func() {
 		When("when the calls to event-ts-svc succeed", func() {
 			It("should succeed", func() {
-				eventTSMockClient.On("GetEventsStream", mockCtx, mockEventTSReq).
-					Return(getEventStreamMock, nil).Once()
-				getEventStreamMock.On("Recv").
-					Return(&eventtsPb.EventTSResponse{
+				eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
+					Return(ewcStreamMock, nil).Once()
+				ewcStreamMock.On("Recv").
+					Return(&eventtsPb.EventsWithCountsResponse{
 						Results: []*eventtsPb.EventTSResult{
 							{
 								Series: []*eventtsPb.EventTSSeries{{
@@ -295,7 +299,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 							},
 						},
 					}, nil).Once()
-				getEventStreamMock.On("Recv").Return(nil, io.EOF).Once()
+				ewcStreamMock.On("Recv").Return(nil, io.EOF).Once()
 				ch := repo.GetStream(ctx, &eventts.GetRequest{
 					EventTimeseriesInput: eventts.EventTimeseriesInput{
 						ByOccurrences: struct {
@@ -324,7 +328,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 		When("when the calls to event-ts-svc fail", func() {
 			It("should fail", func() {
 				By("passing up an error when event-ts-svc fails to return stream")
-				eventTSMockClient.On("GetEventsStream", mockCtx, mockEventTSReq).
+				eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
 					Return(nil, status.Error(codes.Unknown, "test error")).Once()
 
 				ch := repo.GetStream(ctx, &eventts.GetRequest{})
@@ -337,10 +341,10 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 			})
 			It("should fail", func() {
 				By("by passing up an error when an error occurs in the stream")
-				eventTSMockClient.On("GetEventsStream", mockCtx, mockEventTSReq).
-					Return(getEventStreamMock, nil).Once()
-				getEventStreamMock.On("Recv").
-					Return(&eventtsPb.EventTSResponse{
+				eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
+					Return(ewcStreamMock, nil).Once()
+				ewcStreamMock.On("Recv").
+					Return(&eventtsPb.EventsWithCountsResponse{
 						Results: []*eventtsPb.EventTSResult{
 							{
 								Series: []*eventtsPb.EventTSSeries{{
@@ -366,7 +370,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 							},
 						},
 					}, nil).Once()
-				getEventStreamMock.On("Recv").Return(nil, status.Error(codes.Unknown, "stream error")).Once()
+				ewcStreamMock.On("Recv").Return(nil, status.Error(codes.Unknown, "stream error")).Once()
 				ch2 := repo.GetStream(ctx, &eventts.GetRequest{
 					EventTimeseriesInput: eventts.EventTimeseriesInput{
 						ByOccurrences: struct {
