@@ -24,7 +24,8 @@ type (
 	}
 	skipLimitPager  struct{}
 	SkipLimitConfig struct {
-		Offset int64 `json:"offset"`
+		PageSize int64 `json:"pageSize"`
+		Offset   int64 `json:"offset"`
 	}
 )
 
@@ -63,11 +64,7 @@ func (pager *skipLimitPager) GetPaginationQuery(ctx context.Context, query *even
 					return nil, nil, errors.Wrap(err, "failed to unmarshal skip-limit config")
 				}
 				if query.PageInput.Direction == event.PageDirectionBackward {
-					limit := int64(query.PageInput.Limit)
-					if findOpt.Limit != nil {
-						limit = *findOpt.Limit
-					}
-					skip := cfg.Offset - limit + 1
+					skip := cfg.Offset - cfg.PageSize
 					if skip > 0 {
 						findOpt.SetSkip(skip)
 					}
@@ -117,7 +114,8 @@ func (pager *skipLimitPager) NextPageCursor(ctx context.Context, direction event
 	if direction == event.PageDirectionBackward {
 		dir = -1
 	}
-	cfgStruct.Offset = cfgStruct.Offset + dir*int64(len(resultsSlice))
+	cfgStruct.PageSize = int64(len(resultsSlice))
+	cfgStruct.Offset = cfgStruct.Offset + dir*cfgStruct.PageSize
 	config[skipLimitPageConfigKey] = cfgStruct
 	newID := currentCursor.ID
 	if len(newID) == 0 {

@@ -60,7 +60,8 @@ var _ = Describe("Pagination Unit-Tests", func() {
 					},
 					Config: map[string]any{
 						"skipLimitConfig": &mongo.SkipLimitConfig{
-							Offset: 10,
+							PageSize: 1,
+							Offset:   10,
 						},
 					},
 				},

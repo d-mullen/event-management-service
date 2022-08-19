@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 )
 
@@ -76,6 +77,25 @@ func (db *Adapter) Get(_ context.Context, _ *event.GetRequest) ([]*event.Event, 
 	panic("not implemented") // TODO: Implement
 }
 
+func min[N constraints.Ordered](a N, rest ...N) N {
+	result := a
+	for _, b := range rest {
+		if b < result {
+			result = b
+		}
+	}
+	return result
+}
+
+func max[N constraints.Ordered](a N, rest ...N) N {
+	result := a
+	for _, b := range rest {
+		if b > result {
+			result = b
+		}
+	}
+	return result
+}
 func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.FindOption) (*event.Page, error) {
 	var (
 		hasNext bool
@@ -137,11 +157,12 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	}
 
 	if limit > 0 && hasNext {
-		numRemoved := len(filteredOccurrences) - limit - 1
+		origLimit := limit - 1
+		numRemoved := origLimit - len(filteredOccurrences)
 		offset := len(docs)
 		retries := 0
 		for numRemoved > 0 && retries < 100 {
-			newLimit := numRemoved + 1
+			newLimit := max(numRemoved, 500)
 			hasNext = false
 			currDocs := make([]*bson.M, 0)
 			err = mongodb.FindWithRetry(
@@ -178,7 +199,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			offset = len(docs)
 
 			filteredOccurrences = append(filteredOccurrences, currOccurrences...)
-			numRemoved = len(filteredOccurrences) - limit - 1
+			numRemoved = origLimit - len(filteredOccurrences)
 			retries++
 		}
 	}
@@ -196,7 +217,11 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	occMap := make(map[string]*event.Occurrence)
 	eventIDs := make([]string, 0)
 	occurrenceIDs := make([]string, 0, len(filteredOccurrences))
-	for _, occurrence := range filteredOccurrences {
+	sliceStop := len(filteredOccurrences)
+	if limit > 0 {
+		sliceStop = limit - 1
+	}
+	for _, occurrence := range filteredOccurrences[:sliceStop] {
 		occurrenceIDs = append(occurrenceIDs, occurrence.ID)
 		occMap[occurrence.ID] = occurrence
 		newResult := &event.Event{
