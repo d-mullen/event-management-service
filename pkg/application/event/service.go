@@ -482,7 +482,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 			return nil, err
 		}
 	} else {
-		resp, err = svc.eventContext.Find(ctx, query)
+		resp, err = svc.eventContext.Find(ctx, query, findOpt)
 		if err != nil {
 			return nil, err
 		}
