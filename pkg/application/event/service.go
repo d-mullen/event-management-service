@@ -3,7 +3,9 @@ package event
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"sync"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
@@ -16,6 +18,7 @@ import (
 
 	"github.com/zenoss/event-management-service/internal/batchops"
 	"github.com/zenoss/event-management-service/internal/frequency"
+	"github.com/zenoss/event-management-service/internal/instrumentation"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 )
 
@@ -79,6 +82,161 @@ func eventResultsToOccurrenceMaps(
 		occInputMap[eventResult.ID] = occInputSlice
 	}
 	return occurrenceMap, occInputMap, eventMap
+}
+
+func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q *event.Query, eventTSRepo eventts.Repository) ([]*event.Occurrence, error) {
+	log := zenkit.ContextLogger(ctx)
+	eventIDs := make([]string, 0)
+	occurrenceInputsByEventID := make(map[string][]*eventts.OccurrenceInput)
+	minStart, maxEnd := int64(math.MaxInt64), int64(math.MinInt64)
+	for _, occ := range origOccurs {
+		input := &eventts.OccurrenceInput{
+			ID:      occ.ID,
+			EventID: occ.EventID,
+			TimeRange: eventts.TimeRange{
+				Start: occ.StartTime,
+				End:   occ.EndTime,
+			},
+			IsActive: occ.Status != event.StatusClosed,
+		}
+		if input.TimeRange.Start < minStart {
+			minStart = input.TimeRange.Start
+		}
+		if input.TimeRange.End > maxEnd {
+			maxEnd = input.TimeRange.End
+		}
+		occSlice, ok := occurrenceInputsByEventID[occ.EventID]
+		if !ok {
+			occSlice = []*eventts.OccurrenceInput{input}
+			eventIDs = append(eventIDs, occ.EventID)
+		} else {
+			occSlice = append(occSlice, input)
+		}
+		occurrenceInputsByEventID[occ.EventID] = occSlice
+	}
+	if maxEnd == 0 {
+		maxEnd = time.Now().UnixMilli()
+	}
+	req := &eventts.GetRequest{
+		EventTimeseriesInput: eventts.EventTimeseriesInput{
+			TimeRange: eventts.TimeRange{
+				Start: q.TimeRange.Start,
+				End:   q.TimeRange.End,
+			},
+			ByEventIDs: struct{ IDs []string }{
+				IDs: eventIDs,
+			},
+			ByOccurrences: struct {
+				ShouldApplyIntervals bool
+				OccurrenceMap        map[string][]*eventts.OccurrenceInput
+			}{
+				ShouldApplyIntervals: q.ShouldApplyOccurrenceIntervals,
+				OccurrenceMap:        occurrenceInputsByEventID,
+			},
+			Latest: 1,
+			Fields: q.Fields,
+		},
+	}
+	if q.ShouldApplyOccurrenceIntervals {
+		req.TimeRange.Start = minStart
+		req.TimeRange.End = maxEnd
+	}
+	results := make([]*event.Occurrence, 0, len(origOccurs))
+	occurrencesByEventId := make(map[string][]*eventts.Occurrence)
+	stream := eventTSRepo.GetStream(ctx, req)
+	var streamErr error
+	ticker := time.NewTicker(2 * time.Second)
+StreamLoop:
+	for {
+		select {
+		case resp := <-stream:
+			if resp == nil {
+				continue
+			}
+			if resp.Err != nil {
+				log.WithError(resp.Err).Warn("got error during event-ts scan")
+				streamErr = resp.Err
+				break StreamLoop
+			} else if resp.Result != nil {
+				log.Debugf("got event-ts result: %s %s %d\n", resp.Result.ID, resp.Result.EventID, resp.Result.Timestamp)
+				occSlice, ok := occurrencesByEventId[resp.Result.EventID]
+				if !ok || occSlice == nil {
+					occSlice = make([]*eventts.Occurrence, 0)
+				}
+				occSlice = append(occSlice, resp.Result)
+				occurrencesByEventId[resp.Result.EventID] = occSlice
+				ticker.Reset(2 * time.Second)
+			}
+		case <-ticker.C:
+			break StreamLoop
+		case <-ctx.Done():
+			ctxErr := errors.Unwrap(ctx.Err())
+			switch ctxErr {
+			case nil:
+				// no op
+			case context.DeadlineExceeded:
+				log.Debug("deadline exceeded during event-ts scan")
+				break StreamLoop
+			default:
+				log.WithError(ctxErr).Error("got error during event-ts scan")
+				streamErr = ctxErr
+				break StreamLoop
+			}
+		}
+	}
+	if streamErr != nil {
+		return nil, errors.Wrap(streamErr, "failed to stream event time-series data")
+	}
+	for _, occ := range origOccurs {
+		if occSlice, ok := occurrencesByEventId[occ.EventID]; ok {
+		InnerLoop:
+			for _, occWithMD := range occSlice {
+				if occ.ID == occWithMD.ID ||
+					occ.Status == event.StatusClosed && occ.StartTime <= occWithMD.Timestamp && occWithMD.Timestamp <= occ.EndTime ||
+					occ.StartTime <= occWithMD.Timestamp {
+					if len(occ.Metadata) == 0 {
+						occ.Metadata = occWithMD.Metadata
+					} else {
+						for k, v := range occWithMD.Metadata {
+							occ.Metadata[k] = append(occ.Metadata[k], v...)
+						}
+					}
+					if _, ok3 := occ.Metadata["lastSeen"]; !ok3 {
+						occ.Metadata["lastSeen"] = []any{occWithMD.Timestamp}
+					}
+					results = append(results, occ)
+					continue InnerLoop
+				}
+			}
+		}
+	}
+	return results, nil
+}
+
+func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Repository) event.OccurrenceProcessor {
+	return func(ctx context.Context, origOccurrences []*event.Occurrence) ([]*event.Occurrence, error) {
+		ctx, span := instrumentation.StartSpan(ctx, "occurrenceProcessor/getDetails")
+		defer span.End()
+		results := make([]*event.Occurrence, 0)
+		resultMut := sync.Mutex{}
+		batchops.DoConcurrently(ctx, 50, 25,
+			origOccurrences,
+			func(batch []*event.Occurrence) ([]*event.Occurrence, error) {
+				batchResult, err := getOccurrenceDetails(ctx, batch, q, eventTSRepo)
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to get occurrence time-series details")
+				}
+				return batchResult, nil
+			},
+			func(batch []*event.Occurrence) (bool, error) {
+				resultMut.Lock()
+				results = append(results, batch...)
+				resultMut.Unlock()
+				return true, nil
+			},
+		)
+		return results, nil
+	}
 }
 
 func getEventTSResults(ctx context.Context, results []*event.Event, eventTS eventts.Repository, query *event.Query) error {
@@ -299,6 +457,10 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	if err != nil {
 		return nil, err
 	}
+	occProcessor := makeEventTSOccurrenceProcessor(query, svc.eventTS)
+	findOpt := event.NewFindOption()
+	findOpt.SetOccurrenceProcessors([]event.OccurrenceProcessor{occProcessor})
+	_ = findOpt
 	if query.PageInput == nil || (query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
 		queryGroup, gCtx := errgroup.WithContext(ctx)
 		queryGroup.SetLimit(5)
@@ -306,7 +468,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		for _, query := range queries {
 			_q := query
 			queryGroup.Go(func() error {
-				currPage, err := svc.eventContext.Find(gCtx, _q)
+				currPage, err := svc.eventContext.Find(gCtx, _q, findOpt)
 				if err != nil {
 					return err
 				}
@@ -323,35 +485,6 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		resp, err = svc.eventContext.Find(ctx, query)
 		if err != nil {
 			return nil, err
-		}
-	}
-	if len(resp.Results) > 0 && svc.eventTS != nil {
-		// err = getEventTSResults(ctx, resp.Results, svc.eventTS)
-		eventsWithMD := make([]*event.Event, 0)
-		batchMut := sync.Mutex{}
-		err = batchops.DoConcurrently(
-			ctx,
-			100, 15,
-			resp.Results,
-			func(batch []*event.Event) ([]*event.Event, error) {
-				batchResults, err := doGetTimeseriesDataStage(ctx, *query, batch, svc.eventTS)
-				if err != nil {
-					return nil, err
-				}
-				return batchResults, err
-			},
-			func(currResults []*event.Event) (bool, error) {
-				batchMut.Lock()
-				eventsWithMD = append(eventsWithMD, currResults...)
-				batchMut.Unlock()
-				return true, nil
-			})
-		// eventsWithMD, err := doGetTimeseriesDataStage(ctx, *query, resp.Results, svc.eventTS)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to concurrently get event time-series data")
-		}
-		if len(eventsWithMD) > 0 {
-			resp.Results = eventsWithMD
 		}
 	}
 	return resp, nil

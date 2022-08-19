@@ -16,7 +16,7 @@ type (
 func MergeFindOptions(opts ...*FindOption) *FindOption {
 	result := &FindOption{}
 	for _, opt := range opts {
-		if len(result.OccurrenceProcessors) > 0 {
+		if len(opt.OccurrenceProcessors) > 0 {
 			if result.OccurrenceProcessors == nil {
 				result.OccurrenceProcessors = make([]OccurrenceProcessor, 0)
 			}
@@ -26,9 +26,18 @@ func MergeFindOptions(opts ...*FindOption) *FindOption {
 	return result
 }
 
+func NewFindOption() *FindOption { return &FindOption{} }
+
+func (opt *FindOption) SetOccurrenceProcessors(proc []OccurrenceProcessor) {
+	if opt == nil {
+		opt = &FindOption{}
+	}
+	opt.OccurrenceProcessors = proc
+}
+
 func (opt *FindOption) ApplyOccurrenceProcessors(ctx context.Context, orig []*Occurrence) ([]*Occurrence, error) {
 	var err error
-	results := make([]*Occurrence, 0)
+	results := make([]*Occurrence, len(orig))
 	if opt == nil || len(opt.OccurrenceProcessors) == 0 {
 		return orig, nil
 	}
