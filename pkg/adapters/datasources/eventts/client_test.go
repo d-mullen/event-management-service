@@ -47,9 +47,9 @@ var _ = DescribeTable(
 				ByEventIDs: struct {
 					IDs []string
 				}{IDs: []string{"event1", "event2"}},
-				Latest:  0,
-				Fields:  []string{},
-				Filters: []*eventts.Filter{},
+				Latest:       0,
+				ResultFields: []string{},
+				Filters:      []*eventts.Filter{},
 			},
 		},
 		&eventtsPb.EventTSRequest{

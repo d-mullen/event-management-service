@@ -133,8 +133,8 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 				ShouldApplyIntervals: q.ShouldApplyOccurrenceIntervals,
 				OccurrenceMap:        occurrenceInputsByEventID,
 			},
-			Latest: 1,
-			Fields: q.Fields,
+			Latest:       1,
+			ResultFields: q.Fields,
 		},
 	}
 	if q.ShouldApplyOccurrenceIntervals {
@@ -360,8 +360,8 @@ func doGetTimeseriesDataStage(
 				ShouldApplyIntervals: query.ShouldApplyOccurrenceIntervals,
 				OccurrenceMap:        occurrenceInputMap,
 			},
-			Fields:  query.Fields,
-			Filters: tsFilters,
+			ResultFields: query.Fields,
+			Filters:      tsFilters,
 		},
 	}
 	occurrencesWithMD, err := eventTSRepo.Get(ctx, getRequest)
@@ -659,7 +659,7 @@ func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventt
 		TimeRange:  req.TimeRange,
 		Severities: req.Severities,
 		Statuses:   req.Statuses,
-		Fields:     append(req.Fields, req.Fields...),
+		Fields:     append(req.Fields, req.Query.Fields...),
 		Filter:     req.Query.Filter,
 		PageInput:  req.Query.PageInput,
 	}

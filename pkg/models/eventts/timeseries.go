@@ -57,7 +57,6 @@ type (
 			OccurrenceMap        map[string][]*OccurrenceInput
 		}
 		Latest  uint64
-		Fields  []string
 		Filters []*Filter
 		// Fields we want in our result. If omitted, results will include predetermined information
 		ResultFields []string
