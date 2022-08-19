@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 
+	stackdriver "github.com/TV4/logrus-stackdriver-formatter"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	stackdriver "github.com/zenoss/logrus-stackdriver-formatter"
 )
 
 const (

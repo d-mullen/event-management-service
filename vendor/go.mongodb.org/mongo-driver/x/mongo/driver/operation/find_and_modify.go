@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsontype"
@@ -27,7 +26,6 @@ type FindAndModify struct {
 	arrayFilters             bsoncore.Document
 	bypassDocumentValidation *bool
 	collation                bsoncore.Document
-	comment                  bsoncore.Value
 	fields                   bsoncore.Document
 	maxTimeMS                *int64
 	newDocument              *bool
@@ -49,7 +47,6 @@ type FindAndModify struct {
 	hint                     bsoncore.Value
 	serverAPI                *driver.ServerAPIOptions
 	let                      bsoncore.Document
-	timeout                  *time.Duration
 
 	result FindAndModifyResult
 }
@@ -141,7 +138,6 @@ func (fam *FindAndModify) Execute(ctx context.Context) error {
 		WriteConcern:   fam.writeConcern,
 		Crypt:          fam.crypt,
 		ServerAPI:      fam.serverAPI,
-		Timeout:        fam.timeout,
 	}.Execute(ctx, nil)
 
 }
@@ -166,16 +162,11 @@ func (fam *FindAndModify) command(dst []byte, desc description.SelectedServer) (
 		}
 		dst = bsoncore.AppendDocumentElement(dst, "collation", fam.collation)
 	}
-	if fam.comment.Type != bsontype.Type(0) {
-		dst = bsoncore.AppendValueElement(dst, "comment", fam.comment)
-	}
 	if fam.fields != nil {
 
 		dst = bsoncore.AppendDocumentElement(dst, "fields", fam.fields)
 	}
-
-	// Only append specified maxTimeMS if timeout is not also specified.
-	if fam.maxTimeMS != nil && fam.timeout == nil {
+	if fam.maxTimeMS != nil {
 
 		dst = bsoncore.AppendInt64Element(dst, "maxTimeMS", *fam.maxTimeMS)
 	}
@@ -246,16 +237,6 @@ func (fam *FindAndModify) Collation(collation bsoncore.Document) *FindAndModify 
 	}
 
 	fam.collation = collation
-	return fam
-}
-
-// Comment sets a value to help trace an operation.
-func (fam *FindAndModify) Comment(comment bsoncore.Value) *FindAndModify {
-	if fam == nil {
-		fam = new(FindAndModify)
-	}
-
-	fam.comment = comment
 	return fam
 }
 
@@ -469,15 +450,5 @@ func (fam *FindAndModify) Let(let bsoncore.Document) *FindAndModify {
 	}
 
 	fam.let = let
-	return fam
-}
-
-// Timeout sets the timeout for this operation.
-func (fam *FindAndModify) Timeout(timeout *time.Duration) *FindAndModify {
-	if fam == nil {
-		fam = new(FindAndModify)
-	}
-
-	fam.timeout = timeout
 	return fam
 }

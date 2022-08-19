@@ -6,7 +6,6 @@ repo, [zenkit-template](https://github.com/zenoss/zenkit-template), you can be
 up and running with an immediately deployable microservice in under a minute.
 
 ## Quick Reference
-
 * _`make`_ to regenerate code after modifying `design/*.go`
 * _`make test`_ to run tests
 * _`make api-test`_ to run api tests
@@ -16,9 +15,7 @@ up and running with an immediately deployable microservice in under a minute.
 * _`make local-dev`_ to install dev tools locally
 
 ## Prerequisites
-
 To develop and run a zenkit microservice, you will need:
-
 * make
 * docker-ce >= 17.05 (Official installation instructions for
   [Ubuntu](https://docs.docker.com/engine/installation/linux/ubuntu/)
@@ -30,7 +27,6 @@ To develop and run a zenkit microservice, you will need:
   one. Use the most recent release.
 
 Additional helpful utilities include:
-
 * [cobra](https://github.com/spf13/cobra) (`go get github.com/spf13/cobra/cobra`)
 * [httpie](https://httpie.org/) (`apt install httpie` on Ubuntu)
 * [jq](https://stedolan.github.io/jq/) (`apt install jq` on Ubuntu)
@@ -39,7 +35,6 @@ Additional helpful utilities include:
   container, but you may find it convenient.
 
 ## Quickstart
-
 Just run this to create a microservice named `examplesvc`:
 
     bash <(curl -sSL https://git.io/vQB98) examplesvc
@@ -75,22 +70,19 @@ And browse the currently-trivial Swagger spec:
 
     http :9000/swagger
 
-You'll need to [add your source](ZENOSS_EMPLOYEES.md#create-github-repo) to Github and
+You'll need to [add your source](ZENOSS_EMPLOYEES.md#create-github-repo) to Github and 
 [create Jenkins jobs](ZENOSS_EMPLOYEES.md#create-jenkins-jobs) for continuous integration.
 
 When you're ready to add business logic to your new service,
 [proceed](#microservice-development).
 
 ## Zenkit Components
-
 ### The zenkit library
-
 Install this package with `go get`:
 
     go get github.com/zenoss/zenkit/v5
 
 The _zenkit_ library provides:
-
 * A standard base microservice with middleware preconfigured to support
   authentication, logging, metrics, and request tracing
 * Generation of controller scaffolding, test code and
@@ -104,7 +96,6 @@ The zenkit library is the proper place for functionality that, when changed,
 may affect all microservices.
 
 ### zenkit-template
-
 [zenkit-template](https://github.com/zenoss/zenkit-template) is
 a [boilr](https://github.com/tmrts/boilr) template that generates a fully
 functional microservice scaffold (with a dummy endpoint) ready for you to fill
@@ -121,13 +112,12 @@ Changes to the zenkit template will, for obvious reasons, only affect new
 microservices created using zenkit.
 
 ### zenoss/zenkit-build Image
-
 The [zenoss/zenkit-build](https://hub.docker.com/r/zenoss/zenkit-build/)
 ([GitHub](https://github.com/zenoss/zenkit-build)) Docker image is used to run
 tests, build the service binaries, generate coverage reports, etc. Its purpose
 is to remove steps a developer must perform to get started. The Makefile in
-zenkit-template uses this image automatically.  _The image version of
-zenkit-build is specified in `.env` and may be updated there when new versions
+zenkit-template uses this image automatically.  _The image version of 
+zenkit-build is specified in `.env` and may be updated there when new versions 
 of zenkit-build are released._
 
 You may find it convenient, however, to install the testing tools locally
@@ -137,7 +127,6 @@ existing Go environment. The Makefile is smart enough to use local tools if you
 installed them, so you can keep running `make test`.
 
 ### Technologies Used
-
 * [Cobra](https://github.com/spf13/cobra) for CLI. Cobra files live under the
   `cmd` directory and are created using the `cobra` command line application.
 * [Viper](https://github.com/spf13/viper) for configuration. All configuration
@@ -155,7 +144,6 @@ installed them, so you can keep running `make test`.
 * [Dredd](http://dredd.readthedocs.io/en/latest/) for api tests.
 
 ## Microservice Development
-
 1. Add or modify resources and actions in `design/resources.go`, using [Goa's
    DSL](https://goa.design/reference/goa/design/apidsl/). The
    [goa-cellar](https://github.com/goadesign/goa-cellar) example implementation
@@ -163,10 +151,10 @@ installed them, so you can keep running `make test`.
 
 2. Define examples for your request and response objects in the design
    specification.  This provides richer swagger documentation and allows dredd
-   tests to work automatically.  Documentation on how to implement examples is
-   found in the Goa documentation for
-   [Example](https://goa.design/reference/goa/design/apidsl/#func-example-a-name-apidsl-example-a)
-   and
+   tests to work automatically.  Documentation on how to implement examples is 
+   found in the Goa documentation for 
+   [Example](https://goa.design/reference/goa/design/apidsl/#func-example-a-name-apidsl-example-a) 
+   and 
    [Metadata](https://goa.design/reference/goa/design/apidsl/#func-metadata-a-name-apidsl-metadata-a)
    functions.  See [the provided example
    resource](https://github.com/zenoss/zenkit-template/blob/master/template/design/resources.go)
@@ -200,18 +188,18 @@ installed them, so you can keep running `make test`.
    arguments that you expect to trigger each response. See the [tests for the
    example resource](https://github.com/zenoss/zenkit-template/blob/master/template/resources/example_test.go) for a functional example.
 
-6. `make test`.  You may also run tests automatically on save by running
+7. `make test`.  You may also run tests automatically on save by running
    `ginkgo watch resources` or `ginkgo watch -r`.
 
-7. Add hooks for api tests that will handle environment setup and teardown for
+8. Add hooks for api tests that will handle environment setup and teardown for
    each api test. (TODO: need an example service that demonstrates this
    implementation).
 
-8. `make api-test`. Starts service and dependencies (as defined in
+9. `make api-test`. Starts service and dependencies (as defined in
    docker-compose.yml) and runs dredd tests in a container within a private
    network.
 
-9. `make run` to rebuild the image and redeploy the service locally. This will
+10. `make run` to rebuild the image and redeploy the service locally. This will
    bring it up on port {{Port}}, allowing you to use `curl` or `httpie`.  You
    may also simply use `go build {{Name}}`, then run the resulting binary
    manually, although if supporting services are required, the `docker-compose`
@@ -247,77 +235,6 @@ look like the following, you must also update to zing-proto v11.18.0 or later.
 ./main.go:108:60: cannot use dictionary.RegisterDictionaryHandlerFromEndpoint (type func(context.Context, *"github.com/grpc-ecosystem/grpc-gateway/runtime".ServeMux, string, []grpc.DialOption) error) as type zenkit.RegisterEndpointFunc in argument to zenkit.RunGRPCServerWithEndpoint
 ```
 
-### Migration to v5.7.0
-
-#### Redis v8
-
-In this version [go-redis/redis](https://github.com/go-redis/redis) and
-[go-redis/cache](https://github.com/go-redis/cache) was updated to v8.
-
-`go-redis/redis` v8 added `context.Context` to almost every method. But besides
-that, major incompatibilities should not emerge.
-
-`go-redis/cache` v8 changed quite a lot.
-
-* As in `redis` some methods got `context.Context` argument
-* Methods to delete, get context were removed
-* Added method to Get item bypassing local cache
-
-```diff
-- type Codec
-+ type Cache
-
--    func (*Codec) Delete(key string) error
-+    func (*Cache) Delete(ctx context.Context, key string) error
-
--    func (*Codec) Exists(key string) bool
-+    func (*Cache) Exists(ctx context.Context, key string) bool
-
--    func (*Codec) Get(key string, object interface{}) error
-+    func (*Cache) Get(ctx context.Context, key string, value interface{}) error
-
-     func (*Codec) Once(item *Item) error
-     func (*Cache) Once(item *Item) error
-
-     func (*Codec) Set(item *Item) error
-     func (*Cache) Set(item *Item) error
-
-     func (*Codec) Stats() *Stats
-     func (*Cache) Stats() *Stats
- 
--    func (*Codec) UseLocalCache(maxLen int, expiration time.Duration)
--    func (*Codec) DeleteContext(c context.Context, key string) error
--    func (*Codec) GetContext(c context.Context, key string, object interface{}) error
--    func (*Codec) AddHook(h Hook)
-+    func (*Cache) Unmarshal(b []byte, value interface{}) error
-+    func (*Cache) Marshal(value interface{}) ([]byte, error)
-+    func (*Cache) DeleteFromLocalCache(key string)
-+    func (*Cache) GetSkippingLocalCache(ctx context.Context, key string, value interface{}) error
-```
-
-In `Item` struct some fields were renamed. `Func` become `Do` and accepts `*Item`.
-
-```diff
-type Item struct {
-  Ctx context.Context
-  Key    string
-
-- Object interface{}
-+ Value  interface{}
-
-- Func func()      (interface{}, error)
-+ Do   func(*Item) (interface{}, error)
-
-- Expiration time.Duration
-+ TTL        time.Duration
-
-+ SetXX bool
-+ SetNX bool
-+ SkipLocalCache bool
-}
-```
-
 ## Issues?
-
 [Zenoss Jira](https://jira.zenoss.com). Open an issue, ZING project, Zenkit
 component.

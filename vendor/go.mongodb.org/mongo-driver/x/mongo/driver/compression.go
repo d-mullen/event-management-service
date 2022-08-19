@@ -11,7 +11,6 @@ import (
 	"compress/zlib"
 	"fmt"
 	"io"
-	"sync"
 
 	"github.com/golang/snappy"
 	"github.com/klauspost/compress/zstd"
@@ -24,21 +23,6 @@ type CompressionOpts struct {
 	ZlibLevel        int
 	ZstdLevel        int
 	UncompressedSize int32
-}
-
-var zstdEncoders = &sync.Map{}
-
-func getZstdEncoder(l zstd.EncoderLevel) (*zstd.Encoder, error) {
-	v, ok := zstdEncoders.Load(l)
-	if ok {
-		return v.(*zstd.Encoder), nil
-	}
-	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(l))
-	if err != nil {
-		return nil, err
-	}
-	zstdEncoders.Store(l, encoder)
-	return encoder, nil
 }
 
 // CompressPayload takes a byte slice and compresses it according to the options passed
@@ -64,11 +48,21 @@ func CompressPayload(in []byte, opts CompressionOpts) ([]byte, error) {
 		}
 		return b.Bytes(), nil
 	case wiremessage.CompressorZstd:
-		encoder, err := getZstdEncoder(zstd.EncoderLevelFromZstd(opts.ZstdLevel))
+		var b bytes.Buffer
+		w, err := zstd.NewWriter(&b, zstd.WithEncoderLevel(zstd.EncoderLevelFromZstd(opts.ZstdLevel)))
 		if err != nil {
 			return nil, err
 		}
-		return encoder.EncodeAll(in, nil), nil
+		_, err = io.Copy(w, bytes.NewBuffer(in))
+		if err != nil {
+			_ = w.Close()
+			return nil, err
+		}
+		err = w.Close()
+		if err != nil {
+			return nil, err
+		}
+		return b.Bytes(), nil
 	default:
 		return nil, fmt.Errorf("unknown compressor ID %v", opts.Compressor)
 	}

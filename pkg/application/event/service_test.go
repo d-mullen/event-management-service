@@ -178,33 +178,48 @@ var _ = Describe("eventquery.Service", func() {
 		})
 		When("results are found in repositories with filters ", func() {
 			It("should find events", func() {
-				eventsRepo.On("Find", mockCtx, mockQuery).Return(&eventContext.Page{
-					Results: []*eventContext.Event{
-						{
-							ID: "event2",
-							Occurrences: []*eventContext.Occurrence{
-								{
-									ID:        "event2:1",
-									EventID:   "event2",
-									Tenant:    "acme",
-									StartTime: 0,
-									EndTime:   10000,
-									Status:    eventContext.StatusClosed,
-									Severity:  eventContext.SeverityDefault,
+				eventsRepo.On("Find", mockCtx, mockQuery, mockFindOpt).
+					Run(func(args mock.Arguments) {
+						defer GinkgoRecover()
+						optsAny := args.Get(2)
+						opt, ok := optsAny.(*eventContext.FindOption)
+						Expect(ok).To(BeTrue())
+						opt.ApplyOccurrenceProcessors(context.TODO(), []*eventContext.Occurrence{
+							{ID: "id1:1", StartTime: 0, EndTime: 10000, Status: eventContext.StatusClosed},
+						})
+
+					}).
+					Return(&eventContext.Page{
+						Results: []*eventContext.Event{
+							{
+								ID: "event1",
+								Occurrences: []*eventContext.Occurrence{
+									{
+										ID:        "event1:1",
+										EventID:   "event1",
+										Tenant:    "acme",
+										StartTime: 0,
+										EndTime:   10000,
+										Status:    eventContext.StatusClosed,
+										Severity:  eventContext.SeverityDefault,
+									},
 								},
 							},
 						},
-					},
-				}, nil).Once()
-
-				eventTSRepo.On("Get", mockCtx, mock.Anything).
-					Return([]*eventts.Occurrence{{
-						ID:      "event2:1",
-						EventID: "event2",
+					}, nil).Once()
+				testStream := make(chan *eventts.OccurrenceOptional, 1)
+				testStream <- &eventts.OccurrenceOptional{
+					Result: &eventts.Occurrence{
+						ID:      "event1:1",
+						EventID: "event1",
 						Metadata: map[string][]any{
 							"k1": {"v1"},
 						},
-					}}, nil).Once()
+					},
+				}
+				close(testStream)
+				eventTSRepo.On("GetStream", mockCtx, mock.Anything).
+					Return(func() <-chan *eventts.OccurrenceOptional { return testStream }()).Once()
 				resp, err := svc.Find(ctx, &eventContext.Query{
 					Tenant: "acme",
 					TimeRange: eventContext.TimeRange{

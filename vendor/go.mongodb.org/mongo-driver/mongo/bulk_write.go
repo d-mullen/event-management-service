@@ -27,7 +27,6 @@ type bulkWriteBatch struct {
 
 // bulkWrite perfoms a bulkwrite operation
 type bulkWrite struct {
-	comment                  interface{}
 	ordered                  *bool
 	bypassDocumentValidation *bool
 	models                   []WriteModel
@@ -179,14 +178,7 @@ func (bw *bulkWrite) runInsert(ctx context.Context, batch bulkWriteBatch) (opera
 		ServerSelector(bw.selector).ClusterClock(bw.collection.client.clock).
 		Database(bw.collection.db.name).Collection(bw.collection.name).
 		Deployment(bw.collection.client.deployment).Crypt(bw.collection.client.cryptFLE).
-		ServerAPI(bw.collection.client.serverAPI).Timeout(bw.collection.client.timeout)
-	if bw.comment != nil {
-		comment, err := transformValue(bw.collection.registry, bw.comment, true, "comment")
-		if err != nil {
-			return op.Result(), err
-		}
-		op.Comment(comment)
-	}
+		ServerAPI(bw.collection.client.serverAPI)
 	if bw.bypassDocumentValidation != nil && *bw.bypassDocumentValidation {
 		op = op.BypassDocumentValidation(*bw.bypassDocumentValidation)
 	}
@@ -236,14 +228,7 @@ func (bw *bulkWrite) runDelete(ctx context.Context, batch bulkWriteBatch) (opera
 		ServerSelector(bw.selector).ClusterClock(bw.collection.client.clock).
 		Database(bw.collection.db.name).Collection(bw.collection.name).
 		Deployment(bw.collection.client.deployment).Crypt(bw.collection.client.cryptFLE).Hint(hasHint).
-		ServerAPI(bw.collection.client.serverAPI).Timeout(bw.collection.client.timeout)
-	if bw.comment != nil {
-		comment, err := transformValue(bw.collection.registry, bw.comment, true, "comment")
-		if err != nil {
-			return op.Result(), err
-		}
-		op.Comment(comment)
-	}
+		ServerAPI(bw.collection.client.serverAPI)
 	if bw.let != nil {
 		let, err := transformBsoncoreDocument(bw.collection.registry, bw.let, true, "let")
 		if err != nil {
@@ -331,14 +316,7 @@ func (bw *bulkWrite) runUpdate(ctx context.Context, batch bulkWriteBatch) (opera
 		ServerSelector(bw.selector).ClusterClock(bw.collection.client.clock).
 		Database(bw.collection.db.name).Collection(bw.collection.name).
 		Deployment(bw.collection.client.deployment).Crypt(bw.collection.client.cryptFLE).Hint(hasHint).
-		ArrayFilters(hasArrayFilters).ServerAPI(bw.collection.client.serverAPI).Timeout(bw.collection.client.timeout)
-	if bw.comment != nil {
-		comment, err := transformValue(bw.collection.registry, bw.comment, true, "comment")
-		if err != nil {
-			return op.Result(), err
-		}
-		op.Comment(comment)
-	}
+		ArrayFilters(hasArrayFilters).ServerAPI(bw.collection.client.serverAPI)
 	if bw.let != nil {
 		let, err := transformBsoncoreDocument(bw.collection.registry, bw.let, true, "let")
 		if err != nil {
@@ -417,6 +395,7 @@ func createUpdateDoc(
 	}
 
 	updateDoc, _ = bsoncore.AppendDocumentEnd(updateDoc, uidx)
+
 	return updateDoc, nil
 }
 

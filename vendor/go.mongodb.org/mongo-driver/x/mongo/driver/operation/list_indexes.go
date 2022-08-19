@@ -9,7 +9,6 @@ package operation
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo/description"
@@ -32,7 +31,6 @@ type ListIndexes struct {
 	retry      *driver.RetryMode
 	crypt      driver.Crypt
 	serverAPI  *driver.ServerAPIOptions
-	timeout    *time.Duration
 
 	result driver.CursorResponse
 }
@@ -81,7 +79,6 @@ func (li *ListIndexes) Execute(ctx context.Context) error {
 		RetryMode:      li.retry,
 		Type:           driver.Read,
 		ServerAPI:      li.serverAPI,
-		Timeout:        li.timeout,
 	}.Execute(ctx, nil)
 
 }
@@ -94,9 +91,7 @@ func (li *ListIndexes) command(dst []byte, desc description.SelectedServer) ([]b
 
 		cursorDoc = bsoncore.AppendInt32Element(cursorDoc, "batchSize", *li.batchSize)
 	}
-
-	// Only append specified maxTimeMS if timeout is not also specified.
-	if li.maxTimeMS != nil && li.timeout == nil {
+	if li.maxTimeMS != nil {
 
 		dst = bsoncore.AppendInt64Element(dst, "maxTimeMS", *li.maxTimeMS)
 	}
@@ -224,15 +219,5 @@ func (li *ListIndexes) ServerAPI(serverAPI *driver.ServerAPIOptions) *ListIndexe
 	}
 
 	li.serverAPI = serverAPI
-	return li
-}
-
-// Timeout sets the timeout for this operation.
-func (li *ListIndexes) Timeout(timeout *time.Duration) *ListIndexes {
-	if li == nil {
-		li = new(ListIndexes)
-	}
-
-	li.timeout = timeout
 	return li
 }

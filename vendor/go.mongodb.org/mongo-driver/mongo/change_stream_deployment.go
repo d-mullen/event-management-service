@@ -40,10 +40,6 @@ func (c *changeStreamDeployment) MinRTT() time.Duration {
 	return c.server.MinRTT()
 }
 
-func (c *changeStreamDeployment) RTT90() time.Duration {
-	return c.server.RTT90()
-}
-
 func (c *changeStreamDeployment) ProcessError(err error, conn driver.Connection) driver.ProcessErrorResult {
 	ep, ok := c.server.(driver.ErrorProcessor)
 	if !ok {

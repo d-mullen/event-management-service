@@ -8,32 +8,23 @@ package topology
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"sync"
 	"time"
 
-	"github.com/montanaflynn/stats"
 	"go.mongodb.org/mongo-driver/x/mongo/driver"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/operation"
 )
 
 const (
 	rttAlphaValue = 0.2
-	minSamples    = 10
+	minSamples    = 5
 	maxSamples    = 500
 )
 
 type rttConfig struct {
-	// The minimum interval between RTT measurements. The actual interval may be greater if running
-	// the operation takes longer than the interval.
-	interval time.Duration
-
-	// The timeout applied to running the "hello" operation. If the timeout is reached while running
-	// the operation, the RTT sample is discarded. The default is 1 minute.
-	timeout time.Duration
-
-	minRTTWindow       time.Duration
+	interval           time.Duration
+	minRTTWindow       time.Duration // Window size to calculate minimum RTT over.
 	createConnectionFn func() *connection
 	createOperationFn  func(driver.Connection) *operation.Hello
 }
@@ -43,7 +34,6 @@ type rttMonitor struct {
 	samples       []time.Duration
 	offset        int
 	minRTT        time.Duration
-	RTT90         time.Duration
 	averageRTT    time.Duration
 	averageRTTSet bool
 
@@ -60,7 +50,7 @@ func newRTTMonitor(cfg *rttConfig) *rttMonitor {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	// Determine the number of samples we need to keep to store the minWindow of RTT durations. The
-	// number of samples must be between [10, 500].
+	// number of samples must be between [5, 500].
 	numSamples := int(math.Max(minSamples, math.Min(maxSamples, float64((cfg.minRTTWindow)/cfg.interval))))
 
 	return &rttMonitor{
@@ -84,6 +74,8 @@ func (r *rttMonitor) disconnect() {
 
 func (r *rttMonitor) start() {
 	defer r.closeWg.Done()
+	ticker := time.NewTicker(r.cfg.interval)
+	defer ticker.Stop()
 
 	var conn *connection
 	defer func() {
@@ -98,27 +90,9 @@ func (r *rttMonitor) start() {
 		}
 	}()
 
-	ticker := time.NewTicker(r.cfg.interval)
-	defer ticker.Stop()
-
 	for {
-		conn := r.cfg.createConnectionFn()
-		err := conn.connect(r.ctx)
+		conn = r.runHello(conn)
 
-		// Add an RTT sample from the new connection handshake and start a runHellos() loop if we
-		// successfully established the new connection. Otherwise, close the connection and try to
-		// create another new connection.
-		if err == nil {
-			r.addSample(conn.helloRTT)
-			r.runHellos(conn)
-		}
-
-		// Close any connection here because we're either about to try to create another new
-		// connection or we're about to exit the loop.
-		_ = conn.close()
-
-		// If a connection error happens quickly, always wait for the monitoring interval to try
-		// to create a new connection to prevent creating connections too quickly.
 		select {
 		case <-ticker.C:
 		case <-r.ctx.Done():
@@ -127,45 +101,37 @@ func (r *rttMonitor) start() {
 	}
 }
 
-// runHellos runs "hello" operations in a loop using the provided connection, measuring and
-// recording the operation durations as RTT samples. If it encounters any errors, it returns.
-func (r *rttMonitor) runHellos(conn *connection) {
-	ticker := time.NewTicker(r.cfg.interval)
-	defer ticker.Stop()
+// runHello runs a "hello" operation using the provided connection, measures the duration, and adds
+// the duration as an RTT sample and returns the connection used. If the provided connection is nil
+// or closed, runHello tries to establish a new connection. If the "hello" operation returns an
+// error, runHello closes the connection.
+func (r *rttMonitor) runHello(conn *connection) *connection {
+	if conn == nil || conn.closed() {
+		conn := r.cfg.createConnectionFn()
 
-	for {
-		// Assume that the connection establishment recorded the first RTT sample, so wait for the
-		// first tick before trying to record another RTT sample.
-		select {
-		case <-ticker.C:
-		case <-r.ctx.Done():
-			return
-		}
-
-		// Create a Context with the operation timeout specified in the RTT monitor config. If a
-		// timeout is not set in the RTT monitor config, default to the connection's
-		// "connectTimeoutMS". The purpose of the timeout is to allow the RTT monitor to continue
-		// monitoring server RTTs after an operation gets stuck. An operation can get stuck if the
-		// server or a proxy stops responding to requests on the RTT connection but does not close
-		// the TCP socket, effectively creating an operation that will never complete. We expect
-		// that "connectTimeoutMS" provides at least enough time for a single round trip.
-		timeout := r.cfg.timeout
-		if timeout <= 0 {
-			timeout = conn.config.connectTimeout
-		}
-		ctx, cancel := context.WithTimeout(r.ctx, timeout)
-
-		start := time.Now()
-		err := r.cfg.createOperationFn(initConnection{conn}).Execute(ctx)
-		cancel()
+		err := conn.connect(r.ctx)
 		if err != nil {
-			return
+			return nil
 		}
-		// Only record a sample if the "hello" operation was successful. If it was not successful,
-		// the operation may not have actually performed a complete round trip, so the duration may
-		// be artificially short.
-		r.addSample(time.Since(start))
+
+		// If we just created a new connection, record the "hello" RTT from the new connection and
+		// return the new connection. Don't run another "hello" command this interval because it's
+		// now unnecessary.
+		r.addSample(conn.helloRTT)
+		return conn
 	}
+
+	start := time.Now()
+	err := r.cfg.createOperationFn(initConnection{conn}).Execute(r.ctx)
+	if err != nil {
+		// Errors from the RTT monitor do not reset the RTTs or update the topology, so we close the
+		// existing connection and recreate it on the next check.
+		_ = conn.close()
+		return nil
+	}
+	r.addSample(time.Since(start))
+
+	return conn
 }
 
 // reset sets the average and min RTT to 0. This should only be called from the server monitor when an error
@@ -179,7 +145,6 @@ func (r *rttMonitor) reset() {
 	}
 	r.offset = 0
 	r.minRTT = 0
-	r.RTT90 = 0
 	r.averageRTT = 0
 	r.averageRTTSet = false
 }
@@ -192,11 +157,9 @@ func (r *rttMonitor) addSample(rtt time.Duration) {
 
 	r.samples[r.offset] = rtt
 	r.offset = (r.offset + 1) % len(r.samples)
-	// Set the minRTT and 90th percentile RTT of all collected samples. Require at least 10 samples before
-	// setting these to prevent noisy samples on startup from artificially increasing RTT and to allow the
-	// calculation of a 90th percentile.
+	// Set the minRTT as the minimum of all collected samples. Require at least 5 samples before
+	// setting minRTT to prevent noisy samples on startup from artificially increasing minRTT.
 	r.minRTT = min(r.samples, minSamples)
-	r.RTT90 = percentile(90.0, r.samples, minSamples)
 
 	if !r.averageRTTSet {
 		r.averageRTT = rtt
@@ -227,28 +190,6 @@ func min(samples []time.Duration, minSamples int) time.Duration {
 	return min
 }
 
-// percentile returns the specified percentile value of the slice of duration samples. Zero values
-// are not considered samples and are ignored. If no samples or fewer than minSamples are found
-// in the slice, percentile returns 0.
-func percentile(perc float64, samples []time.Duration, minSamples int) time.Duration {
-	// Convert Durations to float64s.
-	floatSamples := make([]float64, 0, len(samples))
-	for _, sample := range samples {
-		if sample > 0 {
-			floatSamples = append(floatSamples, float64(sample))
-		}
-	}
-	if len(floatSamples) == 0 || len(floatSamples) < minSamples {
-		return 0
-	}
-
-	p, err := stats.Percentile(floatSamples, perc)
-	if err != nil {
-		panic(fmt.Errorf("x/mongo/driver/topology: error calculating %f percentile RTT: %v for samples:\n%v", perc, err, floatSamples))
-	}
-	return time.Duration(p)
-}
-
 // getRTT returns the exponentially weighted moving average observed round-trip time.
 func (r *rttMonitor) getRTT() time.Duration {
 	r.mu.RLock()
@@ -263,12 +204,4 @@ func (r *rttMonitor) getMinRTT() time.Duration {
 	defer r.mu.RUnlock()
 
 	return r.minRTT
-}
-
-// getRTT90 returns the 90th percentile observed round-trip time over the window period.
-func (r *rttMonitor) getRTT90() time.Duration {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	return r.RTT90
 }

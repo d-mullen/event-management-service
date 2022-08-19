@@ -9,9 +9,7 @@ package operation
 import (
 	"context"
 	"errors"
-	"time"
 
-	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo/description"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
@@ -30,7 +28,6 @@ type Distinct struct {
 	session        *session.Client
 	clock          *session.ClusterClock
 	collection     string
-	comment        bsoncore.Value
 	monitor        *event.CommandMonitor
 	crypt          driver.Crypt
 	database       string
@@ -41,7 +38,6 @@ type Distinct struct {
 	retry          *driver.RetryMode
 	result         DistinctResult
 	serverAPI      *driver.ServerAPIOptions
-	timeout        *time.Duration
 }
 
 // DistinctResult represents a distinct result returned by the server.
@@ -103,7 +99,6 @@ func (d *Distinct) Execute(ctx context.Context) error {
 		ReadPreference:    d.readPreference,
 		Selector:          d.selector,
 		ServerAPI:         d.serverAPI,
-		Timeout:           d.timeout,
 	}.Execute(ctx, nil)
 
 }
@@ -115,9 +110,6 @@ func (d *Distinct) command(dst []byte, desc description.SelectedServer) ([]byte,
 			return nil, errors.New("the 'collation' command parameter requires a minimum server wire version of 5")
 		}
 		dst = bsoncore.AppendDocumentElement(dst, "collation", d.collation)
-	}
-	if d.comment.Type != bsontype.Type(0) {
-		dst = bsoncore.AppendValueElement(dst, "comment", d.comment)
 	}
 	if d.key != nil {
 		dst = bsoncore.AppendStringElement(dst, "key", *d.key)
@@ -201,16 +193,6 @@ func (d *Distinct) Collection(collection string) *Distinct {
 	return d
 }
 
-// Comment sets a value to help trace an operation.
-func (d *Distinct) Comment(comment bsoncore.Value) *Distinct {
-	if d == nil {
-		d = new(Distinct)
-	}
-
-	d.comment = comment
-	return d
-}
-
 // CommandMonitor sets the monitor to use for APM events.
 func (d *Distinct) CommandMonitor(monitor *event.CommandMonitor) *Distinct {
 	if d == nil {
@@ -261,7 +243,7 @@ func (d *Distinct) ReadConcern(readConcern *readconcern.ReadConcern) *Distinct {
 	return d
 }
 
-// ReadPreference set the read preference used with this operation.
+// ReadPreference set the read prefernce used with this operation.
 func (d *Distinct) ReadPreference(readPreference *readpref.ReadPref) *Distinct {
 	if d == nil {
 		d = new(Distinct)
@@ -299,15 +281,5 @@ func (d *Distinct) ServerAPI(serverAPI *driver.ServerAPIOptions) *Distinct {
 	}
 
 	d.serverAPI = serverAPI
-	return d
-}
-
-// Timeout sets the timeout for this operation.
-func (d *Distinct) Timeout(timeout *time.Duration) *Distinct {
-	if d == nil {
-		d = new(Distinct)
-	}
-
-	d.timeout = timeout
 	return d
 }

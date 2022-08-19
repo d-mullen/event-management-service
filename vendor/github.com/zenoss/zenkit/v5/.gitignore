@@ -21,6 +21,3 @@ junit.xml
 # Intellij junk
 *.iml
 .idea
-
-# VSCode
-/.vscode/

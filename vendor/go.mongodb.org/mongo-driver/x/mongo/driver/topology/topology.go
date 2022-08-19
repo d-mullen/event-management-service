@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -56,7 +57,7 @@ var ErrServerSelectionTimeout = errors.New("server selection timeout")
 type MonitorMode uint8
 
 // random is a package-global pseudo-random number generator.
-var random = randutil.NewLockedRand()
+var random = randutil.NewLockedRand(rand.NewSource(randutil.CryptoSeed()))
 
 // These constants are the available monitoring modes.
 const (
@@ -356,7 +357,7 @@ func (t *Topology) RequestImmediateCheck() {
 }
 
 // SelectServer selects a server with given a selector. SelectServer complies with the
-// server selection spec, and will time out after serverSelectionTimeout or when the
+// server selection spec, and will time out after severSelectionTimeout or when the
 // parent context is done.
 func (t *Topology) SelectServer(ctx context.Context, ss description.ServerSelector) (driver.Server, error) {
 	if atomic.LoadInt64(&t.state) != topologyConnected {

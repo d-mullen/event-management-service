@@ -30,7 +30,10 @@ require github.com/hashicorp/golang-lru v0.5.4
 require github.com/google/uuid v1.3.0
 
 require (
+	github.com/TV4/logrus-stackdriver-formatter v0.1.0 // indirect
+	github.com/go-redis/cache v6.4.0+incompatible // indirect
 	github.com/go-redis/cache/v8 v8.4.3 // indirect
+	github.com/go-redis/redis v6.15.7+incompatible // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/prometheus/prometheus v0.35.0 // indirect

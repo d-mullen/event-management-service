@@ -9,7 +9,6 @@ package operation
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/event"
@@ -59,7 +58,6 @@ type Find struct {
 	retry               *driver.RetryMode
 	result              driver.CursorResponse
 	serverAPI           *driver.ServerAPIOptions
-	timeout             *time.Duration
 }
 
 // NewFind constructs and returns a new Find.
@@ -103,7 +101,6 @@ func (f *Find) Execute(ctx context.Context) error {
 		Selector:          f.selector,
 		Legacy:            driver.LegacyFind,
 		ServerAPI:         f.serverAPI,
-		Timeout:           f.timeout,
 	}.Execute(ctx, nil)
 
 }
@@ -149,8 +146,7 @@ func (f *Find) command(dst []byte, desc description.SelectedServer) ([]byte, err
 	if f.max != nil {
 		dst = bsoncore.AppendDocumentElement(dst, "max", f.max)
 	}
-	// Only append specified maxTimeMS if timeout is not also specified.
-	if f.maxTimeMS != nil && f.timeout == nil {
+	if f.maxTimeMS != nil {
 		dst = bsoncore.AppendInt64Element(dst, "maxTimeMS", *f.maxTimeMS)
 	}
 	if f.min != nil {
@@ -499,7 +495,7 @@ func (f *Find) ReadConcern(readConcern *readconcern.ReadConcern) *Find {
 	return f
 }
 
-// ReadPreference set the read preference used with this operation.
+// ReadPreference set the read prefernce used with this operation.
 func (f *Find) ReadPreference(readPreference *readpref.ReadPref) *Find {
 	if f == nil {
 		f = new(Find)
@@ -537,15 +533,5 @@ func (f *Find) ServerAPI(serverAPI *driver.ServerAPIOptions) *Find {
 	}
 
 	f.serverAPI = serverAPI
-	return f
-}
-
-// Timeout sets the timeout for this operation.
-func (f *Find) Timeout(timeout *time.Duration) *Find {
-	if f == nil {
-		f = new(Find)
-	}
-
-	f.timeout = timeout
 	return f
 }

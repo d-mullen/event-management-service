@@ -26,9 +26,8 @@ import (
 )
 
 var (
-	tenantIdCache     = TenantCache{cache: make(map[string]string), mutex: sync.Mutex{}}
-	tenantNameCache   = TenantCache{cache: make(map[string]string), mutex: sync.Mutex{}}
 	tenantDataIdCache = TenantCache{cache: make(map[string]string), mutex: sync.Mutex{}}
+	tenantIdCache     = TenantCache{cache: make(map[string]string), mutex: sync.Mutex{}}
 	ErrMissingRequest = errors.New("Request can not be empty")
 )
 
@@ -100,66 +99,9 @@ func (tcl *TenantInternalServiceClient) GetTenantId(ctx context.Context, req *pr
 	return response.TenantId, nil
 }
 
-func (tcl *TenantInternalServiceClient) GetTenantName(ctx context.Context, req *proto.GetTenantNameRequest) (string, error) {
-	log := ContextLogger(ctx)
-	if req == nil {
-		return "", ErrMissingRequest
-	}
-	arg, _ := GetTenantValue(req.GetTenantInfo())
-
-	tenantNameCache.mutex.Lock()
-	if val, ok := tenantNameCache.cache[arg]; ok {
-		tenantNameCache.mutex.Unlock()
-		log.Debugf("Found %s matching name in Name Cache", arg)
-		return val, nil
-	}
-	tenantNameCache.mutex.Unlock()
-	log.Debugf("Missed %s in tenant Name Cache", arg)
-
-	response, err := tcl.client.GetTenantName(ctx, req)
-	if err != nil {
-		return "", err
-	}
-
-	tenantNameCache.mutex.Lock()
-	tenantNameCache.cache[arg] = response.TenantName
-	tenantNameCache.mutex.Unlock()
-	log.Debugf("Saved %s in tenant Name Cache", response.TenantName)
-
-	return response.TenantName, nil
-}
-
-func (tcl *TenantInternalServiceClient) GetTenantDataId(ctx context.Context, req *proto.GetTenantDataIdRequest) (string, error) {
-	log := ContextLogger(ctx)
-	if req == nil {
-		return "", ErrMissingRequest
-	}
-	arg, _ := GetTenantValue(req.GetTenantInfo())
-
-	tenantDataIdCache.mutex.Lock()
-	if val, ok := tenantDataIdCache.cache[arg]; ok {
-		log.Debugf("Found %s matching dataId in dataId Cache", arg)
-		tenantDataIdCache.mutex.Unlock()
-		return val, nil
-	}
-	tenantDataIdCache.mutex.Unlock()
-	log.Debugf("Missed %s in tenant dataId Cache", arg)
-
-	response, err := tcl.client.GetTenantDataId(ctx, req)
-	if err != nil {
-		return "", err
-	}
-	tenantDataIdCache.mutex.Lock()
-	tenantDataIdCache.cache[arg] = response.TenantDataId
-	tenantDataIdCache.mutex.Unlock()
-	log.Debugf("Saved %s in tenant dataId Cache", response.TenantDataId)
-
-	return response.TenantDataId, nil
-}
-
 func (tcl *TenantInternalServiceClient) GetTenantIds(ctx context.Context, req *proto.GetTenantIdsRequest) ([]*proto.TenantResult, error) {
 	log := ContextLogger(ctx)
-	var response []*proto.TenantResult
+	var response []*proto.TenantResult = []*proto.TenantResult{}
 	var filtered []*proto.TenantInfo
 	if req == nil {
 		return response, ErrMissingRequest
@@ -204,56 +146,9 @@ func (tcl *TenantInternalServiceClient) GetTenantIds(ctx context.Context, req *p
 	return response, nil
 }
 
-func (tcl *TenantInternalServiceClient) GetTenantNames(ctx context.Context, req *proto.GetTenantNamesRequest) ([]*proto.TenantResult, error) {
-	log := ContextLogger(ctx)
-	var response []*proto.TenantResult
-	var filtered []*proto.TenantInfo
-	if req == nil {
-		return response, ErrMissingRequest
-	}
-	infos := req.GetTenantInfo()
-
-	for _, info := range infos {
-		arg, res := GetTenantValue(info)
-
-		tenantNameCache.mutex.Lock()
-		if val, ok := tenantNameCache.cache[arg]; ok {
-			log.Debugf("Found %s matching name in Name Cache", arg)
-			tenantNameCache.mutex.Unlock()
-			res.TenantName = val
-			response = append(response, res)
-			continue
-		}
-		tenantNameCache.mutex.Unlock()
-		log.Debugf("Missed %s in tenant Name Cache", arg)
-
-		filtered = append(filtered, info)
-
-	}
-
-	if len(filtered) == 0 {
-		return response, nil
-	}
-
-	req.TenantInfo = filtered
-
-	result, err := tcl.client.GetTenantNames(ctx, req)
-	if err != nil {
-		return response, err
-	}
-
-	for _, tRes := range result.TenantNames {
-		response = append(response, tRes)
-		UpdateCache(ctx, tRes, tRes.TenantName, &tenantNameCache)
-
-	}
-
-	return response, nil
-}
-
 func (tcl *TenantInternalServiceClient) GetTenantDataIds(ctx context.Context, req *proto.GetTenantDataIdsRequest) ([]*proto.TenantResult, error) {
 	log := ContextLogger(ctx)
-	var response []*proto.TenantResult
+	var response []*proto.TenantResult = []*proto.TenantResult{}
 	var filtered []*proto.TenantInfo
 
 	if req == nil {
@@ -298,30 +193,32 @@ func (tcl *TenantInternalServiceClient) GetTenantDataIds(ctx context.Context, re
 	return response, nil
 }
 
-func (tcl *TenantInternalServiceClient) ListTenants(ctx context.Context, req *proto.ListTenantsRequest) ([]string, error) {
+func (tcl *TenantInternalServiceClient) GetTenantDataId(ctx context.Context, req *proto.GetTenantDataIdRequest) (string, error) {
+	log := ContextLogger(ctx)
 	if req == nil {
-		req = &proto.ListTenantsRequest{}
+		return "", ErrMissingRequest
 	}
+	arg, _ := GetTenantValue(req.GetTenantInfo())
 
-	result, err := tcl.client.ListTenants(ctx, req)
+	tenantDataIdCache.mutex.Lock()
+	if val, ok := tenantDataIdCache.cache[arg]; ok {
+		log.Debugf("Found %s matching dataId in dataId Cache", arg)
+		tenantDataIdCache.mutex.Unlock()
+		return val, nil
+	}
+	tenantDataIdCache.mutex.Unlock()
+	log.Debugf("Missed %s in tenant dataId Cache", arg)
+
+	response, err := tcl.client.GetTenantDataId(ctx, req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	tenantDataIdCache.mutex.Lock()
+	tenantDataIdCache.cache[arg] = response.TenantDataId
+	tenantDataIdCache.mutex.Unlock()
+	log.Debugf("Saved %s in tenant dataId Cache", response.TenantDataId)
 
-	return result.Tenants, nil
-}
-
-func (tcl *TenantInternalServiceClient) GetAllTenants(ctx context.Context, req *proto.GetAllTenantsRequest) ([]*proto.TenantResult, error) {
-	if req == nil {
-		req = &proto.GetAllTenantsRequest{}
-	}
-
-	result, err := tcl.client.GetAllTenants(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return result.TenantResults, nil
+	return response.TenantDataId, nil
 }
 
 func GetTenantValue(req *proto.TenantInfo) (string, *proto.TenantResult) {
