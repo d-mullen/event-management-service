@@ -230,8 +230,8 @@ func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Reposito
 			},
 			func(batch []*event.Occurrence) (bool, error) {
 				resultMut.Lock()
+				defer resultMut.Unlock()
 				results = append(results, batch...)
-				resultMut.Unlock()
 				return true, nil
 			},
 		)
@@ -391,8 +391,8 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 					return err
 				}
 				resultMut.Lock()
+				defer resultMut.Unlock()
 				resp.Results = append(resp.Results, currPage.Results...)
-				resultMut.Unlock()
 				return nil
 			})
 		}
