@@ -241,7 +241,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		noteMut := sync.Mutex{}
 		allNotes := make([]*Note, 0)
 		err := batchops.DoConcurrently(ctx, 500, 10, occurrenceIDs,
-			func(batch []string) ([]*Note, error) {
+			func(ctx context.Context, batch []string) ([]*Note, error) {
 				notesInFilter := bson.D{{Key: "occid", Value: bson.D{{Key: OpIn, Value: batch}}}}
 				log.WithFields(logrus.Fields{
 					"filters": notesInFilter,
@@ -262,7 +262,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 				}
 				return notes, nil
 			},
-			func(notes []*Note) (bool, error) {
+			func(ctx context.Context, notes []*Note) (bool, error) {
 				noteMut.Lock()
 				defer noteMut.Unlock()
 				allNotes = append(allNotes, notes...)
@@ -294,7 +294,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		eventMapMut := sync.Mutex{}
 		eventMap := make(map[string]*EventDimensions)
 		err := batchops.DoConcurrently(ctx, 500, 10, eventIDs,
-			func(batch []string) ([]*EventDimensions, error) {
+			func(ctx context.Context, batch []string) ([]*EventDimensions, error) {
 				eventInFilter := bson.D{{Key: OpIn, Value: batch}}
 				log.WithFields(logrus.Fields{
 					"filters": eventInFilter,
@@ -315,7 +315,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 				}
 				return eventDocs, nil
 			},
-			func(eventDocs []*EventDimensions) (bool, error) {
+			func(ctx context.Context, eventDocs []*EventDimensions) (bool, error) {
 				eventMapMut.Lock()
 				defer eventMapMut.Unlock()
 				for _, doc := range eventDocs {

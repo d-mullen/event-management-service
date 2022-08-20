@@ -16,21 +16,22 @@ import (
 // callback returns false, then Do will stop processing
 // batches.
 func Do[E any, R any](
+	ctx context.Context,
 	batchSize int,
 	payload []E,
-	doOperation func(batch []E) (R, error),
-	processResults func(result R) (bool, error)) error {
+	doOperation func(ctx context.Context, batch []E) (R, error),
+	processResults func(ctx context.Context, result R) (bool, error)) error {
 	for i := 0; i < len(payload); i += batchSize {
 		j := i + batchSize
 		if j > len(payload) {
 			j = len(payload)
 		}
 		batch := payload[i:j]
-		result, err := doOperation(batch)
+		result, err := doOperation(ctx, batch)
 		if err != nil {
 			return err
 		}
-		ok, err := processResults(result)
+		ok, err := processResults(ctx, result)
 		if err != nil {
 			return err
 		}
@@ -52,8 +53,8 @@ func DoConcurrently[E any, R any](
 	ctx context.Context,
 	batchSize, numRoutines int,
 	payload []E,
-	doOperation func(batch []E) (R, error),
-	processResults func(result R) (bool, error)) error {
+	doOperation func(ctx context.Context, batch []E) (R, error),
+	processResults func(ctx context.Context, result R) (bool, error)) error {
 	ctx, span := trace.StartSpan(ctx, "DoConcurrently")
 	defer span.End()
 	if batchSize == 0 {
@@ -62,7 +63,7 @@ func DoConcurrently[E any, R any](
 	doOpWithSpan := func(batch []E) (R, error) {
 		_, childSpan := trace.StartSpan(ctx, "DoConcurrently.doOperation")
 		defer childSpan.End()
-		return doOperation(batch)
+		return doOperation(ctx, batch)
 	}
 	numBatches := len(payload)
 	if len(payload)%batchSize > 0 {
@@ -87,7 +88,7 @@ func DoConcurrently[E any, R any](
 					log.WithError(err).Error("failed to do concurrent batch operation")
 					return err
 				}
-				ok, err := processResults(result)
+				ok, err := processResults(ctx, result)
 				if err != nil {
 					log.WithError(err).Error("failed to process result during batch operation")
 					return err

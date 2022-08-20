@@ -221,14 +221,14 @@ func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Reposito
 		resultMut := sync.Mutex{}
 		batchops.DoConcurrently(ctx, 50, 25,
 			origOccurrences,
-			func(batch []*event.Occurrence) ([]*event.Occurrence, error) {
+			func(ctx context.Context, batch []*event.Occurrence) ([]*event.Occurrence, error) {
 				batchResult, err := getOccurrenceDetails(ctx, batch, q, eventTSRepo)
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to get occurrence time-series details")
 				}
 				return batchResult, nil
 			},
-			func(batch []*event.Occurrence) (bool, error) {
+			func(ctx context.Context, batch []*event.Occurrence) (bool, error) {
 				resultMut.Lock()
 				defer resultMut.Unlock()
 				results = append(results, batch...)
