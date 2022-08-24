@@ -117,6 +117,31 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 	if maxEnd == 0 {
 		maxEnd = time.Now().UnixMilli()
 	}
+
+	tsFilters, _ := eventFilterToEventTSFilter(q.Filter)
+
+	if len(q.Severities) > 0 { // severity filter
+		tsSeverities := make([]any, len(q.Severities))
+		for i, sev := range q.Severities {
+			tsSeverities[i] = int(sev)
+		}
+		tsFilters = append(tsFilters, &eventts.Filter{
+			Operation: eventts.Operation_OP_IN,
+			Field:     "_zv_severity",
+			Values:    tsSeverities})
+	}
+
+	if len(q.Statuses) > 0 { // status filter
+		tsStatuses := make([]any, len(q.Statuses))
+		for i, status := range q.Statuses {
+			tsStatuses[i] = int(status)
+		}
+		tsFilters = append(tsFilters, &eventts.Filter{
+			Operation: eventts.Operation_OP_IN,
+			Field:     "_zv_status",
+			Values:    tsStatuses})
+	}
+
 	req := &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			TimeRange: eventts.TimeRange{
@@ -135,6 +160,7 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 			},
 			Latest:       1,
 			ResultFields: q.Fields,
+			Filters:      tsFilters,
 		},
 	}
 	if q.ShouldApplyOccurrenceIntervals {
