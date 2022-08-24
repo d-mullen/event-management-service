@@ -106,10 +106,7 @@ func (pager *skipLimitPager) NextPageCursor(ctx context.Context, direction event
 			return nil, fmt.Errorf("failed to unmarshal config bytes")
 		}
 	}
-	resultsSlice, err := internal.AnyToSlice(lastPageResult)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get next page cursor: invalid argument")
-	}
+	resultsSlice := internal.AnyToSlice(lastPageResult)
 	dir := int64(1)
 	if direction == event.PageDirectionBackward {
 		dir = -1

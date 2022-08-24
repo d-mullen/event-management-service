@@ -50,16 +50,11 @@ func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	if op, ok := eventToEventTSFilterOpMap[orig.Op]; ok {
 
 		if orig.Field != "entity" && orig.Field != "" { // trow already applied during eventContextRepo.Find
-
-			if val, e := internal.AnyToSlice(orig.Value); e == nil {
-				results = append(results, &eventts.Filter{
-					Field:     orig.Field,
-					Operation: op,
-					Values:    val,
-				})
-			} else {
-				return nil, errors.Errorf("invalid filter: %#v", orig)
-			}
+			results = append(results, &eventts.Filter{
+				Field:     orig.Field,
+				Operation: op,
+				Values:    internal.AnyToSlice(orig.Value),
+			})
 		}
 		return results, nil
 	}
