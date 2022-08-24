@@ -67,6 +67,8 @@ var _ = Describe("eventquery.Service", func() {
 		When("when eventts.Repository.Get passes an error", func() {
 			It("should fail", func() {
 				eventsRepo.On("Find", mockCtx, mockQuery, mockFindOpt).
+					// Have apply to occurrence processor opts b/c thats
+					// how calls to get time-series from event-ts-svc are made.
 					Run(func(args mock.Arguments) {
 						defer GinkgoRecover()
 						optsAny := args.Get(2)
@@ -99,6 +101,9 @@ var _ = Describe("eventquery.Service", func() {
 				}
 				close(testStream)
 				eventTSRepo.On("GetStream", mockCtx, mock.Anything).
+					// Have to return an IFFE (immediately invoked function expression) here,
+					// b/c that's the only way I've found to return a read-only chan,
+					// which is the return type of GetStream
 					Return(func() <-chan *eventts.OccurrenceOptional { return testStream }()).Once()
 
 				_, err := svc.Find(ctx, &eventContext.Query{
@@ -243,27 +248,48 @@ var _ = Describe("eventquery.Service", func() {
 
 		When("filters are passed to event-ts ", func() {
 			It("should get filters in events", func() {
-				eventsRepo.On("Find", mockCtx, mockQuery).Return(&eventContext.Page{
-					Results: []*eventContext.Event{
-						{
-							ID: "event3",
-							Occurrences: []*eventContext.Occurrence{
-								{
-									ID:        "event3:1",
-									EventID:   "event3",
-									Tenant:    "acme",
-									StartTime: 0,
-									EndTime:   10000,
-									Status:    eventContext.StatusClosed,
-									Severity:  eventContext.SeverityDefault,
+				eventsRepo.On("Find", mockCtx, mockQuery, mockFindOpt).
+					Run(func(args mock.Arguments) {
+						defer GinkgoRecover()
+						optsAny := args.Get(2)
+						opt, ok := optsAny.(*eventContext.FindOption)
+						Expect(ok).To(BeTrue())
+						opt.ApplyOccurrenceProcessors(context.TODO(), []*eventContext.Occurrence{
+							{ID: "event3:1", StartTime: 0, EndTime: 10000, Status: eventContext.StatusClosed},
+						})
+					}).
+					Return(&eventContext.Page{
+						Results: []*eventContext.Event{
+							{
+								ID: "event3",
+								Occurrences: []*eventContext.Occurrence{
+									{
+										ID:        "event3:1",
+										EventID:   "event3",
+										Tenant:    "acme",
+										StartTime: 0,
+										EndTime:   10000,
+										Status:    eventContext.StatusClosed,
+										Severity:  eventContext.SeverityDefault,
+									},
 								},
 							},
 						},
+					}, nil).Once()
+				testStream := make(chan *eventts.OccurrenceOptional, 1)
+				testStream <- &eventts.OccurrenceOptional{
+					Result: &eventts.Occurrence{
+						ID:      "event3:1",
+						EventID: "event3",
+						Metadata: map[string][]any{
+							"k1": {"v1"}, // actually here should be fields as above
+						},
 					},
-				}, nil).Once()
-
-				eventTSRepo.On("Get", mockCtx, mock.Anything).
+				}
+				close(testStream)
+				eventTSRepo.On("GetStream", mockCtx, mock.Anything).
 					Run(func(args mock.Arguments) {
+						defer GinkgoRecover()
 						reqAny := args.Get(1)
 						req, ok := reqAny.(*eventts.GetRequest)
 						Expect(ok).To(BeTrue())
@@ -280,13 +306,7 @@ var _ = Describe("eventquery.Service", func() {
 							}}))
 						Expect(req.ResultFields).Should(BeEquivalentTo([]string{"summary", "acknowledged", "body", "newField"}))
 					}).
-					Return([]*eventts.Occurrence{{
-						ID:      "event2:1",
-						EventID: "event2",
-						Metadata: map[string][]any{
-							"k1": {"v1"}, // actually here should be fields as above
-						},
-					}}, nil).Once()
+					Return(func() <-chan *eventts.OccurrenceOptional { return testStream }())
 				resp, err := svc.Find(ctx, &eventContext.Query{
 					Tenant: "acme",
 					TimeRange: eventContext.TimeRange{
@@ -299,9 +319,12 @@ var _ = Describe("eventquery.Service", func() {
 					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
 						Field: "",
 						Value: []*eventContext.Filter{
-							&eventContext.Filter{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "Acme"},
+							&eventContext.Filter{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "acme"},
 							&eventContext.Filter{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
 						}},
+					PageInput: &eventContext.PageInput{
+						Limit: 1,
+					},
 				})
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(resp).ShouldNot(BeNil())
