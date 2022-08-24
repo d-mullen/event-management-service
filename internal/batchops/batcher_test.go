@@ -32,6 +32,7 @@ var _ = Describe("Batcher Unit Tests", func() {
 		i := 0
 		err := batchops.DoConcurrently(context.TODO(), 2, 2, []int{1, 2, 3, 4, 5, 6, 7},
 			func(_ context.Context, batch []int) (int, error) {
+				defer GinkgoRecover()
 				GinkgoWriter.Printf("got batch %v\n", batch)
 				if i == 0 {
 					Ω(batch).Should(ContainElements(1, 2))
