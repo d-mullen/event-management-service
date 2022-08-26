@@ -98,8 +98,6 @@ github.com/go-redis/cache
 github.com/go-redis/cache/internal
 github.com/go-redis/cache/internal/lrucache
 github.com/go-redis/cache/internal/singleflight
-# github.com/go-redis/cache/v8 v8.4.3
-## explicit; go 1.13
 # github.com/go-redis/redis v6.15.7+incompatible
 ## explicit
 github.com/go-redis/redis
@@ -215,8 +213,6 @@ github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.5.0
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
-# github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe
-## explicit
 # github.com/onsi/ginkgo/v2 v2.1.4
 ## explicit; go 1.18
 github.com/onsi/ginkgo/v2
@@ -309,12 +305,6 @@ github.com/uber/jaeger-client-go/thrift
 github.com/uber/jaeger-client-go/thrift-gen/agent
 github.com/uber/jaeger-client-go/thrift-gen/jaeger
 github.com/uber/jaeger-client-go/thrift-gen/zipkincore
-# github.com/vmihailenco/go-tinylfu v0.2.2
-## explicit; go 1.15
-# github.com/vmihailenco/msgpack/v5 v5.3.4
-## explicit; go 1.11
-# github.com/vmihailenco/tagparser/v2 v2.0.0
-## explicit; go 1.15
 # github.com/xdg-go/pbkdf2 v1.0.0
 ## explicit; go 1.9
 github.com/xdg-go/pbkdf2
@@ -330,8 +320,6 @@ github.com/youmark/pkcs8
 # github.com/zenoss/event-context-svc v0.0.0-20210208232835-5442223405f6
 ## explicit; go 1.14
 github.com/zenoss/event-context-svc/utils
-# github.com/zenoss/logrus-stackdriver-formatter v0.2.0
-## explicit; go 1.17
 # github.com/zenoss/zenkit/v5 v5.6.0
 ## explicit; go 1.14
 github.com/zenoss/zenkit/v5
