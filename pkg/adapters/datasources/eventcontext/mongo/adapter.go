@@ -157,11 +157,13 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	}
 
 	if limit > 0 && hasNext {
+		retryTicker := time.NewTimer(30 * time.Second)
+		defer retryTicker.Stop()
 		origLimit := limit - 1
 		numRemoved := origLimit - len(filteredOccurrences)
 		offset := len(docs)
 		retries := 0
-		for numRemoved > 0 && retries < 100 {
+		for hasNext && numRemoved > 0 && retries < 100 {
 			newLimit := max(numRemoved, 500)
 			hasNext = false
 			currDocs := make([]*bson.M, 0)
@@ -197,6 +199,12 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			}
 			docs = append(docs, currDocs...)
 			offset = len(docs)
+			select {
+			case <-retryTicker.C:
+				break
+			default:
+				// no op
+			}
 
 			filteredOccurrences = append(filteredOccurrences, currOccurrences...)
 			numRemoved = origLimit - len(filteredOccurrences)
@@ -237,7 +245,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		eventIDs = append(eventIDs, newResult.ID)
 	}
 
-	if slices.Contains(query.Fields, "notes") {
+	if len(occurrenceIDs) > 0 && slices.Contains(query.Fields, "notes") {
 		noteMut := sync.Mutex{}
 		allNotes := make([]*Note, 0)
 		err := batchops.DoConcurrently(ctx, 500, 10, occurrenceIDs,
@@ -290,7 +298,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		}
 	}
 
-	if slices.Contains(query.Fields, "dimensions") {
+	if len(eventIDs) > 0 && slices.Contains(query.Fields, "dimensions") {
 		eventMapMut := sync.Mutex{}
 		eventMap := make(map[string]*EventDimensions)
 		err := batchops.DoConcurrently(ctx, 500, 10, eventIDs,
@@ -339,10 +347,12 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			}
 		}
 	}
-
-	resultsCursor, err := UpsertCursor(ctx, db.cursorRepo, db.pager, query, docs)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to upsert cursor")
+	resultsCursor := ""
+	if len(docs) > 0 {
+		resultsCursor, err = UpsertCursor(ctx, db.cursorRepo, db.pager, query, docs)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to upsert cursor")
+		}
 	}
 	return &event.Page{
 		Results: results,

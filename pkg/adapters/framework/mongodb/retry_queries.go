@@ -89,6 +89,7 @@ OuterLoop:
 			count         int64
 		)
 		if len(batchStartId) > 0 {
+			// TODO: Make this pluggable so the start key fits the schema of a given collection
 			updatedFilter = append(filter, bson.E{Key: "_id", Value: bson.E{Key: "$gt", Value: batchStartId}})
 		} else {
 			updatedFilter = filter
