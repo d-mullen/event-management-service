@@ -1,9 +1,9 @@
 package event
 
 import (
-	"reflect"
-
+	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/models/event"
+	"reflect"
 )
 
 func SplitOutQueries(batchSize int, targetField string, origQuery *event.Query) []*event.Query {
@@ -124,4 +124,56 @@ func SplitOutFilter(batchSize int, targetField string, filter *event.Filter) []*
 		}
 	}
 	return nil
+}
+
+func transformFilter(orig *event.Filter, cb func(*event.Filter) (*event.Filter, bool, error)) (*event.Filter, error) {
+	if orig == nil {
+		return nil, nil
+	}
+	switch orig.Op {
+	case event.FilterOpNot:
+		other, isFilter := orig.Value.(*event.Filter)
+		if isFilter {
+			newFilter, ok2, err := cb(other)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to transform filter")
+			}
+			if ok2 {
+				return &event.Filter{
+					Field: orig.Field,
+					Op:    orig.Op,
+					Value: newFilter,
+				}, nil
+			}
+		}
+	case event.FilterOpAnd, event.FilterOpOr:
+		others, isFilterSlice := orig.Value.([]*event.Filter)
+		if isFilterSlice {
+			newSubclauses := make([]*event.Filter, 0)
+			for _, other := range others {
+				newFilter, ok2, err := cb(other)
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to transform filter")
+				}
+				if ok2 {
+					newSubclauses = append(newSubclauses, newFilter)
+				}
+			}
+			return &event.Filter{
+				Field: orig.Field,
+				Op:    orig.Op,
+				Value: newSubclauses,
+			}, nil
+		}
+	default:
+		newFilter, ok, err := cb(orig)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to transform filter")
+		}
+		if ok {
+			return newFilter, nil
+		}
+		return nil, nil
+	}
+	return orig, nil
 }

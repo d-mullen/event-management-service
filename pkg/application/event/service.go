@@ -16,6 +16,7 @@ import (
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zingo/v4/interval"
 
+	"github.com/zenoss/event-management-service/internal"
 	"github.com/zenoss/event-management-service/internal/batchops"
 	"github.com/zenoss/event-management-service/internal/frequency"
 	"github.com/zenoss/event-management-service/internal/instrumentation"
@@ -85,10 +86,14 @@ func eventResultsToOccurrenceMaps(
 }
 
 func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q *event.Query, eventTSRepo eventts.Repository) ([]*event.Occurrence, error) {
-	log := zenkit.ContextLogger(ctx)
-	eventIDs := make([]string, 0)
-	occurrenceInputsByEventID := make(map[string][]*eventts.OccurrenceInput)
-	minStart, maxEnd := int64(math.MaxInt64), int64(math.MinInt64)
+	var (
+		err                       error
+		log                       = zenkit.ContextLogger(ctx)
+		eventIDs                  = make([]string, 0)
+		occurrenceInputsByEventID = make(map[string][]*eventts.OccurrenceInput)
+		minStart, maxEnd          = int64(math.MaxInt64), int64(math.MinInt64)
+		tsFilters                 = make([]*eventts.Filter, 0)
+	)
 	for _, occ := range origOccurs {
 		input := &eventts.OccurrenceInput{
 			ID:      occ.ID,
@@ -117,8 +122,10 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 	if maxEnd == 0 {
 		maxEnd = time.Now().UnixMilli()
 	}
-
-	tsFilters, _ := eventFilterToEventTSFilter(q.Filter)
+	tsFilters, err = eventFilterToEventTSFilter(q.Filter)
+	if err != nil {
+		log.WithError(err).Error("failed to covert to event-ts filter")
+	}
 
 	if len(q.Severities) > 0 { // severity filter
 		tsSeverities := make([]any, len(q.Severities))
@@ -401,6 +408,29 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	if err != nil {
 		return nil, err
 	}
+	eventContextQ := &event.Query{
+		ShouldApplyOccurrenceIntervals: query.ShouldApplyOccurrenceIntervals,
+		Tenant:                         query.Tenant,
+		TimeRange:                      query.TimeRange,
+		Severities:                     internal.CloneSlice(query.Severities),
+		Statuses:                       internal.CloneSlice(query.Statuses),
+		Fields:                         internal.CloneSlice(query.Fields),
+		Filter:                         query.Filter.Clone(),
+		PageInput:                      query.PageInput,
+	}
+	// drop any filters on unsupported fields in event context store query
+	newFilter, err := transformFilter(query.Filter, func(f *event.Filter) (*event.Filter, bool, error) {
+		if event.IsSupportedField(f.Field) {
+			return f, true, nil
+		}
+		return nil, false, nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to filter out filters with unsupported fields")
+	}
+	if newFilter != nil {
+		eventContextQ.Filter = newFilter
+	}
 	occProcessor := makeEventTSOccurrenceProcessor(query, svc.eventTS)
 	findOpt := event.NewFindOption()
 	findOpt.SetOccurrenceProcessors([]event.OccurrenceProcessor{occProcessor})
@@ -408,7 +438,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	if query.PageInput == nil || (query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
 		queryGroup, gCtx := errgroup.WithContext(ctx)
 		queryGroup.SetLimit(5)
-		queries := SplitOutQueries(2000, "entity", query)
+		queries := SplitOutQueries(2000, "entity", eventContextQ)
 		for _, query := range queries {
 			_q := query
 			queryGroup.Go(func() error {
@@ -426,7 +456,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 			return nil, err
 		}
 	} else {
-		resp, err = svc.eventContext.Find(ctx, query, findOpt)
+		resp, err = svc.eventContext.Find(ctx, eventContextQ, findOpt)
 		if err != nil {
 			return nil, err
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/zenoss/event-management-service/internal"
 )
 
 type FilterOp string
@@ -165,4 +166,33 @@ var supportedFields = map[string]bool{
 func IsSupportedField(field string) bool {
 	_, ok := supportedFields[field]
 	return ok
+}
+
+func (f *Filter) Clone() *Filter {
+	if f == nil {
+		return nil
+	}
+	result := &Filter{
+		Field: f.Field,
+		Op:    f.Op,
+	}
+	switch f.Op {
+	case FilterOpNot:
+		if other, ok := f.Value.(*Filter); ok {
+			result.Value = other.Clone()
+		} else {
+			result.Value = f.Value
+		}
+	case FilterOpAnd, FilterOpOr:
+		if others, ok := f.Value.([]*Filter); ok {
+			result.Value = internal.CloneSlice(others)
+		} else {
+			result.Value = f.Value
+		}
+	case FilterOpIn, FilterOpNotIn:
+		result.Value = internal.AnyToSlice(f.Value)
+	default:
+		result.Value = f.Value
+	}
+	return result
 }

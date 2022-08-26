@@ -1,8 +1,6 @@
 package grpc
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
@@ -113,7 +111,6 @@ func ClauseProtoToEventFilter(clause *eventquery.Clause) (*event.Filter, error) 
 			Value: v.In.Values.AsSlice(),
 		}, nil
 	case *eventquery.Clause_WithScope:
-		fmt.Printf("%v", v)
 		return WithScopeProtoToDomainFilter(v.WithScope)
 	}
 	return nil, errInvalidClause

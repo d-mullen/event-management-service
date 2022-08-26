@@ -39,6 +39,8 @@ func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 			for _, filter := range others {
 				newFilter, err := eventFilterToEventTSFilter(filter)
 				if err != nil {
+					return nil, errors.Wrapf(err, "failed to convert to eventts filter: %v", filter)
+				} else {
 					results = append(results, newFilter...)
 				}
 			}

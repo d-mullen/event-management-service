@@ -260,15 +260,15 @@ func EventTSSeriesToOccurrence(msg *eventtsProto.EventTSSeries) ([]*eventts.Occu
 // main reason to dial with all this transformations - possibility to completely
 // remove ts-svc later.
 func eventTsFilter2eventProtoFilter(in []*eventts.Filter) []*eventtsProto.EventTSFilter {
-	result := make([]*eventtsProto.EventTSFilter, len(in))
-	for i := 0; i < len(in); i++ {
+	result := make([]*eventtsProto.EventTSFilter, 0)
+	for _, filter := range in {
 		item := eventtsProto.EventTSFilter{}
-		item.FieldName = in[i].Field
-		item.Op = common.Operation(in[i].Operation)
-		if len(in[i].Values) > 0 {
-			item.Values = protobufutils.MustToScalarArray(in[i].Values) // force panic on err
+		item.FieldName = filter.Field
+		item.Op = common.Operation(filter.Operation)
+		if len(filter.Values) > 0 {
+			item.Values = protobufutils.MustToScalarArray(filter.Values) // force panic on err
+			result = append(result, &item)
 		}
-		result[i] = &item
 	}
 	return result
 }

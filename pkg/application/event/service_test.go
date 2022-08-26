@@ -237,8 +237,8 @@ var _ = Describe("eventquery.Service", func() {
 					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
 						Field: "",
 						Value: []*eventContext.Filter{
-							&eventContext.Filter{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "Acme"},
-							&eventContext.Filter{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
+							{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "Acme"},
+							{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
 						}},
 				})
 				Ω(err).ShouldNot(HaveOccurred())
@@ -282,7 +282,7 @@ var _ = Describe("eventquery.Service", func() {
 						ID:      "event3:1",
 						EventID: "event3",
 						Metadata: map[string][]any{
-							"k1": {"v1"}, // actually here should be fields as above
+							"k1": {"v2"}, // actually here should be fields as above
 						},
 					},
 				}
@@ -293,17 +293,33 @@ var _ = Describe("eventquery.Service", func() {
 						reqAny := args.Get(1)
 						req, ok := reqAny.(*eventts.GetRequest)
 						Expect(ok).To(BeTrue())
-						Expect(req.Filters).Should(BeEquivalentTo([](*eventts.Filter){
+						Expect(req.Filters).Should(ConsistOf([](*eventts.Filter){
 							{
 								Operation: eventts.Operation_OP_IN,
 								Field:     "_zv_severity",
-								Values:    []interface{}{0},
+								Values:    []any{eventContext.Severity_name[eventContext.SeverityDefault]},
 							},
 							{
 								Operation: eventts.Operation_OP_IN,
 								Field:     "_zv_status",
-								Values:    []interface{}{3},
-							}}))
+								Values:    []any{eventContext.Status_name[eventContext.StatusClosed]},
+							},
+							{
+								Operation: eventts.Operation_OP_EQUALS,
+								Field:     "CZ_EVENT_DETAIL-zenoss.device.production_state",
+								Values:    []any{1000},
+							},
+							{
+								Operation: eventts.Operation_OP_EQUALS,
+								Field:     "tenant",
+								Values:    []any{"acme"},
+							},
+							{
+								Operation: eventts.Operation_OP_NOT_EQUALS,
+								Field:     "k1",
+								Values:    []any{"v1"},
+							},
+						}))
 						Expect(req.ResultFields).Should(BeEquivalentTo([]string{"summary", "acknowledged", "body", "newField"}))
 					}).
 					Return(func() <-chan *eventts.OccurrenceOptional { return testStream }())
@@ -317,10 +333,11 @@ var _ = Describe("eventquery.Service", func() {
 					Statuses:   []eventContext.Status{eventContext.StatusClosed},
 					Fields:     []string{"summary", "acknowledged", "body", "newField"},
 					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
-						Field: "",
+						// Field: string(eventContext.FilterOpAnd),
 						Value: []*eventContext.Filter{
-							&eventContext.Filter{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "acme"},
-							&eventContext.Filter{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
+							{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "acme"},
+							{Op: eventContext.FilterOpNotEqualTo, Field: "k1", Value: "v1"},
+							{Op: eventContext.FilterOpEqualTo, Field: "CZ_EVENT_DETAIL-zenoss.device.production_state", Value: 1000},
 						}},
 					PageInput: &eventContext.PageInput{
 						Limit: 1,
