@@ -18,9 +18,6 @@ const (
 	FilterOpNotEqualTo           FilterOp = "!="
 	FilterOpIn                   FilterOp = "in"
 	FilterOpNotIn                FilterOp = "not-in"
-	FilterOpOr                   FilterOp = "or"
-	FilterOpAnd                  FilterOp = "and"
-	FilterOpNot                  FilterOp = "not"
 	FilterOpScope                FilterOp = "_in_scope"
 	FilterOpContains             FilterOp = "contains"
 	FilterOpExists               FilterOp = "exists"
@@ -28,6 +25,9 @@ const (
 	FilterOpPrefix               FilterOp = "prefix"
 	FilterOpSuffix               FilterOp = "suffix"
 	FilterOpRegex                FilterOp = "regex"
+	FilterOpOr                   FilterOp = "or"
+	FilterOpAnd                  FilterOp = "and"
+	FilterOpNot                  FilterOp = "not"
 )
 
 type SortOrder int

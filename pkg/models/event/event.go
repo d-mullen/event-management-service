@@ -22,6 +22,40 @@ const (
 	SeverityCritical
 )
 
+// enum <-> string mappings copied over from the
+// golang protobuf bindings to avoid this pkg depending
+// on the protobufs
+var (
+	Severity_name = map[Severity]string{
+		SeverityDefault:  "SEVERITY_DEFAULT",
+		SeverityDebug:    "SEVERITY_DEBUG",
+		SeverityInfo:     "SEVERITY_INFO",
+		SeverityWarning:  "SEVERITY_WARNING",
+		SeverityError:    "SEVERITY_ERROR",
+		SeverityCritical: "SEVERITY_CRITICAL",
+	}
+	Severity_value = map[string]Severity{
+		"SEVERITY_DEFAULT":  SeverityDefault,
+		"SEVERITY_DEBUG":    SeverityDebug,
+		"SEVERITY_INFO":     SeverityInfo,
+		"SEVERITY_WARNING":  SeverityWarning,
+		"SEVERITY_ERROR":    SeverityError,
+		"SEVERITY_CRITICAL": SeverityCritical,
+	}
+	Status_name = map[Status]string{
+		StatusDefault:    "STATUS_DEFAULT",
+		StatusOpen:       "STATUS_OPEN",
+		StatusSuppressed: "STATUS_SUPPRESSED",
+		StatusClosed:     "STATUS_CLOSED",
+	}
+	Status_value = map[string]Status{
+		"STATUS_DEFAULT":    StatusDefault,
+		"STATUS_OPEN":       StatusOpen,
+		"STATUS_SUPPRESSED": StatusSuppressed,
+		"STATUS_CLOSED":     StatusClosed,
+	}
+)
+
 type (
 	// Event is a structured record of a notable change in state of a managed resource
 	Event struct {
