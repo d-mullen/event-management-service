@@ -199,16 +199,15 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			}
 			docs = append(docs, currDocs...)
 			offset = len(docs)
+			filteredOccurrences = append(filteredOccurrences, currOccurrences...)
+			numRemoved = origLimit - len(filteredOccurrences)
+			retries++
 			select {
 			case <-retryTicker.C:
 				break
 			default:
 				// no op
 			}
-
-			filteredOccurrences = append(filteredOccurrences, currOccurrences...)
-			numRemoved = origLimit - len(filteredOccurrences)
-			retries++
 		}
 	}
 
@@ -216,7 +215,6 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		"got occurrence query results",
 		span,
 		map[string]any{
-			"count":                   len(docs),
 			"rawOccurrenceCount":      len(docs),
 			"filteredOccurrenceCount": len(filteredOccurrences),
 		}, nil)
@@ -226,7 +224,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	eventIDs := make([]string, 0)
 	occurrenceIDs := make([]string, 0, len(filteredOccurrences))
 	sliceStop := len(filteredOccurrences)
-	if limit > 0 {
+	if len(filteredOccurrences) > 0 && limit > 0 {
 		sliceStop = limit - 1
 	}
 	for _, occurrence := range filteredOccurrences[:sliceStop] {
