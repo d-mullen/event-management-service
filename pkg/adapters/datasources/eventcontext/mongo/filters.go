@@ -167,6 +167,15 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to make query plan")
 	}
+	if !query.ShouldApplyOccurrenceIntervals {
+		filters = append(filters, bson.E{
+			Key: "lastSeen",
+			Value: bson.D{
+				bson.E{Key: "$exists", Value: true},
+				bson.E{Key: OpGreaterThanOrEqualTo, Value: query.TimeRange.Start},
+			},
+		})
+	}
 	filters = append(filters, temporalFilters...)
 	if query.Filter != nil {
 		anotherFilter, err := DomainFilterToMongoD(query.Filter)

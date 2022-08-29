@@ -42,6 +42,7 @@ type (
 		StartTime     int64          `json:"startTime,omitempty"  bson:"startTime"`
 		EndTime       int64          `json:"endTime,omitempty"  bson:"endTime"`
 		CurrentTime   int64          `json:"currentTime,omitempty"  bson:"currentTime"`
+		LastSeen      int64          `json:"lastSeen,omitempty"  bson:"lastSeen"`
 		Notes         []*Note        `json:"notes,omitempty"  bson:"notes"`
 		CreatedAt     time.Time      `json:"createdAt,omitempty"  bson:"createdAt"`
 		UpdatedAt     time.Time      `json:"updatedAt,omitempty"  bson:"updatedAt"`

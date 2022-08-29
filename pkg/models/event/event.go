@@ -85,6 +85,7 @@ type (
 		StartTime     int64            `json:"startTime,omitempty"`
 		EndTime       int64            `json:"endTime,omitempty"`
 		CurrentTime   int64            `json:"currentTime,omitempty"`
+		LastSeen      int64            `json:"lastSeen,omitempty"`
 		Notes         []*Note          `json:"notes,omitempty"`
 		CreatedAt     time.Time        `json:"createdAt,omitempty"`
 		UpdatedAt     time.Time        `json:"updatedAt,omitempty"`

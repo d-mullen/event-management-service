@@ -73,6 +73,7 @@ func mkEventResult(
 				UpdatedAt:    end.Add(10 * time.Second),
 				Entity:       entity,
 				Dimensions:   dimensions,
+				LastSeen:     end.UnixMilli(),
 			})
 		}
 	}
@@ -91,6 +92,7 @@ func mkEventResult(
 		UpdatedAt:    start.Add(10 * time.Second),
 		Entity:       entity,
 		Dimensions:   dimensions,
+		LastSeen:     start.UnixMilli(),
 	})
 	result.Occurrences = occurrences
 	result.OccurrenceCount = uint64(len(occurrences))
