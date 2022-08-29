@@ -94,6 +94,9 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 		minStart, maxEnd          = int64(math.MaxInt64), int64(math.MinInt64)
 		tsFilters                 = make([]*eventts.Filter, 0)
 	)
+	if !shouldGetEventTSDetails(q) {
+		return origOccurs, nil
+	}
 	for _, occ := range origOccurs {
 		input := &eventts.OccurrenceInput{
 			ID:      occ.ID,
