@@ -22,6 +22,12 @@ const (
 	FilterOpAnd                  FilterOp = "and"
 	FilterOpNot                  FilterOp = "not"
 	FilterOpScope                FilterOp = "_in_scope"
+	FilterOpContains             FilterOp = "contains"
+	FilterOpExists               FilterOp = "exists"
+	FilterOpDoesNotContain       FilterOp = "not_contain"
+	FilterOpPrefix               FilterOp = "prefix"
+	FilterOpSuffix               FilterOp = "suffix"
+	FilterOpRegex                FilterOp = "regex"
 )
 
 type SortOrder int
@@ -134,15 +140,25 @@ func (q *Query) Validate() error {
 }
 
 var supportedFields = map[string]bool{
-	"name":         true,
-	"summary":      true,
-	"type":         true,
-	"status":       true,
-	"severity":     true,
-	"entity":       true,
-	"acknowledged": true,
-	"dimensions":   true,
-	"notes":        true,
+	//	"name":         true,
+	"summary":       true,
+	"type":          true,
+	"status":        true,
+	"severity":      true,
+	"entity":        true,
+	"acknowledged":  true,
+	"dimensions":    true,
+	"notes":         true,
+	"eventId":       true,
+	"createdAt":     true,
+	"updatedAt":     true,
+	"expireAt":      true,
+	"tenantId":      true,
+	"currentTime":   true,
+	"instanceCount": true,
+	"body":          true,
+	"startTime":     true,
+	"endTime":       true,
 }
 
 func IsSupportedField(field string) bool {

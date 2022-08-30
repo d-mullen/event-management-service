@@ -16,6 +16,12 @@ import (
 	eventTSMocks "github.com/zenoss/event-management-service/pkg/models/eventts/mocks"
 )
 
+type fakeEntityScopeProvider struct{}
+
+func (fesp *fakeEntityScopeProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([]string, error) {
+	return []string{"1", "2"}, nil
+}
+
 var _ = Describe("eventquery.Service", func() {
 	var (
 		svc         event.Service
@@ -23,11 +29,13 @@ var _ = Describe("eventquery.Service", func() {
 		mockQuery   = mock.AnythingOfType("*event.Query")
 		eventsRepo  *eventContextMocks.Repository
 		eventTSRepo *eventTSMocks.Repository
+		entityScope = &fakeEntityScopeProvider{}
 	)
+
 	BeforeEach(func() {
 		eventsRepo = eventContextMocks.NewRepository(suiteTestingT)
 		eventTSRepo = eventTSMocks.NewRepository(suiteTestingT)
-		svc = event.NewService(eventsRepo, eventTSRepo, nil, activeents.NewInMemoryActiveEntityAdapter(1024, activeents.DefaultBucketSize))
+		svc = event.NewService(eventsRepo, eventTSRepo, entityScope, activeents.NewInMemoryActiveEntityAdapter(1024, activeents.DefaultBucketSize))
 	})
 
 	Context("Service.Find", func() {
@@ -135,6 +143,123 @@ var _ = Describe("eventquery.Service", func() {
 				Ω(resp).ShouldNot(BeNil())
 			})
 		})
+		When("results are found in repositories with filters ", func() {
+			It("should find events", func() {
+				eventsRepo.On("Find", mockCtx, mockQuery).Return(&eventContext.Page{
+					Results: []*eventContext.Event{
+						{
+							ID: "event2",
+							Occurrences: []*eventContext.Occurrence{
+								{
+									ID:        "event2:1",
+									EventID:   "event2",
+									Tenant:    "acme",
+									StartTime: 0,
+									EndTime:   10000,
+									Status:    eventContext.StatusClosed,
+									Severity:  eventContext.SeverityDefault,
+								},
+							},
+						},
+					},
+				}, nil).Once()
+
+				eventTSRepo.On("Get", mockCtx, mock.Anything).
+					Return([]*eventts.Occurrence{{
+						ID:      "event2:1",
+						EventID: "event2",
+						Metadata: map[string][]any{
+							"k1": {"v1"},
+						},
+					}}, nil).Once()
+				resp, err := svc.Find(ctx, &eventContext.Query{
+					Tenant: "acme",
+					TimeRange: eventContext.TimeRange{
+						Start: 0,
+						End:   10000,
+					},
+					Severities: []eventContext.Severity{eventContext.SeverityDefault},
+					Statuses:   []eventContext.Status{eventContext.StatusClosed},
+					Fields:     []string{"summary", "acknowledged", "body", "UNSupportedField"},
+					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
+						Field: "",
+						Value: []*eventContext.Filter{
+							&eventContext.Filter{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "Acme"},
+							&eventContext.Filter{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
+						}},
+				})
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(resp).ShouldNot(BeNil())
+			})
+		})
+
+		When("filters are passed to event-ts ", func() {
+			It("should get filters in events", func() {
+				eventsRepo.On("Find", mockCtx, mockQuery).Return(&eventContext.Page{
+					Results: []*eventContext.Event{
+						{
+							ID: "event3",
+							Occurrences: []*eventContext.Occurrence{
+								{
+									ID:        "event3:1",
+									EventID:   "event3",
+									Tenant:    "acme",
+									StartTime: 0,
+									EndTime:   10000,
+									Status:    eventContext.StatusClosed,
+									Severity:  eventContext.SeverityDefault,
+								},
+							},
+						},
+					},
+				}, nil).Once()
+
+				eventTSRepo.On("Get", mockCtx, mock.Anything).
+					Run(func(args mock.Arguments) {
+						reqAny := args.Get(1)
+						req, ok := reqAny.(*eventts.GetRequest)
+						Expect(ok).To(BeTrue())
+						Expect(req.Filters).Should(BeEquivalentTo([](*eventts.Filter){
+							{
+								Operation: eventts.Operation_OP_IN,
+								Field:     "_zv_severity",
+								Values:    []interface{}{0},
+							},
+							{
+								Operation: eventts.Operation_OP_IN,
+								Field:     "_zv_status",
+								Values:    []interface{}{3},
+							}}))
+						Expect(req.ResultFields).Should(BeEquivalentTo([]string{"summary", "acknowledged", "body", "newField"}))
+					}).
+					Return([]*eventts.Occurrence{{
+						ID:      "event2:1",
+						EventID: "event2",
+						Metadata: map[string][]any{
+							"k1": {"v1"}, // actually here should be fields as above
+						},
+					}}, nil).Once()
+				resp, err := svc.Find(ctx, &eventContext.Query{
+					Tenant: "acme",
+					TimeRange: eventContext.TimeRange{
+						Start: 0,
+						End:   10000,
+					},
+					Severities: []eventContext.Severity{eventContext.SeverityDefault},
+					Statuses:   []eventContext.Status{eventContext.StatusClosed},
+					Fields:     []string{"summary", "acknowledged", "body", "newField"},
+					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
+						Field: "",
+						Value: []*eventContext.Filter{
+							&eventContext.Filter{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "Acme"},
+							&eventContext.Filter{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
+						}},
+				})
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(resp).ShouldNot(BeNil())
+			})
+		})
+
 	})
 	Context("Service.Get", func() {
 		var (

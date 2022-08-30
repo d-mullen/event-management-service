@@ -137,7 +137,10 @@ func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSReques
 		return nil, status.Error(codes.InvalidArgument, "nil request")
 	}
 	output := &eventtsProto.EventTSRequest{
-		ResultFields: []string{"_zv_status",
+		// Count:        0,   // TODO
+	}
+	if len(req.ResultFields) == 0 {
+		output.ResultFields = []string{"_zv_status",
 			"_zv_severity",
 			"_zv_summary",
 			"contextTitle",
@@ -155,10 +158,12 @@ func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSReques
 			"CZ_EVENT_DETAIL-zenoss.device.IncidentManagement.number",
 			"_zen_entityIds",
 			"_zen_parentEntityIds",
-			"source-type"},
-		// Count:        0,   // TODO
-		// Filters:      nil, // TODO
+			"source-type"}
 	}
+	if len(req.Filters) > 0 {
+		output.Filters = eventTsFilter2eventProtoFilter(req.Filters)
+	}
+
 	if len(req.ByOccurrences.OccurrenceMap) > 0 {
 		eventIDs := make([]string, 0)
 		var minStart, maxEnd int64 = math.MaxInt64, math.MinInt64
@@ -226,4 +231,20 @@ func EventTSSeriesToOccurrence(msg *eventtsProto.EventTSSeries) ([]*eventts.Occu
 		})
 	}
 	return results, nil
+}
+
+// main reason to dial with all this transformations - possibility to completely
+// remove ts-svc later.
+func eventTsFilter2eventProtoFilter(in []*eventts.Filter) []*eventtsProto.EventTSFilter {
+	result := make([]*eventtsProto.EventTSFilter, len(in))
+	for i := 0; i < len(in); i++ {
+		item := eventtsProto.EventTSFilter{}
+		item.FieldName = in[i].Field
+		item.Op = common.Operation(in[i].Operation)
+		if len(in[i].Values) > 0 {
+			item.Values = protobufutils.MustToScalarArray(in[i].Values) // force panic on err
+		}
+		result[i] = &item
+	}
+	return result
 }

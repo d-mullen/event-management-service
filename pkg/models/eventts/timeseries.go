@@ -57,6 +57,8 @@ type (
 		}
 		Latest  uint64
 		Filters []*Filter
+		// Fields we want in our result. If omitted, results will include predetermined information
+		ResultFields []string
 	}
 	GetRequest struct {
 		EventTimeseriesInput

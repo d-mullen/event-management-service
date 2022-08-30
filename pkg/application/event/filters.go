@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/pkg/errors"
+	"github.com/zenoss/event-management-service/internal"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
 )
@@ -16,13 +17,19 @@ var (
 		event.FilterOpNotEqualTo:           eventts.Operation_OP_NOT_EQUALS,
 		event.FilterOpIn:                   eventts.Operation_OP_IN,
 		event.FilterOpNotIn:                eventts.Operation_OP_NOT_IN,
+		event.FilterOpExists:               eventts.Operation_OP_EXISTS,
+		event.FilterOpContains:             eventts.Operation_OP_CONTAINS,
+		event.FilterOpDoesNotContain:       eventts.Operation_OP_NOT_CONTAINS,
+		event.FilterOpPrefix:               eventts.Operation_OP_STARTS_WITH,
+		event.FilterOpSuffix:               eventts.Operation_OP_END_WITH,
+		//event.FilterOpRegex:           // not implemented in eventTS
 		// event.FilterOpOr
 		// event.FilterOpAnd
 		// event.FilterOpNot
 	}
 )
 
-func EventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
+func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	if orig == nil {
 		return nil, errors.New("invalid filter")
 	}
@@ -30,7 +37,7 @@ func EventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	if orig.Op == event.FilterOpAnd {
 		if others, ok := orig.Value.([]*event.Filter); ok {
 			for _, filter := range others {
-				newFilter, err := EventFilterToEventTSFilter(filter)
+				newFilter, err := eventFilterToEventTSFilter(filter)
 				if err != nil {
 					results = append(results, newFilter...)
 				}
@@ -41,11 +48,19 @@ func EventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 		return results, nil
 	}
 	if op, ok := eventToEventTSFilterOpMap[orig.Op]; ok {
-		results = append(results, &eventts.Filter{
-			Field:     orig.Field,
-			Operation: op,
-			Values:    []any{orig.Value},
-		})
+
+		if orig.Field != "entity" && orig.Field != "" { // trow already applied during eventContextRepo.Find
+
+			if val, e := internal.AnyToSlice(orig.Value); e == nil {
+				results = append(results, &eventts.Filter{
+					Field:     orig.Field,
+					Operation: op,
+					Values:    val,
+				})
+			} else {
+				return nil, errors.Errorf("invalid filter: %#v", orig)
+			}
+		}
 		return results, nil
 	}
 	return nil, errors.Errorf("invalid filter: %#v", orig)

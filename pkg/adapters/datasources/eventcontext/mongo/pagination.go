@@ -86,11 +86,11 @@ func (pager *skipLimitPager) GetPaginationQuery(ctx context.Context, query *even
 	}
 }
 
-func (pager *skipLimitPager) NextPageCursor(ctx context.Context, direction event.PageDirection, currrentCursor *event.Cursor, lastPageResult any) (*event.Cursor, error) {
-	if currrentCursor == nil {
+func (pager *skipLimitPager) NextPageCursor(ctx context.Context, direction event.PageDirection, currentCursor *event.Cursor, lastPageResult any) (*event.Cursor, error) {
+	if currentCursor == nil {
 		return nil, fmt.Errorf("failed to get next page cursor: invalid argument: nil cursor input")
 	}
-	query, config := currrentCursor.Query, currrentCursor.Config
+	query, config := currentCursor.Query, currentCursor.Config
 	if err := query.Validate(); err != nil {
 		return nil, errors.Wrap(err, "failed to get next page cursor: invalid argument: nil query")
 	}
@@ -119,13 +119,13 @@ func (pager *skipLimitPager) NextPageCursor(ctx context.Context, direction event
 	}
 	cfgStruct.Offset = cfgStruct.Offset + dir*int64(len(resultsSlice))
 	config[skipLimitPageConfigKey] = cfgStruct
-	newID := currrentCursor.ID
+	newID := currentCursor.ID
 	if len(newID) == 0 {
 		newID = uuid.New().String()
 	}
 	updatedCursor := &event.Cursor{
 		ID:     newID,
-		Query:  currrentCursor.Query,
+		Query:  currentCursor.Query,
 		Config: config,
 	}
 	return updatedCursor, nil

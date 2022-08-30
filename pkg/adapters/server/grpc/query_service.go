@@ -166,7 +166,7 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 		currName := result.Name
 		currDim, err := structpb.NewStruct(result.Dimensions)
 		if err != nil {
-			log.WithError(err).Error("failed to convert result dimentions to struct protocol buffer")
+			log.WithError(err).Error("failed to convert result dimensions to struct protocol buffer")
 			return nil, err
 		}
 		curr := &eventquery.EventResult{

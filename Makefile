@@ -105,7 +105,7 @@ check test tests: unit-test-containerized
 unit-test: COVERAGE_PROFILE := coverprofile.out
 unit-test: COVERAGE_HTML    := $(COVERAGE_DIR)/index.html
 unit-test: COVERAGE_XML     := $(COVERAGE_DIR)/coverage.xml
-unit-test: fmt
+unit-test:
 	@mkdir -p $(COVERAGE_DIR)
 	@$(GINKGO) \
 		-r \

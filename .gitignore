@@ -20,12 +20,16 @@ coverage/
 *.iml
 .DS_Store
 ._.DS_Store
-.vscode/
+
 
 # JUnit test output
 **/junit.xml
 
 # Swap files
 *.swp
+
+# VScode
+.vscode/
+.history/
 
 redis-data

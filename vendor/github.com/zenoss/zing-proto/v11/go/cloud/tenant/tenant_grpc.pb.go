@@ -29,15 +29,21 @@ type TenantServiceClient interface {
 	UpdateLoginMessage(ctx context.Context, in *LoginMessageProto, opts ...grpc.CallOption) (*LoginMessageProto, error)
 	GetLogo(ctx context.Context, in *GetLogoRequest, opts ...grpc.CallOption) (*LogoResponse, error)
 	UpdateLogo(ctx context.Context, in *LogoResponse, opts ...grpc.CallOption) (*LogoResponse, error)
+	// Deprecated: Do not use.
 	GetAuthInfo(ctx context.Context, in *GetAuthRequest, opts ...grpc.CallOption) (*GetAuthResponse, error)
+	// Deprecated: Do not use.
 	CreateAuthInfo(ctx context.Context, in *CreateAuthRequest, opts ...grpc.CallOption) (*CreateAuthResponse, error)
+	// Deprecated: Do not use.
 	UpdateAuthInfo(ctx context.Context, in *UpdateAuthRequest, opts ...grpc.CallOption) (*UpdateAuthResponse, error)
+	// Deprecated: Do not use.
 	DeleteAuthInfo(ctx context.Context, in *DeleteAuthRequest, opts ...grpc.CallOption) (*DeleteAuthResponse, error)
 	GetLandingPage(ctx context.Context, in *GetLandingPageRequest, opts ...grpc.CallOption) (*LandingPageResponse, error)
 	UpdateLandingPage(ctx context.Context, in *LandingPageResponse, opts ...grpc.CallOption) (*LandingPageResponse, error)
 	GetTenantTheme(ctx context.Context, in *GetTenantThemeRequest, opts ...grpc.CallOption) (*TenantThemeResponse, error)
 	UpdateTenantTheme(ctx context.Context, in *TenantThemeResponse, opts ...grpc.CallOption) (*TenantThemeResponse, error)
+	// Deprecated: Do not use.
 	LoadAuthInfo(ctx context.Context, in *LoadAuthRequest, opts ...grpc.CallOption) (*LoadAuthResponse, error)
+	GetTenant(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetTenantResponse, error)
 }
 
 type tenantServiceClient struct {
@@ -111,6 +117,7 @@ func (c *tenantServiceClient) UpdateLogo(ctx context.Context, in *LogoResponse, 
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *tenantServiceClient) GetAuthInfo(ctx context.Context, in *GetAuthRequest, opts ...grpc.CallOption) (*GetAuthResponse, error) {
 	out := new(GetAuthResponse)
 	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantService/GetAuthInfo", in, out, opts...)
@@ -120,6 +127,7 @@ func (c *tenantServiceClient) GetAuthInfo(ctx context.Context, in *GetAuthReques
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *tenantServiceClient) CreateAuthInfo(ctx context.Context, in *CreateAuthRequest, opts ...grpc.CallOption) (*CreateAuthResponse, error) {
 	out := new(CreateAuthResponse)
 	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantService/CreateAuthInfo", in, out, opts...)
@@ -129,6 +137,7 @@ func (c *tenantServiceClient) CreateAuthInfo(ctx context.Context, in *CreateAuth
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *tenantServiceClient) UpdateAuthInfo(ctx context.Context, in *UpdateAuthRequest, opts ...grpc.CallOption) (*UpdateAuthResponse, error) {
 	out := new(UpdateAuthResponse)
 	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantService/UpdateAuthInfo", in, out, opts...)
@@ -138,6 +147,7 @@ func (c *tenantServiceClient) UpdateAuthInfo(ctx context.Context, in *UpdateAuth
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *tenantServiceClient) DeleteAuthInfo(ctx context.Context, in *DeleteAuthRequest, opts ...grpc.CallOption) (*DeleteAuthResponse, error) {
 	out := new(DeleteAuthResponse)
 	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantService/DeleteAuthInfo", in, out, opts...)
@@ -183,9 +193,19 @@ func (c *tenantServiceClient) UpdateTenantTheme(ctx context.Context, in *TenantT
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *tenantServiceClient) LoadAuthInfo(ctx context.Context, in *LoadAuthRequest, opts ...grpc.CallOption) (*LoadAuthResponse, error) {
 	out := new(LoadAuthResponse)
 	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantService/LoadAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenantServiceClient) GetTenant(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetTenantResponse, error) {
+	out := new(GetTenantResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantService/GetTenant", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,15 +223,21 @@ type TenantServiceServer interface {
 	UpdateLoginMessage(context.Context, *LoginMessageProto) (*LoginMessageProto, error)
 	GetLogo(context.Context, *GetLogoRequest) (*LogoResponse, error)
 	UpdateLogo(context.Context, *LogoResponse) (*LogoResponse, error)
+	// Deprecated: Do not use.
 	GetAuthInfo(context.Context, *GetAuthRequest) (*GetAuthResponse, error)
+	// Deprecated: Do not use.
 	CreateAuthInfo(context.Context, *CreateAuthRequest) (*CreateAuthResponse, error)
+	// Deprecated: Do not use.
 	UpdateAuthInfo(context.Context, *UpdateAuthRequest) (*UpdateAuthResponse, error)
+	// Deprecated: Do not use.
 	DeleteAuthInfo(context.Context, *DeleteAuthRequest) (*DeleteAuthResponse, error)
 	GetLandingPage(context.Context, *GetLandingPageRequest) (*LandingPageResponse, error)
 	UpdateLandingPage(context.Context, *LandingPageResponse) (*LandingPageResponse, error)
 	GetTenantTheme(context.Context, *GetTenantThemeRequest) (*TenantThemeResponse, error)
 	UpdateTenantTheme(context.Context, *TenantThemeResponse) (*TenantThemeResponse, error)
+	// Deprecated: Do not use.
 	LoadAuthInfo(context.Context, *LoadAuthRequest) (*LoadAuthResponse, error)
+	GetTenant(context.Context, *Empty) (*GetTenantResponse, error)
 	mustEmbedUnimplementedTenantServiceServer()
 }
 
@@ -266,6 +292,9 @@ func (UnimplementedTenantServiceServer) UpdateTenantTheme(context.Context, *Tena
 }
 func (UnimplementedTenantServiceServer) LoadAuthInfo(context.Context, *LoadAuthRequest) (*LoadAuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthInfo not implemented")
+}
+func (UnimplementedTenantServiceServer) GetTenant(context.Context, *Empty) (*GetTenantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTenant not implemented")
 }
 func (UnimplementedTenantServiceServer) mustEmbedUnimplementedTenantServiceServer() {}
 
@@ -568,6 +597,24 @@ func _TenantService_LoadAuthInfo_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TenantService_GetTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantServiceServer).GetTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantService/GetTenant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantServiceServer).GetTenant(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TenantService_ServiceDesc is the grpc.ServiceDesc for TenantService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -639,6 +686,10 @@ var TenantService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "LoadAuthInfo",
 			Handler:    _TenantService_LoadAuthInfo_Handler,
 		},
+		{
+			MethodName: "GetTenant",
+			Handler:    _TenantService_GetTenant_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "zenoss/zing/proto/cloud/tenant.proto",
@@ -664,6 +715,11 @@ type TenantAdminClient interface {
 	RegisterCollectionZones(ctx context.Context, in *RegisterCollectionZonesRequest, opts ...grpc.CallOption) (*RegisterCollectionZonesResponse, error)
 	DeleteCollectionZone(ctx context.Context, in *DeleteCollectionZoneRequest, opts ...grpc.CallOption) (*DeleteCollectionZoneResponse, error)
 	SetAdminSettings(ctx context.Context, in *SetAdminSettingsRequest, opts ...grpc.CallOption) (*SetAdminSettingsResponse, error)
+	GetAuthInfo(ctx context.Context, in *GetAuthRequest, opts ...grpc.CallOption) (*GetAuthResponse, error)
+	CreateAuthInfo(ctx context.Context, in *CreateAuthRequest, opts ...grpc.CallOption) (*CreateAuthResponse, error)
+	UpdateAuthInfo(ctx context.Context, in *UpdateAuthRequest, opts ...grpc.CallOption) (*UpdateAuthResponse, error)
+	DeleteAuthInfo(ctx context.Context, in *DeleteAuthRequest, opts ...grpc.CallOption) (*DeleteAuthResponse, error)
+	LoadAuthInfo(ctx context.Context, in *LoadAuthRequest, opts ...grpc.CallOption) (*LoadAuthResponse, error)
 }
 
 type tenantAdminClient struct {
@@ -818,6 +874,51 @@ func (c *tenantAdminClient) SetAdminSettings(ctx context.Context, in *SetAdminSe
 	return out, nil
 }
 
+func (c *tenantAdminClient) GetAuthInfo(ctx context.Context, in *GetAuthRequest, opts ...grpc.CallOption) (*GetAuthResponse, error) {
+	out := new(GetAuthResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantAdmin/GetAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenantAdminClient) CreateAuthInfo(ctx context.Context, in *CreateAuthRequest, opts ...grpc.CallOption) (*CreateAuthResponse, error) {
+	out := new(CreateAuthResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantAdmin/CreateAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenantAdminClient) UpdateAuthInfo(ctx context.Context, in *UpdateAuthRequest, opts ...grpc.CallOption) (*UpdateAuthResponse, error) {
+	out := new(UpdateAuthResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantAdmin/UpdateAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenantAdminClient) DeleteAuthInfo(ctx context.Context, in *DeleteAuthRequest, opts ...grpc.CallOption) (*DeleteAuthResponse, error) {
+	out := new(DeleteAuthResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantAdmin/DeleteAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tenantAdminClient) LoadAuthInfo(ctx context.Context, in *LoadAuthRequest, opts ...grpc.CallOption) (*LoadAuthResponse, error) {
+	out := new(LoadAuthResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantAdmin/LoadAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TenantAdminServer is the server API for TenantAdmin service.
 // All implementations must embed UnimplementedTenantAdminServer
 // for forward compatibility
@@ -838,6 +939,11 @@ type TenantAdminServer interface {
 	RegisterCollectionZones(context.Context, *RegisterCollectionZonesRequest) (*RegisterCollectionZonesResponse, error)
 	DeleteCollectionZone(context.Context, *DeleteCollectionZoneRequest) (*DeleteCollectionZoneResponse, error)
 	SetAdminSettings(context.Context, *SetAdminSettingsRequest) (*SetAdminSettingsResponse, error)
+	GetAuthInfo(context.Context, *GetAuthRequest) (*GetAuthResponse, error)
+	CreateAuthInfo(context.Context, *CreateAuthRequest) (*CreateAuthResponse, error)
+	UpdateAuthInfo(context.Context, *UpdateAuthRequest) (*UpdateAuthResponse, error)
+	DeleteAuthInfo(context.Context, *DeleteAuthRequest) (*DeleteAuthResponse, error)
+	LoadAuthInfo(context.Context, *LoadAuthRequest) (*LoadAuthResponse, error)
 	mustEmbedUnimplementedTenantAdminServer()
 }
 
@@ -892,6 +998,21 @@ func (UnimplementedTenantAdminServer) DeleteCollectionZone(context.Context, *Del
 }
 func (UnimplementedTenantAdminServer) SetAdminSettings(context.Context, *SetAdminSettingsRequest) (*SetAdminSettingsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetAdminSettings not implemented")
+}
+func (UnimplementedTenantAdminServer) GetAuthInfo(context.Context, *GetAuthRequest) (*GetAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthInfo not implemented")
+}
+func (UnimplementedTenantAdminServer) CreateAuthInfo(context.Context, *CreateAuthRequest) (*CreateAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAuthInfo not implemented")
+}
+func (UnimplementedTenantAdminServer) UpdateAuthInfo(context.Context, *UpdateAuthRequest) (*UpdateAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAuthInfo not implemented")
+}
+func (UnimplementedTenantAdminServer) DeleteAuthInfo(context.Context, *DeleteAuthRequest) (*DeleteAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAuthInfo not implemented")
+}
+func (UnimplementedTenantAdminServer) LoadAuthInfo(context.Context, *LoadAuthRequest) (*LoadAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoadAuthInfo not implemented")
 }
 func (UnimplementedTenantAdminServer) mustEmbedUnimplementedTenantAdminServer() {}
 
@@ -1194,6 +1315,96 @@ func _TenantAdmin_SetAdminSettings_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TenantAdmin_GetAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantAdminServer).GetAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantAdmin/GetAuthInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantAdminServer).GetAuthInfo(ctx, req.(*GetAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TenantAdmin_CreateAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantAdminServer).CreateAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantAdmin/CreateAuthInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantAdminServer).CreateAuthInfo(ctx, req.(*CreateAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TenantAdmin_UpdateAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantAdminServer).UpdateAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantAdmin/UpdateAuthInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantAdminServer).UpdateAuthInfo(ctx, req.(*UpdateAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TenantAdmin_DeleteAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantAdminServer).DeleteAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantAdmin/DeleteAuthInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantAdminServer).DeleteAuthInfo(ctx, req.(*DeleteAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TenantAdmin_LoadAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoadAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantAdminServer).LoadAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantAdmin/LoadAuthInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantAdminServer).LoadAuthInfo(ctx, req.(*LoadAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TenantAdmin_ServiceDesc is the grpc.ServiceDesc for TenantAdmin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1265,6 +1476,26 @@ var TenantAdmin_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SetAdminSettings",
 			Handler:    _TenantAdmin_SetAdminSettings_Handler,
 		},
+		{
+			MethodName: "GetAuthInfo",
+			Handler:    _TenantAdmin_GetAuthInfo_Handler,
+		},
+		{
+			MethodName: "CreateAuthInfo",
+			Handler:    _TenantAdmin_CreateAuthInfo_Handler,
+		},
+		{
+			MethodName: "UpdateAuthInfo",
+			Handler:    _TenantAdmin_UpdateAuthInfo_Handler,
+		},
+		{
+			MethodName: "DeleteAuthInfo",
+			Handler:    _TenantAdmin_DeleteAuthInfo_Handler,
+		},
+		{
+			MethodName: "LoadAuthInfo",
+			Handler:    _TenantAdmin_LoadAuthInfo_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "zenoss/zing/proto/cloud/tenant.proto",
@@ -1282,6 +1513,7 @@ type TenantInternalServiceClient interface {
 	GetTenantDataIds(ctx context.Context, in *GetTenantDataIdsRequest, opts ...grpc.CallOption) (*GetTenantDataIdsResponse, error)
 	ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (*ListTenantsResponse, error)
 	GetAllTenants(ctx context.Context, in *GetAllTenantsRequest, opts ...grpc.CallOption) (*GetAllTenantsResponse, error)
+	GetAuthInfo(ctx context.Context, in *GetAuthRequest, opts ...grpc.CallOption) (*GetAuthResponse, error)
 }
 
 type tenantInternalServiceClient struct {
@@ -1364,6 +1596,15 @@ func (c *tenantInternalServiceClient) GetAllTenants(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *tenantInternalServiceClient) GetAuthInfo(ctx context.Context, in *GetAuthRequest, opts ...grpc.CallOption) (*GetAuthResponse, error) {
+	out := new(GetAuthResponse)
+	err := c.cc.Invoke(ctx, "/zenoss.cloud.TenantInternalService/GetAuthInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TenantInternalServiceServer is the server API for TenantInternalService service.
 // All implementations must embed UnimplementedTenantInternalServiceServer
 // for forward compatibility
@@ -1376,6 +1617,7 @@ type TenantInternalServiceServer interface {
 	GetTenantDataIds(context.Context, *GetTenantDataIdsRequest) (*GetTenantDataIdsResponse, error)
 	ListTenants(context.Context, *ListTenantsRequest) (*ListTenantsResponse, error)
 	GetAllTenants(context.Context, *GetAllTenantsRequest) (*GetAllTenantsResponse, error)
+	GetAuthInfo(context.Context, *GetAuthRequest) (*GetAuthResponse, error)
 	mustEmbedUnimplementedTenantInternalServiceServer()
 }
 
@@ -1406,6 +1648,9 @@ func (UnimplementedTenantInternalServiceServer) ListTenants(context.Context, *Li
 }
 func (UnimplementedTenantInternalServiceServer) GetAllTenants(context.Context, *GetAllTenantsRequest) (*GetAllTenantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllTenants not implemented")
+}
+func (UnimplementedTenantInternalServiceServer) GetAuthInfo(context.Context, *GetAuthRequest) (*GetAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthInfo not implemented")
 }
 func (UnimplementedTenantInternalServiceServer) mustEmbedUnimplementedTenantInternalServiceServer() {}
 
@@ -1564,6 +1809,24 @@ func _TenantInternalService_GetAllTenants_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TenantInternalService_GetAuthInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TenantInternalServiceServer).GetAuthInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/zenoss.cloud.TenantInternalService/GetAuthInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TenantInternalServiceServer).GetAuthInfo(ctx, req.(*GetAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TenantInternalService_ServiceDesc is the grpc.ServiceDesc for TenantInternalService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1602,6 +1865,10 @@ var TenantInternalService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllTenants",
 			Handler:    _TenantInternalService_GetAllTenants_Handler,
+		},
+		{
+			MethodName: "GetAuthInfo",
+			Handler:    _TenantInternalService_GetAuthInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

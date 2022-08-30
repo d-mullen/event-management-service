@@ -93,7 +93,6 @@ func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
 		}
 		return bson.D{
 			{Key: otherFilter.Field, Value: bson.E{Key: OpNot, Value: bson.E{Key: otherOperator, Value: otherFilter.Value}}}}, nil
-
 	}
 
 }
@@ -127,7 +126,6 @@ func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 				return nil, err
 			}
 			filterValues[i] = newFilter
-
 		}
 		return bson.D{{Key: op, Value: filterValues}}, nil
 	case event.FilterOpIn, event.FilterOpNotIn:

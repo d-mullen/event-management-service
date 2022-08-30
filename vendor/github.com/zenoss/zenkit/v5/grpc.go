@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"cloud.google.com/go/profiler"
@@ -23,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 
 	"github.com/zenoss/zenkit/v5/internal/exporter"
 )
@@ -102,7 +104,12 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 			concurrentRequestsStreamInterceptor,
 			grpc_auth.StreamServerInterceptor(authFunc),
 			IdentityTagsStreamServerInterceptor(),
-			grpc_recovery.StreamServerInterceptor(),
+			grpc_recovery.StreamServerInterceptor(
+				grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+					logger.Error(string(debug.Stack()))
+					return status.Errorf(codes.Internal, "%v", p)
+				}),
+			),
 		)),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			MetricTagsUnaryServerInterceptor(),
@@ -112,7 +119,12 @@ func NewGRPCServer(ctx context.Context, logger, auditLogger *logrus.Entry) *grpc
 			concurrentRequestsUnaryInterceptor,
 			grpc_auth.UnaryServerInterceptor(authFunc),
 			IdentityTagsUnaryServerInterceptor(),
-			grpc_recovery.UnaryServerInterceptor(),
+			grpc_recovery.UnaryServerInterceptor(
+				grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+					logger.Error(string(debug.Stack()))
+					return status.Errorf(codes.Internal, "%v", p)
+				}),
+			),
 		)),
 	}...)
 

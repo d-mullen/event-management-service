@@ -77,8 +77,39 @@ func eventResultsToOccurrenceMaps(
 	return occurrenceMap, occInputMap
 }
 
-func getEventTSResults(ctx context.Context, results []*event.Event, eventTS eventts.Repository) error {
+func getEventTSResults(ctx context.Context, results []*event.Event, eventTS eventts.Repository, query *event.Query) error {
 	occurrenceMap, occInputMap := eventResultsToOccurrenceMaps(results)
+	var (
+		tsFilters []*eventts.Filter
+		tsFields  []string
+	)
+	if query != nil {
+		tsFilters, _ = eventFilterToEventTSFilter(query.Filter)
+		tsFields = query.Fields
+
+		if len(query.Severities) > 0 { // severity filter
+			tsSeverities := make([]any, len(query.Severities))
+			for i, sev := range query.Severities {
+				tsSeverities[i] = int(sev)
+			}
+			tsFilters = append(tsFilters, &eventts.Filter{
+				Operation: eventts.Operation_OP_IN,
+				Field:     "_zv_severity",
+				Values:    tsSeverities})
+		}
+
+		if len(query.Statuses) > 0 { // status filter
+			tsStatuses := make([]any, len(query.Statuses))
+			for i, status := range query.Statuses {
+				tsStatuses[i] = int(status)
+			}
+			tsFilters = append(tsFilters, &eventts.Filter{
+				Operation: eventts.Operation_OP_IN,
+				Field:     "_zv_status",
+				Values:    tsStatuses})
+		}
+	}
+
 	occurrencesWithMD, err := eventTS.Get(ctx, &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			ByOccurrences: struct {
@@ -86,6 +117,8 @@ func getEventTSResults(ctx context.Context, results []*event.Event, eventTS even
 			}{
 				OccurrenceMap: occInputMap,
 			},
+			Filters:      tsFilters,
+			ResultFields: tsFields,
 		},
 	})
 	if err != nil {
@@ -203,7 +236,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		}
 	}
 	if len(results.Results) > 0 && svc.eventTS != nil && shouldGetEventTSDetails(query) {
-		err = getEventTSResults(ctx, results.Results, svc.eventTS)
+		err = getEventTSResults(ctx, results.Results, svc.eventTS, query)
 		if err != nil {
 			return nil, err
 		}
@@ -259,7 +292,7 @@ func (svc *service) Get(ctx context.Context, req *event.GetRequest) ([]*event.Ev
 		return nil, err
 	}
 	if len(results) > 0 && svc.eventTS != nil {
-		err = getEventTSResults(ctx, results, svc.eventTS)
+		err = getEventTSResults(ctx, results, svc.eventTS, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -274,7 +307,7 @@ func shouldGetEventTSDetails(query *event.Query) bool {
 			return true
 		}
 	}
-	filters, _ := EventFilterToEventTSFilter(query.Filter)
+	filters, _ := eventFilterToEventTSFilter(query.Filter)
 	for _, filter := range filters {
 		if len(filter.Field) > 0 && !event.IsSupportedField(filter.Field) {
 			return true
