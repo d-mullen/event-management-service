@@ -325,7 +325,7 @@ github.com/zenoss/event-context-svc/utils
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.19.15-0.20220819171343-0a199e38c662
+# github.com/zenoss/zing-proto/v11 v11.20.1
 ## explicit; go 1.17
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver

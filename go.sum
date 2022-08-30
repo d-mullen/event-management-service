@@ -1188,6 +1188,10 @@ github.com/zenoss/zing-proto/v11 v11.9.3/go.mod h1:XU3OtrHJCbr2XbOFa34cmYXiyUTu/
 github.com/zenoss/zing-proto/v11 v11.16.9/go.mod h1:YXLZrPkD5rG235fvIQLqKe+Lwo1p82jF11NfPGNoD4s=
 github.com/zenoss/zing-proto/v11 v11.19.15-0.20220819171343-0a199e38c662 h1:GbX2rXODD6hXyMrOVqt4LN+cqJmWJvGIXPxXYtYBy2M=
 github.com/zenoss/zing-proto/v11 v11.19.15-0.20220819171343-0a199e38c662/go.mod h1:WX/rqDBCHIZCWpGzYdwRFAjqqSdkQ2pG6NKp/REeBa4=
+github.com/zenoss/zing-proto/v11 v11.20.1-0.20220829201947-e4559bdc682e h1:vjf+/bbcQAhiBWBhqOdr0KPhnoZo/lxm8yub79jPeio=
+github.com/zenoss/zing-proto/v11 v11.20.1-0.20220829201947-e4559bdc682e/go.mod h1:Umw1eNZxvGkhDNAX6JgRlScnC01sAvfcwZmERb0hkwY=
+github.com/zenoss/zing-proto/v11 v11.20.1 h1:ncA06+uGMhKyBm+hUX3YbyEbv9aeKPBgSXrSc+4n5Cg=
+github.com/zenoss/zing-proto/v11 v11.20.1/go.mod h1:WX/rqDBCHIZCWpGzYdwRFAjqqSdkQ2pG6NKp/REeBa4=
 github.com/zenoss/zingo/v4 v4.1.6/go.mod h1:wbxGcM3iVzE/op3luiXNVCNHtJ1RBE9p9QYvaKbqCV4=
 github.com/zenoss/zingo/v4 v4.4.3 h1:Xn7mYL4MAv/Apd6lasHYH0vkyBVtnvyuX9Jxovcb/n0=
 github.com/zenoss/zingo/v4 v4.4.3/go.mod h1:ZwrLgT9YdV8aFLTO5FIJ2Uf2m+dNnxWbJyVv9cF6Z3Y=

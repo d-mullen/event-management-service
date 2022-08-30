@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/zenoss/event-context-svc v0.0.0-20210208232835-5442223405f6
 	github.com/zenoss/zenkit/v5 v5.6.0
-	github.com/zenoss/zing-proto/v11 v11.19.15-0.20220819171343-0a199e38c662
+	github.com/zenoss/zing-proto/v11 v11.20.1
 	github.com/zenoss/zingo/v4 v4.4.3
 	go.mongodb.org/mongo-driver v1.9.1
 	go.opencensus.io v0.23.0
