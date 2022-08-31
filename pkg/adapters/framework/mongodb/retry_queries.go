@@ -62,7 +62,7 @@ func FindWithRetry[R any](
 			}
 		}
 	}()
-	filterBytes, err := bson.MarshalExtJSON(filter, true, false)
+	filterBytes, err := bson.MarshalExtJSON(filter, true, true)
 	if err == nil {
 		span.AddAttributes(trace.StringAttribute("mongoFilter", string(filterBytes)))
 	}
