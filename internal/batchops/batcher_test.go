@@ -43,6 +43,7 @@ var _ = Describe("Batcher Unit Tests", func() {
 				i++
 				return i, nil
 			}, func(_ context.Context, r int) (bool, error) {
+				defer GinkgoRecover()
 				Ω(r).Should(Equal(i))
 				return true, nil
 			},

@@ -229,7 +229,7 @@ StreamLoop:
 			for _, occWithMD := range occSlice {
 				if occ.ID == occWithMD.ID ||
 					occ.Status == event.StatusClosed && occ.StartTime <= occWithMD.Timestamp && occWithMD.Timestamp <= occ.EndTime ||
-					occ.StartTime <= occWithMD.Timestamp {
+					occ.Status != event.StatusClosed && occ.StartTime <= occWithMD.Timestamp {
 					if len(occ.Metadata) == 0 {
 						occ.Metadata = occWithMD.Metadata
 					} else {
