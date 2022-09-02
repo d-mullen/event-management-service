@@ -27,6 +27,7 @@ coverage/
 
 # Swap files
 *.swp
+.history/
 
 # VScode
 .vscode/

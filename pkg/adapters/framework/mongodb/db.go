@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,34 +22,48 @@ type (
 		Password   string
 		CACert     string
 		ClientCert string
+		// options list https://www.mongodb.com/docs/manual/reference/connection-string/#connection-string-options
+		Options    map[string]string
 		DefaultTTL time.Duration
 	}
 )
 
 func (cfg Config) URI() string {
+
+	var (
+		urlWithParams = url.URL{Scheme: "mongodb"}
+		val           = url.Values{}
+	)
+
+	if len(cfg.Options) > 0 {
+		for k, v := range cfg.Options {
+			val.Set(k, v)
+		}
+	}
+
 	switch {
 	case len(cfg.Username) > 0 && len(cfg.Password) > 0:
-		return fmt.Sprintf("mongodb://%s:%s@%s", cfg.Username, cfg.Password, cfg.Address)
+		urlWithParams.User = url.UserPassword(cfg.Username, cfg.Password)
+		val.Set("authMechanism", "SCRAM-SHA-256")
 	case len(cfg.CACert) > 0 && len(cfg.ClientCert) > 0:
-		return fmt.Sprintf(
-			"mongodb://%s/?authMechanism=MONGODB-X509&tlsCAFile=%s&tlsCertificateKeyFile=%s",
-			cfg.Address, cfg.CACert, cfg.ClientCert)
-	default:
-		return fmt.Sprintf("mongodb://%s", cfg.Address)
+		val.Set("tlsCAFile", cfg.CACert)
+		val.Set("tlsCertificateKeyFile", cfg.ClientCert)
+		val.Set("authMechanism", "MONGODB-X509")
+		val.Set("readPreference", "secondary")
 	}
+	urlWithParams.RawQuery = val.Encode()
+
+	urlWithParams.Host = cfg.Address // host:port
+	urlWithParams.Path = "/"
+
+	return (&urlWithParams).String()
 }
 
 func NewMongoDatabaseConnection(ctx context.Context, cfg Config) (Database, error) {
 	log := zenkit.ContextLogger(ctx)
 	log.Info("Connecting to mongo db....")
-	clientOpts := options.Client().ApplyURI(cfg.URI())
-	if len(cfg.CACert) > 0 && len(cfg.ClientCert) > 0 {
-		credential := options.Credential{
-			AuthMechanism: "MONGODB-X509",
-		}
-		clientOpts = clientOpts.SetAuth(credential).SetReadPreference(readpref.SecondaryPreferred())
-	}
-	client, err := mongo.Connect(ctx, clientOpts)
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.URI()))
 	if err != nil {
 		log.Errorf("failed to connect to MongoDB(%s): %q", cfg.URI(), err)
 		return nil, errors.Wrap(err, fmt.Sprintf("failed to get MongoDB client at %v", cfg.URI()))

@@ -16,5 +16,6 @@ func MongoConfigFromEnv(v *viper.Viper) mongodb.Config {
 		DBName:     viperCfg.GetString(config.MongoDBName),
 		CACert:     viperCfg.GetString(config.MongoDBCACertificate),
 		ClientCert: viperCfg.GetString(config.MongoDBClientCertificate),
+		Options:    viper.GetStringMapString(config.MongoClientOptions),
 	}
 }

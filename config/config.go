@@ -24,6 +24,7 @@ const (
 	EventQueryEnabled            = "event.query.enabled"
 	MongoDBAddr                  = "mongo.address"
 	MongoDBName                  = "mongo.db.name"
+	MongoClientOptions           = "mongo.options"
 
 	// TraceRateLimitedSamplingEnabled - specifies whether rate-limited tracing is enabled
 	TraceRateLimitedSamplingEnabled = "trace.rate.limited.sampling.enabled"
