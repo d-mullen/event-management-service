@@ -225,7 +225,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	occurrenceIDs := make([]string, 0, len(filteredOccurrences))
 	sliceStop := len(filteredOccurrences)
 	if len(filteredOccurrences) > 0 && limit > 0 {
-		sliceStop = limit - 1
+		sliceStop = min(sliceStop, limit-1)
 	}
 	for _, occurrence := range filteredOccurrences[:sliceStop] {
 		occurrenceIDs = append(occurrenceIDs, occurrence.ID)
