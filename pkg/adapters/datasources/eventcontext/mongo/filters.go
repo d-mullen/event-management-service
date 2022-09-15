@@ -40,7 +40,7 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 			{Key: "$or",
 				Value: bson.A{
 					bson.D{
-						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: (event.StatusClosed)}}},
+						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: int(event.StatusClosed)}}},
 						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 					},
 					bson.D{
