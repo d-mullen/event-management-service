@@ -5,6 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/zenoss/event-management-service/pkg/adapters/server/grpc"
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
+	"github.com/zenoss/zing-proto/v11/go/event"
 
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -114,6 +115,37 @@ var _ = Describe("DTO Tests", func() {
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(r4).ShouldNot(BeNil())
 			GinkgoWriter.Printf("%#v", r4)
+
+			r5, err := grpc.QueryProtoToEventQuery("acme", &eventquery.Query{
+				TimeRange:  &eventquery.TimeRange{Start: 0, End: 1000},
+				Statuses:   []event.Status{event.Status_STATUS_OPEN},
+				Severities: []event.Severity{event.Severity_SEVERITY_CRITICAL},
+				SortBy: []*eventquery.SortBy{
+					{
+						SortType: &eventquery.SortBy_ByField{
+							ByField: &eventquery.SortByField{
+								SortField: &eventquery.SortByField_Property{
+									Property: "_id",
+								},
+								Order: eventquery.SortOrder_SORT_ORDER_ASC,
+							},
+						},
+					},
+					{
+						SortType: &eventquery.SortBy_ByField{
+							ByField: &eventquery.SortByField{
+								SortField: &eventquery.SortByField_Property{
+									Property: "lastSeen",
+								},
+								Order: eventquery.SortOrder_SORT_ORDER_DESC,
+							},
+						},
+					},
+				},
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(r5).ShouldNot(BeNil())
+			GinkgoWriter.Printf("%+v %+v", r5, r5.PageInput)
 		})
 	})
 })

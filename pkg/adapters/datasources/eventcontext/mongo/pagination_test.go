@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 	"github.com/zenoss/event-management-service/pkg/adapters/datasources/cursors/redis"
 	"github.com/zenoss/event-management-service/pkg/adapters/datasources/eventcontext/mongo"
 	"github.com/zenoss/event-management-service/pkg/models/event"
@@ -77,7 +78,19 @@ var _ = Describe("Pagination Unit-Tests", func() {
 		_ = actualFilter
 		_ = actualFindOpts
 		// Expect(mustMarshal(actualFilter)).To(MatchJSON(mustMarshal(testCase.expected.filter)))
-		Expect(actualFindOpts).To(BeEquivalentTo(testCase.expected.findOpts))
+		fieldMatchers := Fields{}
+		if testCase.expected.findOpts != nil {
+			if testCase.expected.findOpts.Limit != nil {
+				fieldMatchers["Limit"] = Equal(testCase.expected.findOpts.Limit)
+			}
+			if testCase.expected.findOpts.Skip != nil {
+				fieldMatchers["Skip"] = Equal(testCase.expected.findOpts.Skip)
+			}
+			if testCase.expected.findOpts.Sort != nil {
+				Expect(mustMarshal(actualFindOpts.Sort)).To(MatchJSON(mustMarshal(testCase.expected.findOpts.Sort)))
+			}
+			Expect(actualFindOpts).To(PointTo(MatchFields(IgnoreExtras, fieldMatchers)))
+		}
 	},
 		Entry("case 1: no cursor provided; query is valid", testCaseType3{
 			query: &event.Query{
@@ -151,6 +164,28 @@ var _ = Describe("Pagination Unit-Tests", func() {
 				// so skip should be updated based on the original limit
 				// Change this expectation if override the original page size is allowed
 				findOpts: options.Find().SetLimit(2).SetSkip(9),
+			},
+		}),
+		Entry("case 6: query == nil; cursor not-empty; should advance offset forward", testCaseType3{
+			query: &event.Query{
+				PageInput: &event.PageInput{
+					Cursor: "",
+					Limit:  1,
+					SortBy: []event.SortOpt{
+						{
+							Field:     "lastSeen",
+							SortOrder: 1,
+						},
+					},
+				},
+			},
+			expected: struct {
+				filter   primitive.D
+				findOpts *options.FindOptions
+				err      error
+			}{
+				findOpts: options.Find().
+					SetSort(bson.D{{Key: "lastSeen", Value: event.SortOrderAscending}}),
 			},
 		}),
 	)

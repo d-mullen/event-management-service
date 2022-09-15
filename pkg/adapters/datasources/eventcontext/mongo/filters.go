@@ -217,8 +217,11 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 	}
 	findOpts := options.Find()
 	if query.PageInput != nil && len(query.PageInput.SortBy) > 0 {
-		sortBy := query.PageInput.SortBy[0]
-		findOpts.SetSort(&bson.D{{Key: sortBy.Field, Value: sortBy.SortOrder}})
+		sortDoc := bson.D{}
+		for _, sortBy := range query.PageInput.SortBy {
+			sortDoc = append(sortDoc, bson.E{Key: sortBy.Field, Value: sortBy.SortOrder})
+		}
+		findOpts.SetSort(sortDoc)
 	}
 	if query.PageInput != nil && query.PageInput.Limit > 0 {
 		findOpts.SetLimit(int64(query.PageInput.Limit + 1))

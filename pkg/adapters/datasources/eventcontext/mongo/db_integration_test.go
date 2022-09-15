@@ -266,6 +266,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 						},
 						Statuses:   []event.Status{event.StatusOpen},
 						Severities: []event.Severity{event.SeverityInfo},
+						Fields:     []string{"dimensions", "notes", "metadata"},
 						Filter: &event.Filter{
 							Op:    event.FilterOpAnd,
 							Field: string(event.FilterOpAnd),
@@ -288,6 +289,10 @@ var _ = Describe("MongoDB Integration Test", func() {
 							SortBy: []event.SortOpt{
 								{
 									Field:     "startTime",
+									SortOrder: event.SortOrderDescending,
+								},
+								{
+									Field:     "lastSeen",
 									SortOrder: event.SortOrderDescending,
 								},
 							},
