@@ -203,7 +203,6 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 		filters = append(filters, bson.E{
 			Key: "lastSeen",
 			Value: bson.D{
-				bson.E{Key: "$exists", Value: true},
 				bson.E{Key: OpGreaterThanOrEqualTo, Value: query.TimeRange.Start},
 			},
 		})
