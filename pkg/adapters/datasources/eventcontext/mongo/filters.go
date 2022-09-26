@@ -182,7 +182,7 @@ func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 				return nil, errors.New("invalid argument: filter(op: $regex) value must be a string")
 			}
 			// TODO: figure how to pass regex options through to MongoDB
-			return bson.D{{Key: orig.Field, Value: bson.D{{Key: OpRegex, Value: primitive.Regex{Pattern: reMapFn(pattern)}}}}}, nil
+			return bson.D{{Key: orig.Field, Value: bson.D{{Key: OpRegex, Value: primitive.Regex{Pattern: reMapFn(pattern), Options: "i"}}}}}, nil
 		}
 		return bson.D{{Key: orig.Field, Value: bson.D{{Key: op, Value: orig.Value}}}}, nil
 	}

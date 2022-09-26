@@ -336,7 +336,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}{
 				filter: &bson.D{{
 					Key:   "summary",
-					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^alarm"}}},
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^alarm", Options: "i"}}},
 				}},
 				err: nil,
 			},
@@ -353,7 +353,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}{
 				filter: &bson.D{{
 					Key:   "summary",
-					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^alarm"}}},
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^alarm", Options: "i"}}},
 				}},
 				err: nil,
 			},
@@ -370,7 +370,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}{
 				filter: &bson.D{{
 					Key:   "summary",
-					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "alarm$"}}},
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "alarm$", Options: "i"}}},
 				}},
 				err: nil,
 			},
@@ -387,7 +387,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}{
 				filter: &bson.D{{
 					Key:   "summary",
-					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "alarm"}}},
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "alarm", Options: "i"}}},
 				}},
 				err: nil,
 			},
@@ -404,7 +404,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}{
 				filter: &bson.D{{
 					Key:   "summary",
-					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^((?!alarm).)*$"}}},
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^((?!alarm).)*$", Options: "i"}}},
 				}},
 				err: nil,
 			},
