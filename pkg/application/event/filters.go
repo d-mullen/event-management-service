@@ -22,7 +22,8 @@ var (
 		event.FilterOpDoesNotContain:       eventts.Operation_OP_NOT_CONTAINS,
 		event.FilterOpPrefix:               eventts.Operation_OP_STARTS_WITH,
 		event.FilterOpSuffix:               eventts.Operation_OP_END_WITH,
-		//event.FilterOpRegex:           // not implemented in eventTS
+		event.FilterOpRegex:                eventts.Operation_OP_CONTAINS,
+		// not implemented in eventTS
 		// event.FilterOpOr
 		// event.FilterOpAnd
 		// event.FilterOpNot
@@ -37,6 +38,10 @@ func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	if orig.Op == event.FilterOpAnd {
 		if others, ok := orig.Value.([]*event.Filter); ok {
 			for _, filter := range others {
+				// Do not apply filters that will be applied in event-context store
+				if event.IsSupportedField(filter.Field) {
+					continue
+				}
 				newFilter, err := eventFilterToEventTSFilter(filter)
 				if err != nil {
 					return nil, errors.Wrapf(err, "failed to convert to eventts filter: %v", filter)
@@ -51,7 +56,8 @@ func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	}
 	if op, ok := eventToEventTSFilterOpMap[orig.Op]; ok {
 
-		if orig.Field != "entity" && orig.Field != "" { // trow already applied during eventContextRepo.Find
+		// Do not apply filters that will be applied in event-context store
+		if orig.Field != "entity" && orig.Field != "" && !event.IsSupportedField(orig.Field) { // trow already applied during eventContextRepo.Find
 			results = append(results, &eventts.Filter{
 				Field:     orig.Field,
 				Operation: op,
