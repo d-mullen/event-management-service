@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 
@@ -65,6 +66,8 @@ const (
 	OpOr                   = "$or"
 	OpAnd                  = "$and"
 	OpNot                  = "$not"
+	OpExists               = "$exists"
+	OpRegex                = "$regex"
 )
 
 var domainMongoFilterMap = map[event.FilterOp]string{
@@ -79,6 +82,30 @@ var domainMongoFilterMap = map[event.FilterOp]string{
 	event.FilterOpOr:                   OpOr,
 	event.FilterOpAnd:                  OpAnd,
 	event.FilterOpNot:                  OpNot,
+	event.FilterOpExists:               OpExists,
+	event.FilterOpRegex:                OpRegex,
+	event.FilterOpContains:             OpRegex,
+	event.FilterOpDoesNotContain:       OpRegex,
+	event.FilterOpPrefix:               OpRegex,
+	event.FilterOpSuffix:               OpRegex,
+}
+
+var regexMappings = map[event.FilterOp]func(text string) string{
+	event.FilterOpRegex: func(text string) string {
+		return text
+	},
+	event.FilterOpPrefix: func(text string) string {
+		return fmt.Sprintf("^%s", text)
+	},
+	event.FilterOpSuffix: func(text string) string {
+		return fmt.Sprintf("%s$", text)
+	},
+	event.FilterOpContains: func(text string) string {
+		return text
+	},
+	event.FilterOpDoesNotContain: func(text string) string {
+		return fmt.Sprintf("^((?!%s).)*$", text)
+	},
 }
 
 func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
@@ -99,6 +126,7 @@ func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
 			return nil, err
 		}
 		return bson.D{{Key: OpNot, Value: newFilter}}, nil
+	// TODO: handle $not being applied to $regex operations, which is no supported by MongoDB
 	default:
 		otherOperator, ok := domainMongoFilterMap[otherFilter.Op]
 		if !ok {
@@ -112,6 +140,7 @@ func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
 
 func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 	if orig == nil {
+		// TODO: don't fail here; callers should handle nil/empty as no-op
 		return nil, errors.New("invalid filter: got nil value")
 	}
 	op, ok := domainMongoFilterMap[orig.Op]
@@ -147,6 +176,14 @@ func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
 		}
 		return bson.D{{Key: orig.Field, Value: bson.D{{Key: op, Value: orig.Value}}}}, nil
 	default:
+		if reMapFn, isRegex := regexMappings[orig.Op]; isRegex {
+			pattern, patternOk := orig.Value.(string)
+			if !patternOk {
+				return nil, errors.New("invalid argument: filter(op: $regex) value must be a string")
+			}
+			// TODO: figure how to pass regex options through to MongoDB
+			return bson.D{{Key: orig.Field, Value: bson.D{{Key: OpRegex, Value: primitive.Regex{Pattern: reMapFn(pattern), Options: "i"}}}}}, nil
+		}
 		return bson.D{{Key: orig.Field, Value: bson.D{{Key: op, Value: orig.Value}}}}, nil
 	}
 }

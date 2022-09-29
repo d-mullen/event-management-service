@@ -19,6 +19,13 @@ var filterOpProtoEventFilterMap = map[string]event.FilterOp{
 	eventquery.Filter_OPERATOR_LESS_THEN_OR_EQUALS.String():    event.FilterOpLessThanOrEqualTo,
 	eventquery.Filter_OPERATOR_GREATER_THAN.String():           event.FilterOpGreaterThan,
 	eventquery.Filter_OPERATOR_GREATER_THAN_OR_EQUALS.String(): event.FilterOpGreaterThanOrEqualTo,
+	eventquery.Filter_OPERATOR_REGEX.String():                  event.FilterOpRegex,
+	eventquery.Filter_OPERATOR_PREFIX.String():                 event.FilterOpPrefix,
+	eventquery.Filter_OPERATOR_SUFFIX.String():                 event.FilterOpSuffix,
+	eventquery.Filter_OPERATOR_CONTAINS.String():               event.FilterOpContains,
+	eventquery.Filter_OPERATOR_DOES_NOT_CONTAIN.String():       event.FilterOpDoesNotContain,
+	eventquery.Filter_OPERATOR_EXISTS.String():                 event.FilterOpExists,
+	eventquery.Filter_OPERATOR_NOT_EQUALS.String():             event.FilterOpNotEqualTo,
 }
 
 func FilterProtoToEventFilter(filterPb *eventquery.Filter) (*event.Filter, error) {

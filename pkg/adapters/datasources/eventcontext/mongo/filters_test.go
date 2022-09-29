@@ -305,7 +305,6 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 				filter: &bson.D{
 					{
 						Key: mongo.OpAnd,
-						// TODO: fix the overnesting of filter documents
 						Value: bson.A{
 							bson.D{{Key: "field1", Value: bson.D{{Key: mongo.OpEqualTo, Value: 1}}}},
 							bson.D{{Key: "field2", Value: bson.D{{Key: mongo.OpEqualTo, Value: "bar"}}}},
@@ -323,6 +322,105 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}{
 				filter: nil,
 				err:    errors.New("invalid filter: got nil value"),
+			},
+		}),
+		Entry("case 6: $regex filter", testCase2{
+			orig: &event.Filter{
+				Op:    event.FilterOpRegex,
+				Field: "summary",
+				Value: "^alarm",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: &bson.D{{
+					Key:   "summary",
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^alarm", Options: "i"}}},
+				}},
+				err: nil,
+			},
+		}),
+		Entry("case 7: $prefix filter", testCase2{
+			orig: &event.Filter{
+				Op:    event.FilterOpPrefix,
+				Field: "summary",
+				Value: "alarm",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: &bson.D{{
+					Key:   "summary",
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^alarm", Options: "i"}}},
+				}},
+				err: nil,
+			},
+		}),
+		Entry("case 8: $suffix filter", testCase2{
+			orig: &event.Filter{
+				Op:    event.FilterOpSuffix,
+				Field: "summary",
+				Value: "alarm",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: &bson.D{{
+					Key:   "summary",
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "alarm$", Options: "i"}}},
+				}},
+				err: nil,
+			},
+		}),
+		Entry("case 9: contains filter", testCase2{
+			orig: &event.Filter{
+				Op:    event.FilterOpContains,
+				Field: "summary",
+				Value: "alarm",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: &bson.D{{
+					Key:   "summary",
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "alarm", Options: "i"}}},
+				}},
+				err: nil,
+			},
+		}),
+		Entry("case 10: does-not-contains filter", testCase2{
+			orig: &event.Filter{
+				Op:    event.FilterOpDoesNotContain,
+				Field: "summary",
+				Value: "alarm",
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: &bson.D{{
+					Key:   "summary",
+					Value: bson.D{{Key: mongo.OpRegex, Value: primitive.Regex{Pattern: "^((?!alarm).)*$", Options: "i"}}},
+				}},
+				err: nil,
+			},
+		}),
+		Entry("case 11: invalid regex filter pattern", testCase2{
+			orig: &event.Filter{
+				Op:    event.FilterOpDoesNotContain,
+				Field: "summary",
+				Value: true,
+			},
+			expected: struct {
+				filter *primitive.D
+				err    error
+			}{
+				filter: nil,
+				err:    errors.New("invalid argument: filter(op: $regex) value must be a string"),
 			},
 		}),
 	)
