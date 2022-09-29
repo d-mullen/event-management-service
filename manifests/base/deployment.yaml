@@ -171,8 +171,6 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    zenoss.spinnaker_deploy: "true"
   labels:
     app: event-query
     project: event-query
