@@ -10,3 +10,27 @@ spec:
         env:
           - name: EVENT_MANAGEMENT_SERVICE_LOG_LEVEL
             value: "error"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-query
+spec:
+  template:
+    spec:
+      containers:
+        - name: event-query
+          env:
+            - name: "EVENT_MANAGEMENT_SERVICE_MONGO_ADDRESS"
+              value: "zing-mongodb-1"
+      volumes:
+        - name: "zing-mongodb-event-query-certs"
+          secret:
+            # event-query uses the same Mongo cluster credentials as event-context-svc
+            secretName: "zing-mongodb-1-user-event-context-svc"
+            items:
+              - key: event-context-svc.pem
+                path: user.pem
+              - key: ca.crt
+                path: ca.crt
+
