@@ -44,6 +44,14 @@ const (
 	ScopeEntity ScopeEnum = iota
 )
 
+// All = 0, Latest = 1
+type CountFlag uint64
+
+const (
+	CountFlagAll    CountFlag = 0
+	CountFlagLatest CountFlag = 1
+)
+
 type PageDirection int
 
 const (
@@ -70,6 +78,7 @@ type (
 		Fields                         []string   `json:"fields,omitempty"`
 		Filter                         *Filter    `json:"filter,omitempty"`
 		PageInput                      *PageInput `json:"pageInput,omitempty"`
+		Latest                         CountFlag  `json:"latest"`
 	}
 	GetRequest struct {
 		Tenant          string
@@ -85,7 +94,8 @@ type (
 	}
 	CountRequest struct {
 		Query
-		Fields []string
+		Fields         []string
+		CountInstances bool
 	}
 	FrequencyRequest struct {
 		Query

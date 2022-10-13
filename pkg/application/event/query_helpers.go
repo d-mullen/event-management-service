@@ -39,6 +39,7 @@ func SplitOutQueries(batchSize int, targetField string, origQuery *event.Query) 
 						Fields:     origQuery.Fields,
 						PageInput:  origQuery.PageInput,
 						Filter:     filter,
+						Latest:     origQuery.Latest,
 					})
 				}
 			} else {
@@ -49,6 +50,7 @@ func SplitOutQueries(batchSize int, targetField string, origQuery *event.Query) 
 					Statuses:   []event.Status{currStatus},
 					Fields:     origQuery.Fields,
 					PageInput:  origQuery.PageInput,
+					Latest:     origQuery.Latest,
 				})
 			}
 		}
