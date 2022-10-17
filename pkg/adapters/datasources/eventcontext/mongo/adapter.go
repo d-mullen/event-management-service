@@ -211,14 +211,22 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		}
 	}
 
-	instrumentation.AnnotateSpan("occurrenceResults",
-		"got occurrence query results",
-		span,
-		map[string]any{
+	if log.Logger.IsLevelEnabled(logrus.TraceLevel) {
+		instrumentation.AnnotateSpan("occurrenceResults",
+			"got occurrence query results",
+			span,
+			map[string]any{
+				"rawOccurrenceCount":      len(docs),
+				"filteredOccurrenceCount": len(filteredOccurrences),
+			}, nil)
+	}
+	if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
+		log.WithFields(logrus.Fields{
 			"rawOccurrenceCount":      len(docs),
 			"filteredOccurrenceCount": len(filteredOccurrences),
-		}, nil)
-
+		}).Debug("table:rawOccurrenceCounts")
+	}
+	
 	results := make([]*event.Event, 0)
 	occMap := make(map[string]*event.Occurrence)
 	eventIDs := make([]string, 0)

@@ -152,6 +152,7 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 			Values:    tsStatuses})
 	}
 
+	log.Infof("CALLING EVENT TS WITH %v", q.Latest)
 	req := &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			TimeRange: eventts.TimeRange{
@@ -532,6 +533,9 @@ func (svc *service) Get(ctx context.Context, req *event.GetRequest) ([]*event.Ev
 }
 
 func shouldGetEventTSDetails(query *event.Query) bool {
+	if query.Latest == event.CountFlagAll {
+		return true
+	}
 	for _, field := range query.Fields {
 		if len(field) > 0 && !event.IsSupportedField(field) {
 			return true
