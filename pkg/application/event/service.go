@@ -386,7 +386,7 @@ func TransformScopeFilter(ctx context.Context, timeRange event.TimeRange, tenant
 		return nil, false, nil
 	}
 	if scope, ok := filter.Value.(*event.Scope); ok {
-		entityIDs, err := entityScopeProvider.GetEntityIDs(ctx, scope.Cursor)
+		entityIDs, err := entityScopeProvider.GetEntityIDs(ctx, scope.Cursor, timeRange)
 		if err != nil {
 			log.WithError(err).Error("failed to get entity ids")
 			return nil, false, err

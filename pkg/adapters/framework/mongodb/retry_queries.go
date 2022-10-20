@@ -2,12 +2,15 @@ package mongodb
 
 import (
 	"context"
+	"encoding/json"
+	"sync/atomic"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zenoss/event-management-service/internal/instrumentation"
 	"github.com/zenoss/zenkit/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.opencensus.io/trace"
@@ -42,7 +45,7 @@ func FindWithRetry[R any](
 		cursors      []Cursor
 		batchStartId = ""
 		limit, total int64
-		attempts     uint32
+		attempts     = new(uint32)
 	)
 	ctx, span := instrumentation.StartSpan(ctx, "FindWithRetry")
 	defer span.End()
@@ -66,6 +69,10 @@ func FindWithRetry[R any](
 	if err == nil {
 		span.AddAttributes(trace.StringAttribute("mongoFilter", string(filterBytes)))
 	}
+	findOptsByte, err := json.Marshal(findOpts)
+	if err == nil {
+		span.AddAttributes(trace.StringAttribute("mongoFindOptions", string(findOptsByte)))
+	}
 	for _, opt := range findOpts {
 		if opt != nil && opt.Limit != nil && *opt.Limit > 0 {
 			limit = *opt.Limit
@@ -85,39 +92,49 @@ OuterLoop:
 		}
 		var (
 			updatedFilter bson.D
-			updatedOpts   []*options.FindOptions
+			updatedOpts   *options.FindOptions
 			count         int64
 		)
 		if len(batchStartId) > 0 {
+			var startKey any
+			startKey = batchStartId
 			// TODO: Make this pluggable so the start key fits the schema of a given collection
-			updatedFilter = append(filter, bson.E{Key: "_id", Value: bson.E{Key: "$gt", Value: batchStartId}})
+			id, err := primitive.ObjectIDFromHex(batchStartId)
+			// if the key is an ObjectID hex
+			if err == nil {
+				startKey = id
+			}
+			updatedFilter = append(filter, bson.E{
+				Key: "_id",
+				Value: bson.D{{
+					Key:   "$gt",
+					Value: startKey,
+				}},
+			})
 		} else {
 			updatedFilter = filter
 		}
-		if limit > 0 && total > 0 {
-			updatedOpts = make([]*options.FindOptions, len(findOpts))
-			for i, opt := range findOpts {
-				updatedOpts[i] = findOpts[i]
-				if *opt.Limit > 0 {
-					updatedOpts[i].SetLimit(limit - total)
-				}
+		if total > 0 {
+			opts := options.Find()
+			if len(findOpts) > 0 {
+				opts = options.MergeFindOptions(findOpts...)
 			}
+			if opts.Limit != nil && *opts.Limit > 0 && limit-total > 0 {
+				opts.SetLimit(limit - total)
+			}
+			updatedOpts = opts
 		} else {
-			updatedOpts = findOpts
+			updatedOpts = options.MergeFindOptions(findOpts...)
 		}
-		attempts++
-		cursor, err := find(ctx, updatedFilter, updatedOpts...)
+		atomic.AddUint32(attempts, 1)
+		cursor, err := find(ctx, updatedFilter, updatedOpts)
 		if err != nil {
 			return errors.Wrap(err, "failed to find documents with retry")
 		}
 		cursors = append(cursors, cursor)
 		for cursor.Next(ctx) {
 			if err = cursor.Err(); err != nil {
-				if !isRetryableError(err) {
-					log.WithField(logrus.ErrorKey, err).Error("failed to find documents with non-retryable error")
-					return err
-				}
-				continue OuterLoop
+				break
 			}
 			var result R
 			if err := cursor.Decode(&result); err != nil {
@@ -136,19 +153,20 @@ OuterLoop:
 			total++
 			batchStartId = resultID
 		}
+		log.WithFields(logrus.Fields{
+			"totalCount":   total,
+			"currentCount": count,
+		}).Debug("got results during retrying-find operation")
 		if err := cursor.Err(); err != nil {
 			log.WithField(logrus.ErrorKey, err).Warn("got cursor error")
 			if !isRetryableError(err) {
 				log.WithField(logrus.ErrorKey, err).Error("failed to find documents with non-retryable error")
 				return err
 			}
-		} else {
-			break OuterLoop
+			_ = cursor.Close(ctx)
+			continue OuterLoop
 		}
-		log.WithFields(logrus.Fields{
-			"totalCount":   total,
-			"currentCount": count,
-		}).Debug("got results during retrying-find operation")
+		break OuterLoop
 	}
 	return nil
 }
