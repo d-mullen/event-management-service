@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/zenoss/event-management-service/internal/auth"
-	"time"
-
+	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/event-management-service/pkg/models/scopes"
 	"github.com/zenoss/zenkit/v5"
 	yamrPb "github.com/zenoss/zing-proto/v11/go/cloud/yamr"
@@ -25,7 +24,7 @@ func NewAdapter(cl yamrPb.YamrQueryClient) scopes.EntityScopeProvider {
 	return y
 }
 
-func (yp *yamrProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([]string, error) {
+func (yp *yamrProvider) GetEntityIDs(ctx context.Context, scopeCursor string, timeRange event.TimeRange) ([]string, error) {
 	ctx, span := trace.StartSpan(ctx, "zenoss.cloud/eventQuery/v2/go/yamrProvider.GetEntityIDs")
 	defer span.End()
 	ident, err := auth.CheckAuth(ctx)
@@ -34,7 +33,7 @@ func (yp *yamrProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([
 	}
 	tenantId := ident.Tenant()
 	log := zenkit.ContextLogger(ctx).
-		WithField("cursor", scopeCursor)
+		WithField("scopeCursor", scopeCursor)
 	results := make([]string, 0)
 	defer func() {
 		attr := make(map[string]any)
@@ -45,19 +44,18 @@ func (yp *yamrProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([
 			span.AddAttributes(trace.StringAttribute("getEntityAttributes", string(b)))
 		}
 	}()
-	now := time.Now()
 	resp, err := yp.client.Search(ctx, &yamrPb.SearchRequest{
 		Query: &yamrPb.Query{
 			Type:    "entity",
 			Tenants: []string{tenantId},
 			When: &yamrPb.When{
 				Lower: &yamrPb.When_Bound{
-					Time:      now.Add(-24 * time.Hour).UnixMilli(),
+					Time:      timeRange.Start,
 					BoundType: yamrPb.BoundType_CLOSED,
 				},
 				Upper: &yamrPb.When_Bound{
-					Time:      now.UnixMilli(),
-					BoundType: yamrPb.BoundType_CLOSED,
+					Time:      timeRange.End,
+					BoundType: yamrPb.BoundType_OPEN,
 				},
 			},
 			Clause: &yamrPb.Clause{
@@ -74,7 +72,7 @@ func (yp *yamrProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([
 		},
 	})
 	if err != nil {
-		log.WithError(err).Error("failed to execute cursor query")
+		log.WithError(err).Error("failed to execute scopeCursor query")
 		return nil, err
 	}
 	for _, result := range resp.GetResults() {
@@ -89,7 +87,7 @@ func (yp *yamrProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([
 			},
 		})
 		if err != nil {
-			log.WithError(err).Error("failed to execute cursor query")
+			log.WithError(err).Error("failed to execute scopeCursor query")
 			return nil, err
 		}
 		for _, result := range resp.GetResults() {

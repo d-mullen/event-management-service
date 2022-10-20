@@ -96,6 +96,30 @@ func max[N constraints.Ordered](a N, rest ...N) N {
 	}
 	return result
 }
+
+func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
+	opt := options.MergeFindOptions(opts...)
+	sortDoc := bson.D{}
+	if sortAny := opt.Sort; sortAny != nil {
+		if doc, ok := sortAny.(bson.D); ok {
+			sortDoc = append(sortDoc, doc...)
+		}
+	}
+	keyFound := false
+	for _, e := range sortDoc {
+		if e.Key == "_id" {
+			keyFound = true
+		}
+	}
+	if !keyFound {
+		sortDoc = append(sortDoc, bson.E{"_id", event.SortOrderAscending})
+	}
+	if len(sortDoc) > 0 {
+		opt.SetSort(sortDoc)
+	}
+	return opt
+}
+
 func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.FindOption) (*event.Page, error) {
 	var (
 		hasNext bool
@@ -122,12 +146,12 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	if findOpt.Limit != nil && *findOpt.Limit > 0 {
 		limit = int(*findOpt.Limit)
 	}
-
+	defaultOpts := defaultFindOpts(findOpt)
 	docs := make([]*bson.M, 0)
 	err = mongodb.FindWithRetry(
 		ctx,
 		filters,
-		[]*options.FindOptions{findOpt},
+		[]*options.FindOptions{defaultOpts},
 		db.collections[CollOccurrences].Find,
 		func(result *bson.M) (bool, string, error) {
 			if limit > 0 && len(docs)+1 == limit {
@@ -256,7 +280,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 				err := mongodb.FindWithRetry[*Note](
 					ctx,
 					notesInFilter,
-					[]*options.FindOptions{},
+					[]*options.FindOptions{defaultFindOpts(options.Find())},
 					db.collections[CollNotes].Find,
 					func(note *Note) (bool, string, error) {
 						notes = append(notes, note)
@@ -309,7 +333,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 				err := mongodb.FindWithRetry[*EventDimensions](
 					ctx,
 					bson.D{{Key: "_id", Value: eventInFilter}},
-					[]*options.FindOptions{},
+					[]*options.FindOptions{defaultFindOpts(options.Find())},
 					db.collections[CollEvents].Find,
 					func(r *EventDimensions) (bool, string, error) {
 						eventDocs = append(eventDocs, r)

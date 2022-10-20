@@ -8,7 +8,7 @@ import (
 
 type (
 	EntityScopeProvider interface {
-		GetEntityIDs(ctx context.Context, cursor string) ([]string, error)
+		GetEntityIDs(ctx context.Context, cursor string, timeRange event.TimeRange) ([]string, error)
 	}
 	ActiveEntityInput struct {
 		Timestamp int64

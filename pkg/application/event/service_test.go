@@ -18,7 +18,7 @@ import (
 
 type fakeEntityScopeProvider struct{}
 
-func (fesp *fakeEntityScopeProvider) GetEntityIDs(ctx context.Context, scopeCursor string) ([]string, error) {
+func (fesp *fakeEntityScopeProvider) GetEntityIDs(ctx context.Context, cursor string, timeRange eventContext.TimeRange) ([]string, error) {
 	return []string{"1", "2"}, nil
 }
 
