@@ -20,6 +20,9 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
+  labels:
+    app: event-query
+    project: event-query
   name: event-query-vs
 spec:
   gateways:
