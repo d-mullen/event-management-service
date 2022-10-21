@@ -261,10 +261,10 @@ func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Reposito
 			func(ctx context.Context, batch []*event.Occurrence) ([]*event.Occurrence, error) {
 				batchResult, err := getOccurrenceDetails(ctx, batch, q, eventTSRepo)
 				if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
-				log.WithFields(logrus.Fields{
-					"occurrence_count": len(batchResult),
-					"latest":           q.Latest,
-				}).Debug("table:getOccurrenceDetails")
+					log.WithFields(logrus.Fields{
+						"occurrence_count": len(batchResult),
+						"latest":           q.Latest,
+					}).Debug("table:getOccurrenceDetails")
 				}
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to get occurrence time-series details")
@@ -578,7 +578,7 @@ func frequenceRequest2Query(ctx context.Context, req *event.FrequencyRequest) *e
 	requestedFields = append(requestedFields, req.GroupBy...)
 	requestedFields = append(requestedFields, req.Query.Fields...)
 	latest := event.CountFlagLatest
-	if !req.CountInstances {
+	if req.CountInstances {
 		latest = event.CountFlagAll
 	}
 	return &event.Query{
@@ -595,7 +595,7 @@ func frequenceRequest2Query(ctx context.Context, req *event.FrequencyRequest) *e
 
 func countRequest2Query(ctx context.Context, req *event.CountRequest) *event.Query {
 	latest := event.CountFlagLatest
-	if !req.CountInstances {
+	if req.CountInstances {
 		latest = event.CountFlagAll
 	}
 	return &event.Query{
