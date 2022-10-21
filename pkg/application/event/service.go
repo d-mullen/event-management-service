@@ -152,7 +152,6 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 			Values:    tsStatuses})
 	}
 
-	log.Infof("CALLING EVENT TS WITH %v", q.Latest)
 	req := &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			TimeRange: eventts.TimeRange{
@@ -212,7 +211,7 @@ StreamLoop:
 			case nil:
 				// no op
 			case context.DeadlineExceeded:
-				log.Debug("deadline exceeded during event-ts scan")
+				log.Warning("deadline exceeded during event-ts scan")
 				break StreamLoop
 			default:
 				log.WithError(ctxErr).Error("got error during event-ts scan")
@@ -446,7 +445,8 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	findOpt := event.NewFindOption()
 	findOpt.SetOccurrenceProcessors([]event.OccurrenceProcessor{occProcessor})
 	_ = findOpt
-	if query.PageInput == nil || (query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
+	if query.PageInput == nil ||
+		(query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
 		queryGroup, gCtx := errgroup.WithContext(ctx)
 		queryGroup.SetLimit(5)
 		queries := SplitOutQueries(2000, "entity", eventContextQ)
@@ -533,9 +533,7 @@ func (svc *service) Get(ctx context.Context, req *event.GetRequest) ([]*event.Ev
 }
 
 func shouldGetEventTSDetails(query *event.Query) bool {
-	if query.Latest == event.CountFlagAll {
-		return true
-	}
+
 	for _, field := range query.Fields {
 		if len(field) > 0 && !event.IsSupportedField(field) {
 			return true
@@ -666,10 +664,26 @@ type (
 	countResult map[string]map[fieldValueKey]uint64
 )
 
+type CountIncrementer func(*event.Occurrence) uint64
+
+func incrementByOne(_ *event.Occurrence) uint64 {
+	return uint64(1)
+}
+
+func incrementByCount(o *event.Occurrence) uint64 {
+	return uint64(o.InstanceCount)
+}
+
 func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventts.CountResponse, error) {
+	var (
+		countIncrementer CountIncrementer = incrementByOne
+	)
 	log := zenkit.ContextLogger(ctx)
 	// construct query with combined fields from query and count request
 	updatedQuery := countRequest2Query(ctx, req)
+	if updatedQuery.Latest == event.CountFlagAll {
+		countIncrementer = incrementByCount
+	}
 	resp, err := svc.Find(ctx, updatedQuery)
 	if err != nil {
 		log.WithField(logrus.ErrorKey, err).Error("failed to perform count")
@@ -691,14 +705,14 @@ func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventt
 					foundFieldValue = true
 					valueKey := fieldValueKey{field: field, value: v}
 					cnt := countResult[valueKey]
-					countResult[valueKey] = cnt + 1
+					countResult[valueKey] = cnt + countIncrementer(occurrence)
 				} else if occurrence.Metadata != nil {
 					if values, ok2 := occurrence.Metadata[field]; ok2 {
 						foundFieldValue = true
 						for _, v := range values {
 							valueKey := fieldValueKey{field: field, value: v}
 							cnt := countResult[valueKey]
-							countResult[valueKey] = cnt + 1
+							countResult[valueKey] = cnt + countIncrementer(occurrence)
 						}
 					}
 				}
@@ -706,7 +720,7 @@ func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventt
 					if dim, ok := eventResult.Dimensions[field]; ok {
 						valueKey := fieldValueKey{field: field, value: dim}
 						cnt := countResult[valueKey]
-						countResult[valueKey] = cnt + 1
+						countResult[valueKey] = cnt + countIncrementer(occurrence)
 
 					}
 				}
