@@ -260,10 +260,12 @@ func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Reposito
 			origOccurrences,
 			func(ctx context.Context, batch []*event.Occurrence) ([]*event.Occurrence, error) {
 				batchResult, err := getOccurrenceDetails(ctx, batch, q, eventTSRepo)
+				if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 				log.WithFields(logrus.Fields{
 					"occurrence_count": len(batchResult),
 					"latest":           q.Latest,
 				}).Debug("table:getOccurrenceDetails")
+				}
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to get occurrence time-series details")
 				}
