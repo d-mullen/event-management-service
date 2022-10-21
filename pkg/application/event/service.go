@@ -168,7 +168,7 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 				ShouldApplyIntervals: q.ShouldApplyOccurrenceIntervals,
 				OccurrenceMap:        occurrenceInputsByEventID,
 			},
-			Latest:       1,
+			Latest:       uint64(q.Latest),
 			ResultFields: q.Fields,
 			Filters:      tsFilters,
 		},
@@ -211,7 +211,7 @@ StreamLoop:
 			case nil:
 				// no op
 			case context.DeadlineExceeded:
-				log.Debug("deadline exceeded during event-ts scan")
+				log.Warning("deadline exceeded during event-ts scan")
 				break StreamLoop
 			default:
 				log.WithError(ctxErr).Error("got error during event-ts scan")
@@ -251,6 +251,7 @@ StreamLoop:
 
 func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Repository) event.OccurrenceProcessor {
 	return func(ctx context.Context, origOccurrences []*event.Occurrence) ([]*event.Occurrence, error) {
+		log := zenkit.ContextLogger(ctx)
 		ctx, span := instrumentation.StartSpan(ctx, "occurrenceProcessor/getDetails")
 		defer span.End()
 		results := make([]*event.Occurrence, 0)
@@ -259,6 +260,12 @@ func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Reposito
 			origOccurrences,
 			func(ctx context.Context, batch []*event.Occurrence) ([]*event.Occurrence, error) {
 				batchResult, err := getOccurrenceDetails(ctx, batch, q, eventTSRepo)
+				if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
+					log.WithFields(logrus.Fields{
+						"occurrence_count": len(batchResult),
+						"latest":           q.Latest,
+					}).Debug("table:getOccurrenceDetails")
+				}
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to get occurrence time-series details")
 				}
@@ -406,6 +413,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	var (
 		resultMut sync.Mutex
 		resp      = new(event.Page)
+		// log       = zenkit.ContextLogger(ctx)
 	)
 	err := applyScopeFilterTransform(ctx, query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
@@ -420,6 +428,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		Fields:                         internal.CloneSlice(query.Fields),
 		Filter:                         query.Filter.Clone(),
 		PageInput:                      query.PageInput,
+		Latest:                         query.Latest,
 	}
 	// drop any filters on unsupported fields in event context store query
 	newFilter, err := transformFilter(query.Filter, func(f *event.Filter) (*event.Filter, bool, error) {
@@ -438,7 +447,8 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	findOpt := event.NewFindOption()
 	findOpt.SetOccurrenceProcessors([]event.OccurrenceProcessor{occProcessor})
 	_ = findOpt
-	if query.PageInput == nil || (query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
+	if query.PageInput == nil ||
+		(query.PageInput != nil && query.PageInput.Limit == 0 && len(query.PageInput.Cursor) == 0 && len(query.PageInput.SortBy) == 0) {
 		queryGroup, gCtx := errgroup.WithContext(ctx)
 		queryGroup.SetLimit(5)
 		queries := SplitOutQueries(2000, "entity", eventContextQ)
@@ -525,6 +535,7 @@ func (svc *service) Get(ctx context.Context, req *event.GetRequest) ([]*event.Ev
 }
 
 func shouldGetEventTSDetails(query *event.Query) bool {
+
 	for _, field := range query.Fields {
 		if len(field) > 0 && !event.IsSupportedField(field) {
 			return true
@@ -560,14 +571,17 @@ func bucketsToFrequencyResult(buckets []*frequency.Bucket) []*eventts.FrequencyR
 	return results
 }
 
-func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) (*eventts.FrequencyResponse, error) {
-	log := zenkit.ContextLogger(ctx)
+func frequenceRequest2Query(ctx context.Context, req *event.FrequencyRequest) *event.Query {
 	// construct query with combined fields from query and frequency request
 	requestedFields := make([]string, 0)
 	requestedFields = append(requestedFields, req.Fields...)
 	requestedFields = append(requestedFields, req.GroupBy...)
 	requestedFields = append(requestedFields, req.Query.Fields...)
-	updatedQuery := &event.Query{
+	latest := event.CountFlagLatest
+	if req.CountInstances {
+		latest = event.CountFlagAll
+	}
+	return &event.Query{
 		Tenant:     req.Query.Tenant,
 		TimeRange:  req.TimeRange,
 		Severities: req.Severities,
@@ -575,7 +589,31 @@ func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) 
 		Fields:     requestedFields,
 		Filter:     req.Query.Filter,
 		PageInput:  req.Query.PageInput,
+		Latest:     latest,
 	}
+}
+
+func countRequest2Query(ctx context.Context, req *event.CountRequest) *event.Query {
+	latest := event.CountFlagLatest
+	if req.CountInstances {
+		latest = event.CountFlagAll
+	}
+	return &event.Query{
+		Tenant:     req.Query.Tenant,
+		TimeRange:  req.TimeRange,
+		Severities: req.Severities,
+		Statuses:   req.Statuses,
+		Fields:     append(req.Fields, req.Query.Fields...),
+		Filter:     req.Query.Filter,
+		PageInput:  req.Query.PageInput,
+		Latest:     latest,
+	}
+}
+
+func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) (*eventts.FrequencyResponse, error) {
+	log := zenkit.ContextLogger(ctx)
+
+	updatedQuery := frequenceRequest2Query(ctx, req)
 	resp, err := svc.Find(ctx, updatedQuery)
 	if err != nil {
 		log.WithField(logrus.ErrorKey, err).Error("failed to perform frequency")
@@ -628,17 +666,25 @@ type (
 	countResult map[string]map[fieldValueKey]uint64
 )
 
+type CountIncrementer func(*event.Occurrence) uint64
+
+func incrementByOne(_ *event.Occurrence) uint64 {
+	return uint64(1)
+}
+
+func incrementByCount(o *event.Occurrence) uint64 {
+	return uint64(o.InstanceCount)
+}
+
 func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventts.CountResponse, error) {
+	var (
+		countIncrementer CountIncrementer = incrementByOne
+	)
 	log := zenkit.ContextLogger(ctx)
 	// construct query with combined fields from query and count request
-	updatedQuery := &event.Query{
-		Tenant:     req.Query.Tenant,
-		TimeRange:  req.TimeRange,
-		Severities: req.Severities,
-		Statuses:   req.Statuses,
-		Fields:     append(req.Fields, req.Query.Fields...),
-		Filter:     req.Query.Filter,
-		PageInput:  req.Query.PageInput,
+	updatedQuery := countRequest2Query(ctx, req)
+	if updatedQuery.Latest == event.CountFlagAll {
+		countIncrementer = incrementByCount
 	}
 	resp, err := svc.Find(ctx, updatedQuery)
 	if err != nil {
@@ -661,14 +707,14 @@ func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventt
 					foundFieldValue = true
 					valueKey := fieldValueKey{field: field, value: v}
 					cnt := countResult[valueKey]
-					countResult[valueKey] = cnt + 1
+					countResult[valueKey] = cnt + countIncrementer(occurrence)
 				} else if occurrence.Metadata != nil {
 					if values, ok2 := occurrence.Metadata[field]; ok2 {
 						foundFieldValue = true
 						for _, v := range values {
 							valueKey := fieldValueKey{field: field, value: v}
 							cnt := countResult[valueKey]
-							countResult[valueKey] = cnt + 1
+							countResult[valueKey] = cnt + countIncrementer(occurrence)
 						}
 					}
 				}
@@ -676,7 +722,7 @@ func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventt
 					if dim, ok := eventResult.Dimensions[field]; ok {
 						valueKey := fieldValueKey{field: field, value: dim}
 						cnt := countResult[valueKey]
-						countResult[valueKey] = cnt + 1
+						countResult[valueKey] = cnt + countIncrementer(occurrence)
 
 					}
 				}

@@ -256,8 +256,9 @@ func (handler *EventQueryService) Count(ctx context.Context, req *eventquery.Cou
 		WithField("query", findReq).
 		Tracef("executing Find request")
 	countResp, err := handler.svr.Count(ctx, &event.CountRequest{
-		Query:  *findReq,
-		Fields: reqFields, // TODO: fix type of this field in zing-proto
+		Query:          *findReq,
+		Fields:         reqFields, // TODO: fix type of this field in zing-proto
+		CountInstances: req.CountInstances,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Unknown, "failed to execute event context query: %q", err)
