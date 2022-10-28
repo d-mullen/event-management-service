@@ -627,24 +627,32 @@ func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) 
 		for _, occurrence := range result.Occurrences {
 			log.WithField("occurrence", occurrence).Trace("processing occurrence")
 			occAsMap := toMap(occurrence)
-			atOrAboveStartTime := interval.AtOrAbove(uint64(occurrence.StartTime))
-			if occurrence.Status != event.StatusClosed && occurrence.EndTime > 0 { // occurrence is active
-				atOrAboveStartTime = interval.Closed(uint64(occurrence.StartTime), uint64(occurrence.EndTime)) // occurrence is closed
+			// TODO: figure out the correct interval to use.
+			// Using a point interval on `lastSeen` makes graphs
+			// that look correct, but using the interval [startTime, lastSeen)
+			// feels more correct. I think that's what Yamr does.
+			// Maybe there's a bug in the FrequencyMap implementation.
+			occInterval := interval.Point(uint64(occurrence.LastSeen))
+			if occurrence.LastSeen == 0 {
+				occInterval = interval.AtOrAbove(uint64(occurrence.StartTime))
+				if occurrence.Status == event.StatusClosed {
+					occInterval = interval.Point(uint64(occurrence.EndTime))
+				}
 			}
 			for _, field := range req.Fields {
 				foundFieldValue := false
 				if v, ok := occAsMap[field]; ok {
-					freqMap.Put(atOrAboveStartTime, map[string][]any{field: {v}})
+					freqMap.Put(occInterval, map[string][]any{field: {v}})
 					foundFieldValue = true
 				} else if occurrence.Metadata != nil {
 					if values, ok2 := occurrence.Metadata[field]; ok2 {
-						freqMap.Put(atOrAboveStartTime, map[string][]any{field: values})
+						freqMap.Put(occInterval, map[string][]any{field: values})
 						foundFieldValue = true
 					}
 				}
 				if !foundFieldValue && result.Dimensions != nil {
 					if dim, ok := result.Dimensions[field]; ok {
-						freqMap.Put(atOrAboveStartTime, map[string][]any{field: {dim}})
+						freqMap.Put(occInterval, map[string][]any{field: {dim}})
 					}
 				}
 			}
