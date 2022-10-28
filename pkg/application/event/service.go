@@ -426,7 +426,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		Severities:                     internal.CloneSlice(query.Severities),
 		Statuses:                       internal.CloneSlice(query.Statuses),
 		Fields:                         internal.CloneSlice(query.Fields),
-		Filter:                         query.Filter.Clone(),
+		Filter:                         nil,
 		PageInput:                      query.PageInput,
 		Latest:                         query.Latest,
 	}
