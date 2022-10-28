@@ -301,7 +301,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 					resp, err := adapter.Find(testCtx, input)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(resp.Results).To(HaveLen(pageSize))
-					Expect(resp.Cursor).ToNot(BeEmpty())
+					Expect(resp.EndCursor).ToNot(BeEmpty())
 					if i+len(resp.Results) < len(testEvents) {
 						Expect(resp.HasNext).To(BeTrue())
 					} else {
@@ -312,7 +312,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 						end = len(testEvents)
 					}
 					matchFindResults(resp, testEvents[i:end])
-					cursor = resp.Cursor
+					cursor = resp.EndCursor
 
 				}
 				for i := len(testEvents); i > 0; i -= pageSize {
@@ -355,7 +355,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 					resp, err := adapter.Find(testCtx, input)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(resp.Results).To(HaveLen(pageSize))
-					Expect(resp.Cursor).ToNot(BeEmpty())
+					Expect(resp.EndCursor).ToNot(BeEmpty())
 					// if i+len(resp.Results) < len(testEvents) {
 					// 	Expect(resp.HasNext).To(BeTrue())
 					// } else {
@@ -363,7 +363,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 					// }
 					start := i - pageSize
 					matchFindResults(resp, testEvents[start:i])
-					cursor = resp.Cursor
+					cursor = resp.EndCursor
 				}
 			})
 		})

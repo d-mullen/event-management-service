@@ -250,7 +250,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			"filteredOccurrenceCount": len(filteredOccurrences),
 		}).Debug("table:rawOccurrenceCounts")
 	}
-	
+
 	results := make([]*event.Event, 0)
 	occMap := make(map[string]*event.Occurrence)
 	eventIDs := make([]string, 0)
@@ -385,9 +385,9 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		}
 	}
 	return &event.Page{
-		Results: results,
-		HasNext: hasNext,
-		Cursor:  resultsCursor,
+		Results:   results,
+		HasNext:   hasNext,
+		EndCursor: resultsCursor,
 	}, nil
 }
 

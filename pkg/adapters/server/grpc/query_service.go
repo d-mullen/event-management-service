@@ -154,11 +154,24 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 		log.WithError(err).Errorf("failed to convert request to domain query")
 		return nil, status.Errorf(codes.Unknown, "failed to execute search: %q", errors.Unwrap(err))
 	}
+	hasPrev := false
+	startCursor := ""
+	if req.Query.PageInput != nil {
+		if len(req.Query.PageInput.Cursor) > 0 {
+			startCursor = req.Query.PageInput.Cursor
+			if req.Query.PageInput.GetDirection() == eventquery.PageInput_DIRECTION_FORWARD {
+				hasPrev = true
+			}
+		}
+	}
+
 	resp := &eventquery.SearchResponse{
 		Results: make([]*eventquery.EventResult, 0),
 		PageInfo: &eventquery.PageInfo{
-			EndCursor: page.Cursor,
-			HasNext:   page.HasNext,
+			StartCursor: startCursor,
+			EndCursor:   page.EndCursor,
+			HasNext:     page.HasNext,
+			HasPrev:     hasPrev,
 		},
 	}
 	for _, result := range page.Results {
