@@ -384,10 +384,22 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			return nil, errors.Wrap(err, "failed to upsert cursor")
 		}
 	}
+	hasPrev := false
+	startCursor := ""
+	if query.PageInput != nil {
+		if len(query.PageInput.Cursor) > 0 {
+			startCursor = query.PageInput.Cursor
+			if query.PageInput.Direction == event.PageDirectionForward {
+				hasPrev = true
+			}
+		}
+	}
 	return &event.Page{
-		Results:   results,
-		HasNext:   hasNext,
-		EndCursor: resultsCursor,
+		Results:     results,
+		HasNext:     hasNext,
+		HasPrev:     hasPrev,
+		StartCursor: startCursor,
+		EndCursor:   resultsCursor,
 	}, nil
 }
 

@@ -124,8 +124,9 @@ type (
 	Page struct {
 		Results     []*Event
 		HasNext     bool
-		EndCursor   string
+		HasPrev     bool
 		StartCursor string
+		EndCursor   string
 	}
 	Repository interface {
 		Create(context.Context, *Event) (*Event, error)
