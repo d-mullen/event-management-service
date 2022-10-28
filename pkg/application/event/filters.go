@@ -32,7 +32,7 @@ var (
 
 func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	if orig == nil {
-		return nil, errors.New("invalid filter")
+		return nil, nil
 	}
 	results := make([]*eventts.Filter, 0)
 	if orig.Op == event.FilterOpAnd {
