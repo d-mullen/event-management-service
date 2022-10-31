@@ -21,6 +21,7 @@ import (
 	"github.com/zenoss/event-management-service/pkg/application/event"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus/ctxlogrus"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/viper"
 	yamrPb "github.com/zenoss/zing-proto/v11/go/cloud/yamr"
 	"google.golang.org/grpc"
@@ -40,6 +41,24 @@ const (
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+}
+
+var (
+	endpointHandlerRegistrationFuncs = map[string]zenkit.RegisterEndpointFunc{
+		config.EventManagementEnabledConfig: proto.RegisterEventManagementHandlerFromEndpoint,
+		config.EventQueryEnabled:            eventQueryProto.RegisterEventQueryServiceHandlerFromEndpoint,
+	}
+)
+
+func registerCombinedEndpointHandlers(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	for cfgKey, fn := range endpointHandlerRegistrationFuncs {
+		if viper.GetBool(cfgKey) {
+			if err := fn(ctx, mux, endpoint, opts); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func main() {
@@ -129,7 +148,7 @@ func main() {
 
 		return nil
 
-	}, proto.RegisterEventManagementHandlerFromEndpoint)
+	}, registerCombinedEndpointHandlers)
 	if err != nil {
 		log.WithError(err).Fatal("error running gRPC server")
 	}
