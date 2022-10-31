@@ -426,7 +426,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		Severities:                     internal.CloneSlice(query.Severities),
 		Statuses:                       internal.CloneSlice(query.Statuses),
 		Fields:                         internal.CloneSlice(query.Fields),
-		Filter:                         query.Filter.Clone(),
+		Filter:                         nil,
 		PageInput:                      query.PageInput,
 		Latest:                         query.Latest,
 	}
@@ -440,9 +440,8 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to filter out filters with unsupported fields")
 	}
-	if newFilter != nil {
-		eventContextQ.Filter = newFilter
-	}
+	eventContextQ.Filter = newFilter
+
 	occProcessor := makeEventTSOccurrenceProcessor(query, svc.eventTS)
 	findOpt := event.NewFindOption()
 	findOpt.SetOccurrenceProcessors([]event.OccurrenceProcessor{occProcessor})
