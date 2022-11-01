@@ -173,7 +173,7 @@ kind: Deployment
 metadata:
   labels:
     app: event-query
-    project: event-query
+    project: event-management-service
   name: event-query
 spec:
   selector:
@@ -183,7 +183,7 @@ spec:
     metadata:
       labels:
         app: event-query
-        project: event-query
+        project: event-management-service
         istio.io/rev: "asm-managed-stable"
       annotations:
         sidecar.istio.io/rewriteAppHTTPProbers: "false"

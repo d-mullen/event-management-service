@@ -30,6 +30,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app: event-query
+    project: event-management-service
   name: event-query
 spec:
   ports:
@@ -44,11 +47,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    app: event-query
+    project: event-management-service
   name: event-query-public
 spec:
   ports:
   - port: 80
-    # through zc-api-proxy to event-mgmt-svc
+    # through zc-api-proxy to event-query
     targetPort: 9000
     protocol: TCP
     name: grpc

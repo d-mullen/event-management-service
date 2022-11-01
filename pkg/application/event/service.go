@@ -441,7 +441,6 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 		return nil, errors.Wrap(err, "failed to filter out filters with unsupported fields")
 	}
 	eventContextQ.Filter = newFilter
-
 	occProcessor := makeEventTSOccurrenceProcessor(query, svc.eventTS)
 	findOpt := event.NewFindOption()
 	findOpt.SetOccurrenceProcessors([]event.OccurrenceProcessor{occProcessor})

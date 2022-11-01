@@ -122,9 +122,11 @@ type (
 		SortBy    []SortOpt
 	}
 	Page struct {
-		Results []*Event
-		HasNext bool
-		Cursor  string
+		Results     []*Event
+		HasNext     bool
+		HasPrev     bool
+		StartCursor string
+		EndCursor   string
 	}
 	Repository interface {
 		Create(context.Context, *Event) (*Event, error)
