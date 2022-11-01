@@ -20,6 +20,9 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
+  labels:
+    app: event-query
+    project: event-management-service
   name: event-query-vs
 spec:
   gateways:
@@ -29,7 +32,11 @@ spec:
   http:
     - match:
         - uri:
+            prefix: /zenoss.cloud.event_query.v2.EventQueryService/
+        - uri:
             prefix: /v1/events/
+        - uri:
+            regex: /v1/events:(search|getBulk|count|frequency)
       route:
         - destination:
             host: event-query-public
