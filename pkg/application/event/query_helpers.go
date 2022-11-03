@@ -161,11 +161,14 @@ func transformFilter(orig *event.Filter, cb func(*event.Filter) (*event.Filter, 
 					newSubclauses = append(newSubclauses, newFilter)
 				}
 			}
-			return &event.Filter{
-				Field: orig.Field,
-				Op:    orig.Op,
-				Value: newSubclauses,
-			}, nil
+			if len(newSubclauses) > 0 {
+				return &event.Filter{
+					Field: orig.Field,
+					Op:    orig.Op,
+					Value: newSubclauses,
+				}, nil
+			}
+			return nil, nil
 		}
 	default:
 		newFilter, ok, err := cb(orig)
