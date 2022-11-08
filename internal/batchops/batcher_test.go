@@ -29,25 +29,19 @@ var _ = Describe("Batcher Unit Tests", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 	})
 	It("should batch up larger payloads into smaller batches and process them concurrently", func() {
-		i := 0
-		err := batchops.DoConcurrently(context.TODO(), 2, 2, []int{1, 2, 3, 4, 5, 6, 7},
-			func(_ context.Context, batch []int) (int, error) {
+		expected := []int{1, 2, 3, 4, 5, 6, 7}
+		actual := []int{}
+		err := batchops.DoConcurrently(context.TODO(), 2, 2, expected,
+			func(_ context.Context, batch []int) ([]int, error) {
 				defer GinkgoRecover()
 				GinkgoWriter.Printf("got batch %v\n", batch)
-				if i == 0 {
-					Ω(batch).Should(ContainElements(1, 2))
-				}
-				if i == 1 {
-					Ω(batch).Should(ContainElements(3, 4))
-				}
-				i++
-				return i, nil
-			}, func(_ context.Context, r int) (bool, error) {
-				defer GinkgoRecover()
-				Ω(r).Should(Equal(i))
+				return batch, nil
+			}, func(_ context.Context, r []int) (bool, error) {
+				actual = append(actual, r...)
 				return true, nil
 			},
 		)
 		Ω(err).ShouldNot(HaveOccurred())
+		Expect(actual).To(ConsistOf(expected))
 	})
 })
