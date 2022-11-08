@@ -55,6 +55,31 @@ func DoConcurrently[E any, R any](
 	payload []E,
 	doOperation func(ctx context.Context, batch []E) (R, error),
 	processResults func(ctx context.Context, result R) (bool, error)) error {
+	return doConcurrently(ctx, false, batchSize, numRoutines, payload, doOperation, processResults)
+}
+
+func DoConcurrentlyInOrder[E any, R any](
+	ctx context.Context,
+	batchSize, numRoutines int,
+	payload []E,
+	doOperation func(ctx context.Context, batch []E) (R, error),
+	processResults func(ctx context.Context, result R) (bool, error)) error {
+
+	return doConcurrently(ctx, true, batchSize, numRoutines, payload, doOperation, processResults)
+}
+
+type batch[E any] struct {
+	index int
+	data  []E
+}
+
+func doConcurrently[E any, R any](
+	ctx context.Context,
+	inOrder bool,
+	batchSize, numRoutines int,
+	payload []E,
+	doOperation func(ctx context.Context, batch []E) (R, error),
+	processResults func(ctx context.Context, result R) (bool, error)) error {
 	ctx, span := trace.StartSpan(ctx, "DoConcurrently")
 	defer span.End()
 	if batchSize == 0 {
@@ -69,40 +94,67 @@ func DoConcurrently[E any, R any](
 	if len(payload)%batchSize > 0 {
 		numBatches += 1
 	}
-	queue := make(chan []E, numBatches)
+	queue := make(chan batch[E], numBatches)
+	idx := 0
 	for i := 0; i < len(payload); i += batchSize {
 		j := i + batchSize
 		if j > len(payload) {
 			j = len(payload)
 		}
-		queue <- payload[i:j]
+		queue <- batch[E]{
+			data:  payload[i:j],
+			index: idx,
+		}
+		idx++
 	}
 	close(queue)
 	errGroup, gCtx := errgroup.WithContext(ctx)
+	gCtx, groupCancel := context.WithCancel(gCtx)
+	defer groupCancel()
+	log := zenkit.ContextLogger(gCtx)
+	combinedResults := make([]R, numBatches)
 	for g := 0; g < numRoutines; g++ {
 		errGroup.Go(func() error {
-			log := zenkit.ContextLogger(gCtx)
 			for batch := range queue {
-				result, err := doOpWithSpan(batch)
+				result, err := doOpWithSpan(batch.data)
 				if err != nil {
 					log.WithError(err).Error("failed to do concurrent batch operation")
 					return err
 				}
-				ok, err := processResults(ctx, result)
-				if err != nil {
-					log.WithError(err).Error("failed to process result during batch operation")
-					return err
-				}
-				if !ok {
-					//TODO: implement mechanism to stop all goroutines in group
-					break
+				if !inOrder {
+					ok, err := processResults(ctx, result)
+					if err != nil {
+						log.WithError(err).Error("failed to process result during batch operation")
+						return err
+					}
+					if !ok {
+						// cancel context so other goroutines in group will stop
+						groupCancel()
+						break
+					}
+				} else {
+					combinedResults[batch.index] = result
 				}
 			}
 			return nil
 		})
 	}
 	if err := errGroup.Wait(); err != nil {
-		return err
+		if errors.Unwrap(err) != context.Canceled {
+			return err
+		}
+	}
+	if inOrder {
+		for _, result := range combinedResults {
+			ok, err := processResults(ctx, result)
+			if err != nil {
+				log.WithError(err).Error("failed to process result during batch operation")
+				return err
+			}
+			if !ok {
+				break
+			}
+		}
 	}
 	return nil
 }

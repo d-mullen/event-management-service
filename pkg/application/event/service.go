@@ -256,7 +256,7 @@ func makeEventTSOccurrenceProcessor(q *event.Query, eventTSRepo eventts.Reposito
 		defer span.End()
 		results := make([]*event.Occurrence, 0)
 		resultMut := sync.Mutex{}
-		batchops.DoConcurrently(ctx, 50, 25,
+		batchops.DoConcurrentlyInOrder(ctx, 50, 25,
 			origOccurrences,
 			func(ctx context.Context, batch []*event.Occurrence) ([]*event.Occurrence, error) {
 				batchResult, err := getOccurrenceDetails(ctx, batch, q, eventTSRepo)
