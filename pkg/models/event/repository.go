@@ -154,25 +154,28 @@ func (q *Query) Validate() error {
 }
 
 var supportedFields = map[string]bool{
-	//	"name":         true,
-	"summary":       true,
-	"type":          true,
-	"status":        true,
-	"severity":      true,
+	// Event only fields
+	"dimensions": true,
+
+	// Occurrence only fields
+	"summary":      true,
+	"type":         true,
+	"status":       true,
+	"severity":     true,
+	"currentTime":  true,
+	"body":         true,
+	"startTime":    true,
+	"endTime":      true,
+	"acknowledged": true,
+	"eventId":      true,
+
+	// Common fields
 	"entity":        true,
-	"acknowledged":  true,
-	"dimensions":    true,
-	"notes":         true,
-	"eventId":       true,
 	"createdAt":     true,
 	"updatedAt":     true,
 	"expireAt":      true,
 	"tenantId":      true,
-	"currentTime":   true,
 	"instanceCount": true,
-	"body":          true,
-	"startTime":     true,
-	"endTime":       true,
 }
 
 func IsSupportedField(field string) bool {
