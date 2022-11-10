@@ -181,14 +181,30 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	}
 
 	if limit > 0 && hasNext {
+		numRemoved := len(docs) - len(filteredOccurrences)
 		retryTicker := time.NewTimer(30 * time.Second)
 		defer retryTicker.Stop()
-		origLimit := limit - 1
-		numRemoved := origLimit - len(filteredOccurrences)
 		offset := len(docs)
 		retries := 0
-		for hasNext && numRemoved > 0 && retries < 100 {
-			newLimit := max(numRemoved, 500)
+		for {
+			if !hasNext {
+				log.Trace("exiting: fetch more loop: hasNext == false")
+				break
+			}
+			// only guard on numRemoved the first time
+			if retries == 0 && numRemoved == 0 {
+				log.Trace("exiting: fetch more loop: numRemoved == 0")
+				break
+			}
+			if !(len(filteredOccurrences) < limit) {
+				log.Trace("exiting: fetch more loop: len(filteredOccurrences) >= limit")
+				break
+			}
+			if retries > 100 {
+				break
+			}
+			// Limit how much we over-fetch docs from Mongo on retries
+			newLimit := min(numRemoved, limit, 100)
 			hasNext = false
 			currDocs := make([]*bson.M, 0)
 			err = mongodb.FindWithRetry(
@@ -223,8 +239,11 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			}
 			docs = append(docs, currDocs...)
 			offset = len(docs)
-			filteredOccurrences = append(filteredOccurrences, currOccurrences...)
-			numRemoved = origLimit - len(filteredOccurrences)
+			// If we did over-fetch, then only keep the amount needed
+			// to fill out page
+			j := min(len(currOccurrences), limit-len(currOccurrences))
+			filteredOccurrences = append(filteredOccurrences, currOccurrences[:j]...)
+			numRemoved = len(currDocs) - len(currOccurrences)
 			retries++
 			select {
 			case <-retryTicker.C:
@@ -379,7 +398,19 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	}
 	resultsCursor := ""
 	if len(docs) > 0 {
-		resultsCursor, err = UpsertCursor(ctx, db.cursorRepo, db.pager, query, docs)
+		// Find the index in the slice of all occurrence docs fetched
+		// so the paginator can capture the correct offset for the next page.
+		lastResultIdx := len(docs)
+		if len(filteredOccurrences) > 0 {
+			lastOccID := filteredOccurrences[len(filteredOccurrences)-1].ID
+			for i, doc := range docs {
+				if (*doc)["_id"] == lastOccID {
+					lastResultIdx = i + 1
+					break
+				}
+			}
+		}
+		resultsCursor, err = UpsertCursor(ctx, db.cursorRepo, db.pager, query, docs[:lastResultIdx])
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to upsert cursor")
 		}
