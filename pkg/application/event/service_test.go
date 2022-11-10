@@ -295,16 +295,6 @@ var _ = Describe("eventquery.Service", func() {
 						Expect(ok).To(BeTrue())
 						Expect(req.Filters).Should(ConsistOf([](*eventts.Filter){
 							{
-								Operation: eventts.Operation_OP_IN,
-								Field:     "_zv_severity",
-								Values:    []any{eventContext.Severity_name[eventContext.SeverityDefault]},
-							},
-							{
-								Operation: eventts.Operation_OP_IN,
-								Field:     "_zv_status",
-								Values:    []any{eventContext.Status_name[eventContext.StatusClosed]},
-							},
-							{
 								Operation: eventts.Operation_OP_EQUALS,
 								Field:     "CZ_EVENT_DETAIL-zenoss.device.production_state",
 								Values:    []any{1000},

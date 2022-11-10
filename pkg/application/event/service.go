@@ -130,28 +130,6 @@ func getOccurrenceDetails(ctx context.Context, origOccurs []*event.Occurrence, q
 		log.WithError(err).Error("failed to covert to event-ts filter")
 	}
 
-	if len(q.Severities) > 0 { // severity filter
-		tsSeverities := make([]any, len(q.Severities))
-		for i, sev := range q.Severities {
-			tsSeverities[i] = event.Severity_name[sev]
-		}
-		tsFilters = append(tsFilters, &eventts.Filter{
-			Operation: eventts.Operation_OP_IN,
-			Field:     "_zv_severity",
-			Values:    tsSeverities})
-	}
-
-	if len(q.Statuses) > 0 { // status filter
-		tsStatuses := make([]any, len(q.Statuses))
-		for i, status := range q.Statuses {
-			tsStatuses[i] = event.Status_name[status]
-		}
-		tsFilters = append(tsFilters, &eventts.Filter{
-			Operation: eventts.Operation_OP_IN,
-			Field:     "_zv_status",
-			Values:    tsStatuses})
-	}
-
 	req := &eventts.GetRequest{
 		EventTimeseriesInput: eventts.EventTimeseriesInput{
 			TimeRange: eventts.TimeRange{
