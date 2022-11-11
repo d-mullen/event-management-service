@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"math"
 	"sync"
 	"time"
 
@@ -241,7 +242,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			offset = len(docs)
 			// If we did over-fetch, then only keep the amount needed
 			// to fill out page
-			j := min(len(currOccurrences), limit-len(currOccurrences))
+			j := min(len(currOccurrences), int(math.Abs(float64(limit-len(currOccurrences)))))
 			filteredOccurrences = append(filteredOccurrences, currOccurrences[:j]...)
 			numRemoved = len(currDocs) - len(currOccurrences)
 			retries++
