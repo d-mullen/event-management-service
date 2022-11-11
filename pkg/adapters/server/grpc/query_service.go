@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"github.com/zenoss/event-management-service/internal/auth"
 
 	appEvent "github.com/zenoss/event-management-service/pkg/application/event"
@@ -83,8 +84,8 @@ func defaultSetQuery[T eventPb.Status | eventPb.Severity, E event.Status | event
 			retval = append(retval, E(e))
 		}
 	} else {
-		for i, v := range values {
-			retval[i] = E(v)
+		for _, v := range values {
+			retval = append(retval, E(v))
 		}
 	}
 	return retval
