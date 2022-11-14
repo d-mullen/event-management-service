@@ -17,19 +17,25 @@ package protobufutils
 
 import (
 	"encoding/json"
+	"fmt"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
-// ProtoMsgToMap converts proto.Message to the map using jsonpb Marshaler
+// ProtoMsgToMap converts proto.Message to the map using protojson Marshaler
 func ProtoMsgToMap(data proto.Message) (map[string]interface{}, error) {
 	var mapValue map[string]interface{}
-	m := jsonpb.Marshaler{}
-	jsonStr, err := m.MarshalToString(data)
+
+	jsonBytes, err := protojson.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-	json.Unmarshal([]byte(jsonStr), &mapValue)
+
+	err = json.Unmarshal(jsonBytes, &mapValue)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal: %w", err)
+	}
+
 	return mapValue, nil
 }

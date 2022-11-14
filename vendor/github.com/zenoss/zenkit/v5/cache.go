@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/cache"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/cache/v8"
+	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -20,22 +20,23 @@ func CacheExpiration() time.Duration {
 	return dur
 }
 
-func NewCache() *cache.Codec {
+func NewCache() *cache.Cache {
 	return NewCacheId(0)
 }
 
-func NewCacheId(dbid int) *cache.Codec {
-	codec := &cache.Codec{
+func NewCacheId(dbid int) *cache.Cache {
+	opts := &cache.Options{
 		Marshal:   json.Marshal,
 		Unmarshal: json.Unmarshal,
 	}
 	if rds := NewRedisRingId(dbid); rds != nil {
-		codec.Redis = rds
+		opts.Redis = rds
 	} else {
 		maxLen := viper.GetInt(GCMemstoreLocalMaxLen)
-		codec.UseLocalCache(maxLen, CacheExpiration())
+		opts.LocalCache = cache.NewTinyLFU(maxLen, CacheExpiration())
 	}
-	return codec
+
+	return cache.New(opts)
 }
 
 func NewRedisRing() *redis.Ring {

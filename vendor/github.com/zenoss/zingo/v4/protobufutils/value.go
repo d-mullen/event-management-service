@@ -18,31 +18,30 @@ package protobufutils
 import (
 	"context"
 
-	pbstruct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func StringToListValue(str string) *pbstruct.Value {
-	return &pbstruct.Value{
-		Kind: &pbstruct.Value_ListValue{
-			ListValue: &pbstruct.ListValue{
-				Values: []*pbstruct.Value{StringToValue(str)},
+func StringToListValue(str string) *structpb.Value {
+	return &structpb.Value{
+		Kind: &structpb.Value_ListValue{
+			ListValue: &structpb.ListValue{
+				Values: []*structpb.Value{StringToValue(str)},
 			},
 		},
 	}
 }
 
-func StringToValue(str string) *pbstruct.Value {
-	return &pbstruct.Value{
-		Kind: &pbstruct.Value_StringValue{
+func StringToValue(str string) *structpb.Value {
+	return &structpb.Value{
+		Kind: &structpb.Value_StringValue{
 			StringValue: str,
 		},
 	}
 }
 
 // ListValueToString extracts first value from the list
-func ListValueToString(ctx context.Context, val *pbstruct.Value) string {
+func ListValueToString(ctx context.Context, val *structpb.Value) string {
 	list := val.GetListValue()
 	if list != nil && len(list.Values) > 0 {
 		return list.Values[0].GetStringValue()
@@ -51,7 +50,7 @@ func ListValueToString(ctx context.Context, val *pbstruct.Value) string {
 }
 
 // ListValueToString extracts first value from the list
-func ListValueToStringSlice(ctx context.Context, listVal *pbstruct.ListValue) []string {
+func ListValueToStringSlice(ctx context.Context, listVal *structpb.ListValue) []string {
 	if listVal != nil && len(listVal.Values) > 0 {
 		result := make([]string, 0, len(listVal.Values))
 		for _, value := range listVal.Values {

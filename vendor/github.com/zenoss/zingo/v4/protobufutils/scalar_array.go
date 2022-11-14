@@ -16,8 +16,12 @@
 package protobufutils
 
 import (
+	"sort"
+
 	"github.com/pkg/errors"
+	"github.com/spaolacci/murmur3"
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
+	"github.com/zenoss/zingo/v4/orderedbytes"
 )
 
 func MustFromScalarArray(a *common.ScalarArray) []interface{} {
@@ -137,21 +141,105 @@ func ToScalarArrayMap(imap map[string][]interface{}) (map[string]*common.ScalarA
 	return aamap, nil
 }
 
-// Checks to see if two scalar slices are equal.
-func ScalarSlicesAreEqual(array1 []*common.Scalar, array2 []*common.Scalar) bool {
+// OrderedScalarSlicesAreEqual checks to see if two scalar slices are equal.
+func OrderedScalarSlicesAreEqual(array1 []*common.Scalar, array2 []*common.Scalar) bool {
 	if array1 == nil {
 		return array2 == nil
 	}
-	if array2 == nil {
+	if array2 == nil || len(array1) != len(array2) {
 		return false
 	}
-	if len(array1) != len(array2) {
-		return false
-	}
+
 	for index, value := range array1 {
 		if !ScalarsAreEqual(value, array2[index]) {
 			return false
 		}
 	}
 	return true
+}
+
+// ScalarSlicesAreEqual checks to see if two scalar slices are equal, regardless of elements order.
+func ScalarSlicesAreEqual(array1 []*common.Scalar, array2 []*common.Scalar) bool {
+	if array1 == nil {
+		return array2 == nil
+	}
+	if array2 == nil || len(array1) != len(array2) {
+		return false
+	}
+
+	a1Copy := ScalarArraySort(array1)
+	a2Copy := ScalarArraySort(array2)
+
+	return OrderedScalarSlicesAreEqual(a1Copy, a2Copy)
+}
+
+// FindScalarInScalarArray checks to see if a scalar array contains a given scalar value.
+func FindScalarInScalarArray(scalar *common.Scalar, array []*common.Scalar) bool {
+	for _, value := range array {
+		if ScalarsAreEqual(value, scalar) {
+			return true
+		}
+	}
+	return false
+}
+
+// ScalarArraySort returns a sorted copy of the scalar array.
+func ScalarArraySort(arr []*common.Scalar) []*common.Scalar {
+	if arr == nil || len(arr) == 0 {
+		return arr
+	}
+
+	arrCopy := make([]*common.Scalar, len(arr))
+	copy(arrCopy, arr)
+	sort.Slice(arrCopy, func(i, j int) bool {
+		return arrCopy[i].String() < arrCopy[j].String()
+	})
+
+	return arrCopy
+}
+
+// ScalarArrayMapsAreEqual checks to see if two scalar array maps are equal,
+// regardless of elements order.
+func ScalarArrayMapsAreEqual(a map[string]*common.ScalarArray, b map[string]*common.ScalarArray) bool {
+	if a == nil {
+		return b == nil
+	}
+	if b == nil || len(a) != len(b) {
+		return false
+	}
+
+	for keyAi, arrA := range a {
+		if arrB, ok := b[keyAi]; ok {
+			if !ScalarSlicesAreEqual(arrA.Scalars, arrB.Scalars) {
+				return false
+			}
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+// ScalarArrayMapHash computes a hash of scalar array map, resilient to sort order.
+func ScalarArrayMapHash(scalarMap map[string]*common.ScalarArray) uint64 {
+	hasher := murmur3.New64()
+
+	fields := make([]string, 0, len(scalarMap))
+	for field := range scalarMap {
+		fields = append(fields, field)
+	}
+	sort.Strings(fields)
+
+	for _, f := range fields {
+		hasher.Write([]byte(f))
+
+		scalarArrCopy := ScalarArraySort(scalarMap[f].Scalars)
+		for _, val := range scalarArrCopy {
+			value, _ := FromScalar(val)
+			b, _ := orderedbytes.Encode(value, orderedbytes.Ascending)
+			hasher.Write(b)
+		}
+	}
+
+	return hasher.Sum64()
 }

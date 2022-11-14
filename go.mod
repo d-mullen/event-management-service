@@ -13,9 +13,9 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
 	github.com/zenoss/event-context-svc v0.0.0-20210208232835-5442223405f6
-	github.com/zenoss/zenkit/v5 v5.6.0
+	github.com/zenoss/zenkit/v5 v5.7.0
 	github.com/zenoss/zing-proto/v11 v11.20.1
-	github.com/zenoss/zingo/v4 v4.4.3
+	github.com/zenoss/zingo/v4 v4.5.2
 	go.mongodb.org/mongo-driver v1.10.3
 	go.opencensus.io v0.23.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
@@ -30,17 +30,20 @@ require github.com/hashicorp/golang-lru v0.5.4
 require github.com/google/uuid v1.3.0
 
 require (
-	github.com/TV4/logrus-stackdriver-formatter v0.1.0 // indirect
-	github.com/go-redis/cache v6.4.0+incompatible // indirect
-	github.com/go-redis/redis v6.15.7+incompatible // indirect
+	github.com/go-redis/cache/v8 v8.4.3 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.1.0 // indirect
 	github.com/montanaflynn/stats v0.6.6 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/prometheus/prometheus v0.35.0 // indirect
+	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	github.com/zenoss/logrus-stackdriver-formatter v0.2.0 // indirect
 )
 
 require (
-	cloud.google.com/go v0.100.2 // indirect
-	cloud.google.com/go/compute v1.6.1 // indirect
+	cloud.google.com/go v0.102.1 // indirect
+	cloud.google.com/go/compute v1.7.0 // indirect
 	cloud.google.com/go/monitoring v1.2.0 // indirect
 	cloud.google.com/go/profiler v0.3.0 // indirect
 	cloud.google.com/go/trace v1.0.0 // indirect
@@ -61,7 +64,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/pprof v0.0.0-20220412212628-83db2b799d1f // indirect
 	github.com/googleapis/gax-go/v2 v2.4.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
@@ -84,12 +87,12 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5 // indirect
+	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	google.golang.org/api v0.81.0 // indirect
+	google.golang.org/api v0.88.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
+	google.golang.org/genproto v0.0.0-20220725144611-272f38e5d71b // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

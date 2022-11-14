@@ -14,9 +14,32 @@ import (
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 	eventtsPb "github.com/zenoss/zing-proto/v11/go/cloud/eventts"
 	"github.com/zenoss/zingo/v4/protobufutils"
+	"github.com/zenoss/zingo/v4/testutils/matchers"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var defaultMetadataFields = []string{
+	"_zv_status",
+	"_zv_severity",
+	"_zv_summary",
+	"contextTitle",
+	"parentContextTitle",
+	"_zv_name",
+	"lastSeen",
+	"eventClass",
+	"source",
+	"CZ_EVENT_DETAIL-zenoss.device.production_state",
+	"CZ_EVENT_DETAIL-zenoss.device.location",
+	"CZ_EVENT_DETAIL-zenoss.device.groups",
+	"CZ_EVENT_DETAIL-zenoss.device.systems",
+	"CZ_EVENT_DETAIL-zenoss.device.priority",
+	"CZ_EVENT_DETAIL-zenoss.device.device_class",
+	"CZ_EVENT_DETAIL-zenoss.device.IncidentManagement.number",
+	"_zen_entityIds",
+	"_zen_parentEntityIds",
+	"source-type",
+}
 
 var _ = DescribeTable(
 	"EventTSRequestToProto Table-driven Tests",
@@ -28,6 +51,8 @@ var _ = DescribeTable(
 		} else {
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(actual).ShouldNot(BeNil())
+			matchProto := matchers.EqualProto(expected)
+			Expect(actual).To(matchProto)
 		}
 	},
 	func(req *eventts.GetRequest, expected *eventtsPb.EventTSRequest, shouldFail bool) string {
@@ -58,17 +83,22 @@ var _ = DescribeTable(
 				Start: 0,
 				End:   10000,
 			},
+			ResultFields: defaultMetadataFields,
 		},
 		false),
 	Entry(
 		nil,
 		&eventts.GetRequest{
 			EventTimeseriesInput: eventts.EventTimeseriesInput{
+				TimeRange: eventts.TimeRange{
+					Start: 0,
+					End:   5000,
+				},
 				ByOccurrences: struct {
 					ShouldApplyIntervals bool
 					OccurrenceMap        map[string][]*eventts.OccurrenceInput
 				}{
-					ShouldApplyIntervals: false,
+					ShouldApplyIntervals: true,
 					OccurrenceMap: map[string][]*eventts.OccurrenceInput{
 						"event1": {{
 							ID:      "event1:1",
@@ -90,8 +120,10 @@ var _ = DescribeTable(
 						}},
 					},
 				},
-			}},
+			},
+		},
 		&eventtsPb.EventTSRequest{
+			EventIds: []string{"event1", "event2"},
 			OccurrenceMap: map[string]*eventtsPb.EventTSOccurrenceCollection{
 				"event1": {
 					Occurrences: []*eventtsPb.EventTSOccurrence{
@@ -122,13 +154,76 @@ var _ = DescribeTable(
 				Start: 0,
 				End:   9500,
 			},
+			ResultFields: defaultMetadataFields,
+		},
+		false),
+	Entry(
+		nil,
+		&eventts.GetRequest{
+			EventTimeseriesInput: eventts.EventTimeseriesInput{
+				TimeRange: eventts.TimeRange{Start: 0, End: 10000},
+				ByEventIDs: struct {
+					IDs []string
+				}{IDs: []string{"event1", "event2"}},
+				Latest:       0,
+				ResultFields: []string{"field"},
+				Filters:      []*eventts.Filter{},
+			},
+		},
+		&eventtsPb.EventTSRequest{
+			EventIds: []string{"event1", "event2"},
+			TimeRange: &common.TimeRange{
+				Start: 0,
+				End:   10000,
+			},
+			ResultFields: []string{"field"},
+		},
+		false),
+	Entry(
+		nil,
+		&eventts.GetRequest{
+			EventTimeseriesInput: eventts.EventTimeseriesInput{
+				TimeRange: eventts.TimeRange{Start: 0, End: 10000},
+				ByEventIDs: struct {
+					IDs []string
+				}{IDs: []string{"event1", "event2"}},
+				Latest:       0,
+				ResultFields: []string{"field", "metadata"},
+				Filters:      []*eventts.Filter{},
+			},
+		},
+		&eventtsPb.EventTSRequest{
+			EventIds: []string{"event1", "event2"},
+			TimeRange: &common.TimeRange{
+				Start: 0,
+				End:   10000,
+			},
+			ResultFields: append([]string{"field"}, defaultMetadataFields...),
+		},
+		false),
+	Entry(
+		nil,
+		&eventts.GetRequest{
+			EventTimeseriesInput: eventts.EventTimeseriesInput{
+				TimeRange: eventts.TimeRange{Start: 0, End: 10000},
+				ByEventIDs: struct {
+					IDs []string
+				}{IDs: []string{"event1", "event2"}},
+				Latest:       0,
+				ResultFields: []string{"field", "metadata", "productNumber"},
+				Filters:      []*eventts.Filter{},
+			},
+		},
+		&eventtsPb.EventTSRequest{
+			EventIds: []string{"event1", "event2"},
+			TimeRange: &common.TimeRange{
+				Start: 0,
+				End:   10000,
+			},
+			ResultFields: append(append([]string{"field"}, defaultMetadataFields...), "productNumber"),
 		},
 		false),
 )
-
-// var _ = DescribeTable("EventTSSeriesToOccurrence Table-driven Tests", func(a, b any) {
-// 	Ω(true).Should(BeTrue())
-// })
 
 var _ = Describe("EventTSService Adapter Unit-tests", func() {
 	var (
@@ -154,7 +249,6 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 	})
 	Context("Get", func() {
 		It("should get event timeseries results result", func() {
-
 			eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
 				Return(ewcStreamMock, nil).Once()
 			ewcStreamMock.On("Recv").
@@ -203,7 +297,6 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 		})
 		When("event-ts-svc returns an error", func() {
 			It("it should fail", func() {
-
 				By("passing up an error when event-ts-svc fails to return stream")
 				eventTSMockClient.On("EventsWithCountsStream", mockCtx, mockEWCReq).
 					Return(nil, status.Error(codes.Unknown, "test error")).Once()
@@ -337,7 +430,6 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 				Ω(resp.Result).Should(BeNil())
 				Ω(resp.Err).Should(HaveOccurred())
 				Ω(ch).Should(BeClosed())
-
 			})
 			It("should fail", func() {
 				By("by passing up an error when an error occurs in the stream")
