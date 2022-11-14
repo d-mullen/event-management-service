@@ -11,6 +11,8 @@ const (
 	StatusClosed
 )
 
+const StatusMax = StatusClosed
+
 type Severity int
 
 const (
@@ -21,6 +23,8 @@ const (
 	SeverityError
 	SeverityCritical
 )
+
+const SeverityMax = SeverityCritical
 
 // enum <-> string mappings copied over from the
 // golang protobuf bindings to avoid this pkg depending

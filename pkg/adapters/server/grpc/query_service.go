@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"github.com/zenoss/event-management-service/internal/auth"
 
 	appEvent "github.com/zenoss/event-management-service/pkg/application/event"
@@ -72,6 +73,24 @@ func ProtoSortByToDomain(orig *eventquery.SortBy) (*event.SortOpt, error) {
 	}
 }
 
+func defaultSetQuery[T eventPb.Status | eventPb.Severity, E event.Status | event.Severity](values []T, max E) []E {
+	var (
+		retval []E = make([]E, 0)
+		e      E
+	)
+
+	if len(values) == 0 {
+		for e = 0; e <= max; e++ {
+			retval = append(retval, E(e))
+		}
+	} else {
+		for _, v := range values {
+			retval = append(retval, E(v))
+		}
+	}
+	return retval
+}
+
 func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Query, error) {
 	if query == nil {
 		return nil, status.Error(codes.InvalidArgument, "nil query found on request")
@@ -80,23 +99,16 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 		return nil, status.Error(codes.InvalidArgument, "invalid time range")
 	}
 	result := &event.Query{
-		Tenant: tenantID,
+		Tenant:     tenantID,
+		Severities: defaultSetQuery(query.Severities, event.SeverityMax),
+		Statuses:   defaultSetQuery(query.Statuses, event.StatusMax),
 		TimeRange: event.TimeRange{
 			Start: query.TimeRange.Start,
 			End:   query.TimeRange.End,
 		},
 		ShouldApplyOccurrenceIntervals: query.ActiveCriteria == eventquery.TemporalFilterCriteria_BY_OCCURRENCES,
 	}
-	severities := make([]event.Severity, len(query.Severities))
-	for i, sev := range query.Severities {
-		severities[i] = event.Severity(sev)
-	}
-	result.Severities = severities
-	statuses := make([]event.Status, len(query.Statuses))
-	for i, status := range query.Statuses {
-		statuses[i] = event.Status(status)
-	}
-	result.Statuses = statuses
+
 	if clause := query.GetClause(); clause != nil {
 		filter, err := ClauseProtoToEventFilter(clause)
 		if err != nil {
