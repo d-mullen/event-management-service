@@ -144,36 +144,52 @@ func (repo *eventTSRepo) FrequencyStream(_ context.Context, _ *eventts.Frequency
 	panic("not implemented") // TODO: Implement
 }
 
+var defaultMetadataFields = []string{
+	"_zv_status",
+	"_zv_severity",
+	"_zv_summary",
+	"contextTitle",
+	"parentContextTitle",
+	"_zv_name",
+	"lastSeen",
+	"eventClass",
+	"source",
+	"CZ_EVENT_DETAIL-zenoss.device.production_state",
+	"CZ_EVENT_DETAIL-zenoss.device.location",
+	"CZ_EVENT_DETAIL-zenoss.device.groups",
+	"CZ_EVENT_DETAIL-zenoss.device.systems",
+	"CZ_EVENT_DETAIL-zenoss.device.priority",
+	"CZ_EVENT_DETAIL-zenoss.device.device_class",
+	"CZ_EVENT_DETAIL-zenoss.device.IncidentManagement.number",
+	"_zen_entityIds",
+	"_zen_parentEntityIds",
+	"source-type",
+}
+
 func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSRequest, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "nil request")
 	}
 	output := &eventtsProto.EventTSRequest{
-		// Count:        0,   // TODO
+		Count:        int64(req.EventTimeseriesInput.Latest),
+		ResultFields: []string{},
 	}
 
-	// temporary workaround until clients are updated to pass explicit fields
-	_, usedCatchall := slices.BinarySearch(req.ResultFields, "metadata")
-	if len(req.ResultFields) == 0 || usedCatchall {
-		output.ResultFields = []string{"_zv_status",
-			"_zv_severity",
-			"_zv_summary",
-			"contextTitle",
-			"parentContextTitle",
-			"_zv_name",
-			"lastSeen",
-			"eventClass",
-			"source",
-			"CZ_EVENT_DETAIL-zenoss.device.production_state",
-			"CZ_EVENT_DETAIL-zenoss.device.location",
-			"CZ_EVENT_DETAIL-zenoss.device.groups",
-			"CZ_EVENT_DETAIL-zenoss.device.systems",
-			"CZ_EVENT_DETAIL-zenoss.device.priority",
-			"CZ_EVENT_DETAIL-zenoss.device.device_class",
-			"CZ_EVENT_DETAIL-zenoss.device.IncidentManagement.number",
-			"_zen_entityIds",
-			"_zen_parentEntityIds",
-			"source-type"}
+	if len(req.ResultFields) == 0 {
+		output.ResultFields = append(output.ResultFields, defaultMetadataFields...)
+	} else {
+		// temporary workaround until clients are updated to pass explicit fields
+		slices.Sort(req.ResultFields)
+		mdFieldIdx, usedCatchall := slices.BinarySearch(req.ResultFields, "metadata")
+		if usedCatchall {
+			output.ResultFields = append(output.ResultFields, req.ResultFields[:mdFieldIdx]...)
+			output.ResultFields = append(output.ResultFields, defaultMetadataFields...)
+			if mdFieldIdx+1 < len(req.ResultFields) {
+				output.ResultFields = append(output.ResultFields, req.ResultFields[mdFieldIdx+1:]...)
+			}
+		} else {
+			output.ResultFields = append(output.ResultFields, req.ResultFields...)
+		}
 	}
 	if len(req.Filters) > 0 {
 		output.Filters = eventTsFilter2eventProtoFilter(req.Filters)

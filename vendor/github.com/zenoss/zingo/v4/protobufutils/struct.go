@@ -16,8 +16,8 @@
 package protobufutils
 
 import (
-	pbstruct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
 )
@@ -28,39 +28,39 @@ var (
 
 // ToProtoListValue builds an slice of scalars from the passed input
 // It errors if the input data contains non scalar values
-func ToProtoListValue(vv []interface{}) (*pbstruct.Value, error) {
-	var values []*pbstruct.Value = make([]*pbstruct.Value, 0, len(vv))
+func ToProtoListValue(vv []interface{}) (*structpb.Value, error) {
+	var values []*structpb.Value = make([]*structpb.Value, 0, len(vv))
 	for _, v := range vv {
-		var value *pbstruct.Value
+		var value *structpb.Value
 		switch x := v.(type) {
 		case string:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_StringValue{StringValue: x}}
+			value = &structpb.Value{Kind: &structpb.Value_StringValue{StringValue: x}}
 		case int:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case int8:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case int16:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case int32:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case int64:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case uint:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case uint8:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case uint16:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case uint32:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case uint64:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case float32:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: float64(x)}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: float64(x)}}
 		case float64:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_NumberValue{NumberValue: x}}
+			value = &structpb.Value{Kind: &structpb.Value_NumberValue{NumberValue: x}}
 		case bool:
-			value = &pbstruct.Value{Kind: &pbstruct.Value_BoolValue{BoolValue: x}}
+			value = &structpb.Value{Kind: &structpb.Value_BoolValue{BoolValue: x}}
 		default:
 			msg := "unexpected type %T. proto struct field values must be scalar"
 			return nil, errors.Wrapf(ErrInvalidInput, msg, x)
@@ -69,13 +69,13 @@ func ToProtoListValue(vv []interface{}) (*pbstruct.Value, error) {
 			values = append(values, value)
 		}
 	}
-	return &pbstruct.Value{Kind: &pbstruct.Value_ListValue{ListValue: &pbstruct.ListValue{Values: values}}}, nil
+	return &structpb.Value{Kind: &structpb.Value_ListValue{ListValue: &structpb.ListValue{Values: values}}}, nil
 }
 
 // ToProtoStruct converts the received input into a protobuf struct. The input map values
 // must be an slice of scalars or else it will return an error
-func ToProtoStruct(vv map[string][]interface{}) (*pbstruct.Struct, error) {
-	fields := map[string]*pbstruct.Value{}
+func ToProtoStruct(vv map[string][]interface{}) (*structpb.Struct, error) {
+	fields := map[string]*structpb.Value{}
 	for k, v := range vv {
 		pbv, err := ToProtoListValue(v)
 		if err != nil {
@@ -83,22 +83,22 @@ func ToProtoStruct(vv map[string][]interface{}) (*pbstruct.Struct, error) {
 		}
 		fields[k] = pbv
 	}
-	return &pbstruct.Struct{Fields: fields}, nil
+	return &structpb.Struct{Fields: fields}, nil
 }
 
 func unexpectedFieldType(v interface{}) error {
 	return errors.Wrapf(ErrInvalidInput, "unexpected field type %T / %+v", v, v)
 }
 
-func listValueToSliceOfInterface(vv *pbstruct.ListValue) ([]interface{}, error) {
+func listValueToSliceOfInterface(vv *structpb.ListValue) ([]interface{}, error) {
 	values := make([]interface{}, 0, len(vv.Values))
 	for _, v := range vv.Values {
 		switch x := v.GetKind().(type) {
-		case *pbstruct.Value_BoolValue:
+		case *structpb.Value_BoolValue:
 			values = append(values, x.BoolValue)
-		case *pbstruct.Value_NumberValue:
+		case *structpb.Value_NumberValue:
 			values = append(values, x.NumberValue)
-		case *pbstruct.Value_StringValue:
+		case *structpb.Value_StringValue:
 			values = append(values, x.StringValue)
 		default:
 			return nil, unexpectedFieldType(x)
@@ -107,19 +107,19 @@ func listValueToSliceOfInterface(vv *pbstruct.ListValue) ([]interface{}, error) 
 	return values, nil
 }
 
-func StructToMapOfScalarArray(s *pbstruct.Struct) (map[string]*common.ScalarArray, error) {
+func StructToMapOfScalarArray(s *structpb.Struct) (map[string]*common.ScalarArray, error) {
 	var err error
 	out := map[string]*common.ScalarArray{}
 	for fName, fValue := range s.GetFields() {
 		outValue := []interface{}{}
 		switch x := fValue.GetKind().(type) {
-		case *pbstruct.Value_BoolValue:
+		case *structpb.Value_BoolValue:
 			outValue = append(outValue, x.BoolValue)
-		case *pbstruct.Value_NumberValue:
+		case *structpb.Value_NumberValue:
 			outValue = append(outValue, x.NumberValue)
-		case *pbstruct.Value_StringValue:
+		case *structpb.Value_StringValue:
 			outValue = append(outValue, x.StringValue)
-		case *pbstruct.Value_ListValue:
+		case *structpb.Value_ListValue:
 			outValue, err = listValueToSliceOfInterface(x.ListValue)
 			if err != nil {
 				return nil, err
