@@ -121,6 +121,38 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 	return opt
 }
 
+func isBigScopeQuery(log *logrus.Entry, filter interface{}) bool {
+	var (
+		retval bool
+	)
+	log.Info("CHECKING BIG SCOPE")
+	switch filter.(type) {
+	case primitive.D:
+		for _, f := range filter.(primitive.D) {
+			switch f.Key {
+			case "entity":
+				switch f.Value.(primitive.D)[0].Value.(type) {
+				case []interface{}:
+					log.Infof("ENTITY INTERFACE QUERY OF length IS %d", len(f.Value.(primitive.D)[0].Value.([]interface{})))
+				case []string:
+					log.Infof("ENTITY STRING QUERY OF length IS %d", len(f.Value.(primitive.D)[0].Value.([]string)))
+				}
+			case "$and":
+				isBigScopeQuery(log, f.Value)
+			default:
+				log.Infof("JUST A REGULAR FILTER %v", f.Key)
+			}
+		}
+	case primitive.A:
+		for _, a := range filter.(primitive.A) {
+			isBigScopeQuery(log, a)
+		}
+	default:
+		log.Infof("DONT KNOW WHAT TO DO WITH %T", filter)
+	}
+	return retval
+}
+
 func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.FindOption) (*event.Page, error) {
 	var (
 		hasNext bool
@@ -147,6 +179,8 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	if findOpt.Limit != nil && *findOpt.Limit > 0 {
 		limit = int(*findOpt.Limit)
 	}
+
+	isBigScopeQuery(log, filters)
 	defaultOpts := defaultFindOpts(findOpt)
 	docs := make([]*bson.M, 0)
 	err = mongodb.FindWithRetry(
