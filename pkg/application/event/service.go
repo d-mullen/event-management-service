@@ -215,9 +215,9 @@ StreamLoop:
 							occ.Metadata[k] = append(occ.Metadata[k], v...)
 						}
 					}
-					if _, ok3 := occ.Metadata["lastSeen"]; !ok3 {
-						occ.Metadata["lastSeen"] = []any{occWithMD.Timestamp}
-					}
+
+					occ.Metadata["lastSeen"] = []any{occ.LastSeen}
+
 					results = append(results, occ)
 					continue InnerLoop
 				}
@@ -391,7 +391,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	var (
 		resultMut sync.Mutex
 		resp      = new(event.Page)
-		// log       = zenkit.ContextLogger(ctx)
+		log       = zenkit.ContextLogger(ctx)
 	)
 	err := applyScopeFilterTransform(ctx, query, svc.entityScopes, svc.activeEntities)
 	if err != nil {

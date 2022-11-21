@@ -141,6 +141,7 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 		}
 		result.PageInput.Cursor = query.PageInput.Cursor
 		result.PageInput.Limit = uint64(query.PageInput.Limit)
+		result.PageInput.Direction = event.PageDirection(query.PageInput.Direction)
 	}
 	return result, nil
 }
@@ -237,9 +238,9 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 							return nil, status.Errorf(codes.Internal, "failed to convert metatadata to protobuf: %q", err)
 						}
 						// Insure that we are using event context lastSeen value.
-						if k == "lastSeen" {
-							listValue, _ = structpb.NewList([]any{occ.LastSeen})
-						}
+						// if k == "lastSeen" {
+						// 	listValue, _ = structpb.NewList([]any{occ.LastSeen})
+						// }
 						resultMD.Fields[k] = &structpb.Value{
 							Kind: &structpb.Value_ListValue{
 								ListValue: listValue,
