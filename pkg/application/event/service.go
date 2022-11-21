@@ -391,7 +391,7 @@ func (svc *service) Find(ctx context.Context, query *event.Query) (*event.Page, 
 	var (
 		resultMut sync.Mutex
 		resp      = new(event.Page)
-		log       = zenkit.ContextLogger(ctx)
+		// log       = zenkit.ContextLogger(ctx)
 	)
 	err := applyScopeFilterTransform(ctx, query, svc.entityScopes, svc.activeEntities)
 	if err != nil {
