@@ -215,9 +215,9 @@ StreamLoop:
 							occ.Metadata[k] = append(occ.Metadata[k], v...)
 						}
 					}
-					if _, ok3 := occ.Metadata["lastSeen"]; !ok3 {
-						occ.Metadata["lastSeen"] = []any{occWithMD.Timestamp}
-					}
+
+					occ.Metadata["lastSeen"] = []any{occ.LastSeen}
+
 					results = append(results, occ)
 					continue InnerLoop
 				}
