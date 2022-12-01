@@ -141,6 +141,7 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 		}
 		result.PageInput.Cursor = query.PageInput.Cursor
 		result.PageInput.Limit = uint64(query.PageInput.Limit)
+		result.PageInput.Direction = event.PageDirection(query.PageInput.Direction)
 	}
 	return result, nil
 }
