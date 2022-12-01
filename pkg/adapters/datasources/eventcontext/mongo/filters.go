@@ -21,6 +21,7 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 		return nil, errors.New("invalid time range")
 	}
 	start, end := tr.Start, tr.End
+	// Set start interval to zero which is an open-ended search but enforced use the index.
 	interval_start := int64(0)
 
 	if apply_intervals {
@@ -239,7 +240,7 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: OpIn, Value: query.Severities}}})
 		}
 	}
-	temporalFilters, err := getOccurrenceTemporalFilters(activeEventsOnlyFlag(query), query.TimeRange, !query.ShouldApplyOccurrenceIntervals)
+	temporalFilters, err := getOccurrenceTemporalFilters(activeEventsOnlyFlag(query), query.TimeRange, query.ShouldApplyOccurrenceIntervals)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to make query plan")
 	}
