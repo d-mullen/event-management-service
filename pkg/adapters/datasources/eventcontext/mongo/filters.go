@@ -36,12 +36,12 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 	switch activeEventsOnly {
 	case StatusFlagActiveOnly:
 		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: OpLessThan, Value: end}}},
+			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
 		}, nil
 	case StatusFlagInactiveOnly:
 		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: OpLessThan, Value: end}}},
+			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 		}, nil
 	default:
@@ -50,12 +50,12 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 				Value: bson.A{
 					bson.D{
 						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: int(event.StatusClosed)}}},
-						{Key: "startTime", Value: bson.D{{Key: "$lt", Value: end}}},
+						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 						{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
 					},
 					bson.D{
 						{Key: "status", Value: int(event.StatusClosed)},
-						{Key: "startTime", Value: bson.D{{Key: "$lt", Value: end}}},
+						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 						{Key: "lastSeen", Value: bson.D{{Key: "$gte", Value: start}}},
 					},
 				}},
