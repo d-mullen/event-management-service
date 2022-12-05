@@ -147,6 +147,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	if findOpt.Limit != nil && *findOpt.Limit > 0 {
 		limit = int(*findOpt.Limit)
 	}
+
 	defaultOpts := defaultFindOpts(findOpt)
 	docs := make([]*bson.M, 0)
 	err = mongodb.FindWithRetry(

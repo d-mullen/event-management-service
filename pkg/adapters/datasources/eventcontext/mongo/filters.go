@@ -16,11 +16,18 @@ var (
 	defaultTimeRange event.TimeRange
 )
 
-func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRange) (bson.D, error) {
+func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRange, apply_intervals bool) (bson.D, error) {
 	if tr.End < tr.Start {
 		return nil, errors.New("invalid time range")
 	}
 	start, end := tr.Start, tr.End
+	// Set start interval to zero which is an open-ended search but enforced use the index.
+	interval_start := int64(0)
+
+	if apply_intervals {
+		interval_start = tr.Start
+	}
+
 	if tr == defaultTimeRange {
 		now := time.Now()
 		end = now.UnixMilli()
@@ -29,12 +36,13 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 	switch activeEventsOnly {
 	case StatusFlagActiveOnly:
 		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: OpLessThanOrEqualTo, Value: end}}},
+			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
 		}, nil
 	case StatusFlagInactiveOnly:
 		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: OpLessThanOrEqualTo, Value: end}}},
-			{Key: "endTime", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 		}, nil
 	default:
 		return bson.D{
@@ -43,11 +51,12 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 					bson.D{
 						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: int(event.StatusClosed)}}},
 						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+						{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
 					},
 					bson.D{
 						{Key: "status", Value: int(event.StatusClosed)},
 						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-						{Key: "endTime", Value: bson.D{{Key: "$gte", Value: start}}},
+						{Key: "lastSeen", Value: bson.D{{Key: "$gte", Value: start}}},
 					},
 				}},
 		}, nil
@@ -196,7 +205,7 @@ const (
 	StatusFlagInactiveOnly = 2
 )
 
-func isActiveEventsOnly(q *event.Query) StatusFlag {
+func activeEventsOnlyFlag(q *event.Query) StatusFlag {
 	var foundClosedStatus, foundActiveStatus bool
 	for _, status := range q.Statuses {
 		if status == event.StatusClosed {
@@ -231,19 +240,12 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: OpIn, Value: query.Severities}}})
 		}
 	}
-	temporalFilters, err := getOccurrenceTemporalFilters(isActiveEventsOnly(query), query.TimeRange)
+	temporalFilters, err := getOccurrenceTemporalFilters(activeEventsOnlyFlag(query), query.TimeRange, query.ShouldApplyOccurrenceIntervals)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to make query plan")
 	}
 	filters = append(filters, temporalFilters...)
-	if !query.ShouldApplyOccurrenceIntervals {
-		filters = append(filters, bson.E{
-			Key: "lastSeen",
-			Value: bson.D{
-				bson.E{Key: OpGreaterThanOrEqualTo, Value: query.TimeRange.Start},
-			},
-		})
-	}
+
 	if query.Filter != nil {
 		anotherFilter, err := DomainFilterToMongoD(query.Filter)
 		if err != nil {

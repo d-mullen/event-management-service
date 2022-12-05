@@ -262,7 +262,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 						Tenant: integrationTestTenant,
 						TimeRange: event.TimeRange{
 							Start: now.Add(-8 * 24 * time.Hour).UnixMilli(),
-							End:   now.UnixMilli(),
+							End:   now.Add(100 * time.Millisecond).UnixMilli(),
 						},
 						Statuses:   []event.Status{event.StatusOpen},
 						Severities: []event.Severity{event.SeverityInfo},
