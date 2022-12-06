@@ -240,7 +240,7 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: OpIn, Value: query.Severities}}})
 		}
 	}
-	temporalFilters, err := getOccurrenceTemporalFilters(activeEventsOnlyFlag(query), query.TimeRange, query.ShouldApplyOccurrenceIntervals)
+	temporalFilters, err := getOccurrenceTemporalFilters(activeEventsOnlyFlag(query), query.TimeRange, !query.ShouldApplyOccurrenceIntervals)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to make query plan")
 	}
