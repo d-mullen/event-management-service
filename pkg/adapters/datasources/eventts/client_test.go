@@ -233,7 +233,7 @@ var _ = Describe("EventTSService Adapter Unit-tests", func() {
 		eventTSMockClient *eventtsPb.MockEventTSServiceClient
 		// getEventStreamMock *eventtsPb.MockEventTSService_GetEventsStreamClient
 		ewcStreamMock *eventtsPb.MockEventTSService_EventsWithCountsStreamClient
-		mockCtx       = mock.AnythingOfType("*context.cancelCtx")
+		mockCtx       = mock.Anything
 		// mockEventTSReq     = mock.AnythingOfType("*eventts.EventTSRequest")
 		mockEWCReq = mock.AnythingOfType("*eventts.EventsWithCountsRequest")
 	)

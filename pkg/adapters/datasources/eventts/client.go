@@ -8,6 +8,8 @@ import (
 
 	legacyProto "github.com/golang/protobuf/proto"
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/spf13/viper"
+	"github.com/zenoss/event-management-service/internal/instrumentation"
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
@@ -57,6 +59,8 @@ func mustMarshal(msg proto.Message) string {
 }
 
 func (repo *eventTSRepo) getStream(ctx context.Context, req *eventts.GetRequest, callback func(*eventts.Occurrence) bool) error {
+	ctx, span := instrumentation.StartSpan(ctx, "*eventTSRepo.getStream")
+	defer span.End()
 	log := zenkit.ContextLogger(ctx)
 	reqProto, err := EventTSRequestToProto(req)
 	if err != nil {
@@ -71,6 +75,17 @@ func (repo *eventTSRepo) getStream(ctx context.Context, req *eventts.GetRequest,
 		},
 		Limit:   1,
 		Filters: reqProto.Filters,
+	}
+	if logLevel := viper.GetString(zenkit.LogLevelConfig); logLevel == "debug" || logLevel == "trace" {
+		instrumentation.AnnotateSpan(
+			"eventts.GetRequest",
+			"getStream",
+			span,
+			map[string]any{
+				"eventts.EventsWithCountsRequest": ewcReq,
+				"eventts.GetRequest":              req,
+			}, nil)
+
 	}
 	log.WithField("get_eventts_proto", mustMarshal(reqProto)).Trace("making event-ts request")
 	// stream, err := repo.client.GetEventsStream(ctx, reqProto)
@@ -285,11 +300,11 @@ func eventTsFilter2eventProtoFilter(in []*eventts.Filter) ([]*eventtsProto.Event
 		item.Op = common.Operation(filter.Operation)
 		if len(filter.Values) > 0 {
 			if values, err := protobufutils.ToScalarArray(filter.Values); err != nil {
-				item.Values = values
-			} else {
 				convErrs = multierror.Append(convErrs, err)
-			} // force panic on err
-			result = append(result, &item)
+			} else {
+				item.Values = values
+				result = append(result, &item)
+			}
 		}
 	}
 	return result, convErrs.ErrorOrNil()
