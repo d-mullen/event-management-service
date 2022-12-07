@@ -24,6 +24,14 @@ func mustToValue(v any) *structpb.Value {
 	return vv
 }
 
+func mustToValueSlice(values ...any) []*structpb.Value {
+	results := make([]*structpb.Value, len(values))
+	for i, v := range values {
+		results[i] = mustToValue(v)
+	}
+	return results
+}
+
 func mustToStruct(v map[string]any) *structpb.Struct {
 	s, _ := structpb.NewStruct(v)
 	return s
@@ -92,7 +100,7 @@ var _ = Describe("DTO Tests", func() {
 					Clause: &eventquery.Clause_In{
 						In: &eventquery.In{
 							Field:  "f2",
-							Values: mustToList(1, 2),
+							Values: mustToValueSlice(1, 2),
 						},
 					},
 				},
@@ -325,6 +333,19 @@ var _ = Describe("DTO Tests", func() {
 							Value: "foo",
 						},
 					},
+				},
+				nil,
+			),
+			Entry("in clause",
+				&eventquery.Clause{
+					Clause: &eventquery.Clause_In{
+						In: &eventquery.In{Field: "f1", Values: mustToValueSlice("1000", "500")},
+					},
+				},
+				&eventModel.Filter{
+					Field: "f1",
+					Op:    eventModel.FilterOpIn,
+					Value: []any{"1000", "500"},
 				},
 				nil,
 			),

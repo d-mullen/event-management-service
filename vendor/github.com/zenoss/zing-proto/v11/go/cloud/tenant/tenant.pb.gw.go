@@ -814,20 +814,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ListTenants", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ListTenants", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_ListTenants_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_ListTenants_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_ListTenants_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_ListTenants_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -838,20 +839,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_DeleteTenant_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_DeleteTenant_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteTenant_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteTenant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -862,20 +864,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantEverywhere", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}:deleteEverywhere"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantEverywhere", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}:deleteEverywhere"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_DeleteTenantEverywhere_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_DeleteTenantEverywhere_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteTenantEverywhere_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteTenantEverywhere_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -886,20 +889,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:get"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:get"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenant_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenant_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenant_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -910,20 +914,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getID"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getID"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenantId_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenantId_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantId_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantId_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -934,20 +939,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getName"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getName"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenantName_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenantName_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantName_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -958,20 +964,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataID"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataID"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenantDataId_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenantDataId_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantDataId_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantDataId_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -982,20 +989,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getIDs"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getIDs"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenantIds_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenantIds_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantIds_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantIds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1006,20 +1014,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantNames", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getNames"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantNames", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getNames"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenantNames_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenantNames_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantNames_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantNames_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1030,20 +1039,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataIDs"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataIDs"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetTenantDataIds_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetTenantDataIds_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantDataIds_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantDataIds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1054,20 +1064,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_CreateTenant_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_CreateTenant_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_CreateTenant_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_CreateTenant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1078,20 +1089,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ChangeTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:changeName"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ChangeTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:changeName"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_ChangeTenantName_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_ChangeTenantName_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_ChangeTenantName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_ChangeTenantName_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1102,20 +1114,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:deleteName"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:deleteName"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_DeleteTenantName_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_DeleteTenantName_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteTenantName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteTenantName_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1126,20 +1139,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/RegisterCollectionZones", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:register"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/RegisterCollectionZones", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_RegisterCollectionZones_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_RegisterCollectionZones_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_RegisterCollectionZones_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_RegisterCollectionZones_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1150,20 +1164,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteCollectionZone", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:delete"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteCollectionZone", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:delete"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_DeleteCollectionZone_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_DeleteCollectionZone_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteCollectionZone_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteCollectionZone_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1174,20 +1189,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/SetAdminSettings", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/retention:set"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/SetAdminSettings", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/retention:set"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_SetAdminSettings_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_SetAdminSettings_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_SetAdminSettings_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_SetAdminSettings_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1198,20 +1214,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:get"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:get"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_GetAuthInfo_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_GetAuthInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1222,20 +1239,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:create"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:create"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_CreateAuthInfo_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_CreateAuthInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_CreateAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_CreateAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1246,20 +1264,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/UpdateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:update"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/UpdateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:update"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_UpdateAuthInfo_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_UpdateAuthInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_UpdateAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_UpdateAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1270,20 +1289,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:delete"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:delete"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_DeleteAuthInfo_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_DeleteAuthInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1294,20 +1314,21 @@ func RegisterTenantAdminHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/LoadAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/load-auth"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/LoadAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/load-auth"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TenantAdmin_LoadAuthInfo_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TenantAdmin_LoadAuthInfo_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_LoadAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_LoadAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1357,19 +1378,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ListTenants", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ListTenants", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_ListTenants_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_ListTenants_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_ListTenants_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_ListTenants_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1378,19 +1400,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_DeleteTenant_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_DeleteTenant_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteTenant_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteTenant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1399,19 +1422,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantEverywhere", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}:deleteEverywhere"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantEverywhere", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/{tenant}:deleteEverywhere"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_DeleteTenantEverywhere_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_DeleteTenantEverywhere_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteTenantEverywhere_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteTenantEverywhere_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1420,19 +1444,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:get"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:get"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenant_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenant_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenant_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1441,19 +1466,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getID"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getID"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenantId_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenantId_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantId_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantId_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1462,19 +1488,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getName"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getName"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenantName_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenantName_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantName_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1483,19 +1510,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataID"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataId", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataID"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenantDataId_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenantDataId_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantDataId_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantDataId_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1504,19 +1532,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getIDs"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getIDs"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenantIds_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenantIds_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantIds_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantIds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1525,19 +1554,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantNames", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getNames"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantNames", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getNames"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenantNames_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenantNames_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantNames_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantNames_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1546,19 +1576,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataIDs"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetTenantDataIds", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:getDataIDs"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetTenantDataIds_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetTenantDataIds_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetTenantDataIds_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetTenantDataIds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1567,19 +1598,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateTenant", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_CreateTenant_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_CreateTenant_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_CreateTenant_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_CreateTenant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1588,19 +1620,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ChangeTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:changeName"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/ChangeTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:changeName"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_ChangeTenantName_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_ChangeTenantName_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_ChangeTenantName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_ChangeTenantName_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1609,19 +1642,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:deleteName"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteTenantName", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants:deleteName"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_DeleteTenantName_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_DeleteTenantName_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteTenantName_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteTenantName_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1630,19 +1664,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/RegisterCollectionZones", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:register"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/RegisterCollectionZones", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:register"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_RegisterCollectionZones_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_RegisterCollectionZones_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_RegisterCollectionZones_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_RegisterCollectionZones_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1651,19 +1686,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteCollectionZone", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:delete"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteCollectionZone", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/czs:delete"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_DeleteCollectionZone_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_DeleteCollectionZone_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteCollectionZone_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteCollectionZone_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1672,19 +1708,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/SetAdminSettings", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/retention:set"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/SetAdminSettings", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/retention:set"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_SetAdminSettings_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_SetAdminSettings_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_SetAdminSettings_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_SetAdminSettings_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1693,19 +1730,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:get"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/GetAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:get"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_GetAuthInfo_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_GetAuthInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_GetAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_GetAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1714,19 +1752,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:create"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/CreateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:create"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_CreateAuthInfo_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_CreateAuthInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_CreateAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_CreateAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1735,19 +1774,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/UpdateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:update"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/UpdateAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:update"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_UpdateAuthInfo_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_UpdateAuthInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_UpdateAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_UpdateAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1756,19 +1796,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:delete"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/DeleteAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/auth-info:delete"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_DeleteAuthInfo_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_DeleteAuthInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_DeleteAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_DeleteAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1777,19 +1818,20 @@ func RegisterTenantAdminHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/LoadAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/load-auth"))
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/zenoss.cloud.TenantAdmin/LoadAuthInfo", runtime.WithHTTPPathPattern("/v1/tenant-admin/tenants/load-auth"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TenantAdmin_LoadAuthInfo_0(ctx, inboundMarshaler, client, req, pathParams)
-		ctx = runtime.NewServerMetadataContext(ctx, md)
+		resp, md, err := request_TenantAdmin_LoadAuthInfo_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_TenantAdmin_LoadAuthInfo_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TenantAdmin_LoadAuthInfo_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 

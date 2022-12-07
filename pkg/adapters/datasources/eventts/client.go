@@ -7,6 +7,7 @@ import (
 	"time"
 
 	legacyProto "github.com/golang/protobuf/proto"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
 	"github.com/zenoss/zenkit/v5"
 	"github.com/zenoss/zing-proto/v11/go/cloud/common"
@@ -192,7 +193,7 @@ func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSReques
 		}
 	}
 	if len(req.Filters) > 0 {
-		output.Filters = eventTsFilter2eventProtoFilter(req.Filters)
+		output.Filters, _ = eventTsFilter2eventProtoFilter(req.Filters)
 	}
 
 	if len(req.ByOccurrences.OccurrenceMap) > 0 {
@@ -226,7 +227,7 @@ func EventTSRequestToProto(req *eventts.GetRequest) (*eventtsProto.EventTSReques
 		}
 		if req.ByOccurrences.ShouldApplyIntervals {
 			if maxEnd <= 0 {
-				maxEnd = time.Now().UnixMilli() // TODO: HACK!!!
+				maxEnd = time.Now().UnixMilli()
 			}
 			output.TimeRange = &common.TimeRange{
 				Start: minStart,
@@ -275,16 +276,21 @@ func EventTSSeriesToOccurrence(msg *eventtsProto.EventTSSeries) ([]*eventts.Occu
 
 // main reason to dial with all this transformations - possibility to completely
 // remove ts-svc later.
-func eventTsFilter2eventProtoFilter(in []*eventts.Filter) []*eventtsProto.EventTSFilter {
+func eventTsFilter2eventProtoFilter(in []*eventts.Filter) ([]*eventtsProto.EventTSFilter, error) {
 	result := make([]*eventtsProto.EventTSFilter, 0)
+	var convErrs = &multierror.Error{}
 	for _, filter := range in {
 		item := eventtsProto.EventTSFilter{}
 		item.FieldName = filter.Field
 		item.Op = common.Operation(filter.Operation)
 		if len(filter.Values) > 0 {
-			item.Values = protobufutils.MustToScalarArray(filter.Values) // force panic on err
+			if values, err := protobufutils.ToScalarArray(filter.Values); err != nil {
+				item.Values = values
+			} else {
+				convErrs = multierror.Append(convErrs, err)
+			} // force panic on err
 			result = append(result, &item)
 		}
 	}
-	return result
+	return result, convErrs.ErrorOrNil()
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/zenoss/zing-proto/v11/go/cloud/eventquery"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var (
@@ -63,6 +64,14 @@ func WithScopeProtoToDomainFilter(pb *eventquery.WithScope) (*event.Filter, erro
 	return nil, errInvalidFilter
 }
 
+func valuePbSliceToAnySlice(pbSlice []*structpb.Value) []any {
+	results := make([]any, len(pbSlice))
+	for i, valuePb := range pbSlice {
+		results[i] = valuePb.AsInterface()
+	}
+	return results
+}
+
 func ClauseProtoToEventFilter(clause *eventquery.Clause) (*event.Filter, error) {
 	if clause == nil {
 		return nil, errors.New("nil clause")
@@ -115,7 +124,7 @@ func ClauseProtoToEventFilter(clause *eventquery.Clause) (*event.Filter, error) 
 		return &event.Filter{
 			Op:    event.FilterOpIn,
 			Field: v.In.GetField(),
-			Value: v.In.Values.AsSlice(),
+			Value: valuePbSliceToAnySlice(v.In.GetValues()),
 		}, nil
 	case *eventquery.Clause_WithScope:
 		return WithScopeProtoToDomainFilter(v.WithScope)
