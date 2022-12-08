@@ -141,13 +141,14 @@ var _ = Describe("eventquery.Service", func() {
 								ID: "event1",
 								Occurrences: []*eventContext.Occurrence{
 									{
-										ID:        "event1:1",
-										EventID:   "event1",
-										Tenant:    "acme",
-										StartTime: 0,
-										EndTime:   10000,
-										Status:    eventContext.StatusClosed,
-										Severity:  eventContext.SeverityDefault,
+										ID:           "event1:1",
+										EventID:      "event1",
+										Tenant:       "acme",
+										StartTime:    0,
+										EndTime:      10000,
+										Status:       eventContext.StatusClosed,
+										Severity:     eventContext.SeverityDefault,
+										Acknowledged: new(bool),
 									},
 								},
 							},
@@ -176,6 +177,7 @@ var _ = Describe("eventquery.Service", func() {
 					Severities: []eventContext.Severity{eventContext.SeverityDefault},
 					Statuses:   []eventContext.Status{eventContext.StatusClosed},
 					Fields:     []string{"metadata"},
+					Filter:     &eventContext.Filter{Field: "acknowledged", Op: eventContext.FilterOpEqualTo, Value: true},
 				})
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(resp).ShouldNot(BeNil())
