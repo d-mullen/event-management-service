@@ -212,6 +212,9 @@ func (handler *EventQueryService) Search(ctx context.Context, req *eventquery.Se
 					Severity:      eventPb.Severity(occ.Severity), // TODO: fixme
 					Status:        eventPb.Status(occ.Status),     // TODO: fixme
 					InstanceCount: uint64(occ.InstanceCount),
+					StartTime:     occ.StartTime,
+					UpdatedAt:     occ.UpdatedAt.UnixMilli(),
+					LastSeen:      occ.LastSeen,
 				}
 				currOcc := curr.Occurrences[i]
 				if occ.Acknowledged != nil {
