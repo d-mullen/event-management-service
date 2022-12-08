@@ -78,8 +78,6 @@ github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/bufbuild/connect-go v1.1.0
 ## explicit; go 1.18
-github.com/bufbuild/connect-go
-github.com/bufbuild/connect-go/internal/gen/connectext/grpc/status/v1
 # github.com/census-instrumentation/opencensus-proto v0.3.0
 ## explicit
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
@@ -201,17 +199,11 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.0.0
 ## explicit
-github.com/inconshreveable/mousetrap
 # github.com/jmespath/go-jmespath v0.4.0
 ## explicit; go 1.14
 github.com/jmespath/go-jmespath
 # github.com/joshcarp/grpctl v0.0.0-20221114170143-e404545a6ce2
 ## explicit; go 1.19
-github.com/joshcarp/grpctl
-github.com/joshcarp/grpctl/internal/descriptors
-github.com/joshcarp/grpctl/internal/grpc
-github.com/joshcarp/grpctl/internal/reflection/gen/go/v1/grpc_reflection_v1alphaconnect
-github.com/joshcarp/grpctl/internal/reflection/gen/go/v1alpha1/grpc_reflection_v1alphaconnect
 # github.com/klauspost/compress v1.15.11
 ## explicit; go 1.17
 github.com/klauspost/compress
@@ -293,7 +285,6 @@ github.com/spf13/afero/mem
 github.com/spf13/cast
 # github.com/spf13/cobra v1.4.1-0.20220318100158-f848943afd72
 ## explicit; go 1.15
-github.com/spf13/cobra
 # github.com/spf13/jwalterweatherman v1.1.0
 ## explicit
 github.com/spf13/jwalterweatherman
@@ -364,7 +355,7 @@ github.com/zenoss/logrus-stackdriver-formatter
 github.com/zenoss/zenkit/v5
 github.com/zenoss/zenkit/v5/internal/exporter
 github.com/zenoss/zenkit/v5/mocks
-# github.com/zenoss/zing-proto/v11 v11.21.6
+# github.com/zenoss/zing-proto/v11 v11.21.7
 ## explicit; go 1.19
 github.com/zenoss/zing-proto/v11/go/cloud/common
 github.com/zenoss/zing-proto/v11/go/cloud/data_receiver
@@ -658,7 +649,6 @@ google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/testing/protocmp
 google.golang.org/protobuf/types/descriptorpb
-google.golang.org/protobuf/types/dynamicpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
