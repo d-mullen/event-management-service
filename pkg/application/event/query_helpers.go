@@ -125,7 +125,7 @@ func SplitOutFilter(batchSize int, targetField string, filter *event.Filter) []*
 			}
 		}
 	}
-	return nil
+	return []*event.Filter{filter}
 }
 
 func transformFilter(orig *event.Filter, cb func(*event.Filter) (*event.Filter, bool, error)) (*event.Filter, error) {
