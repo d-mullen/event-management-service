@@ -309,7 +309,7 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 				err := mongodb.FindWithRetry[*Note](
 					ctx,
 					notesInFilter,
-					[]*options.FindOptions{defaultFindOpts(options.Find())},
+					[]*options.FindOptions{defaultFindOpts(options.Find().SetSort(bson.D{{"updatedAt", -1}}))},
 					db.collections[CollNotes].Find,
 					func(note *Note) (bool, string, error) {
 						notes = append(notes, note)

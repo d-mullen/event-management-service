@@ -168,6 +168,7 @@ var supportedFields = map[string]bool{
 	"endTime":      true,
 	"acknowledged": true,
 	"eventId":      true,
+	"lastSeen":     true,
 
 	// Common fields
 	"entity":        true,

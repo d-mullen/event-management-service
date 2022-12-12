@@ -45,6 +45,12 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 		}, nil
 	default:
+		if start == interval_start {
+			return bson.D{
+				{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+				{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+			}, nil
+		}
 		return bson.D{
 			{Key: "$or",
 				Value: bson.A{
@@ -257,7 +263,9 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 	if query.PageInput != nil && len(query.PageInput.SortBy) > 0 {
 		sortDoc := bson.D{}
 		for _, sortBy := range query.PageInput.SortBy {
-			sortDoc = append(sortDoc, bson.E{Key: sortBy.Field, Value: sortBy.SortOrder})
+			if event.IsSupportedField(sortBy.Field) {
+				sortDoc = append(sortDoc, bson.E{Key: sortBy.Field, Value: sortBy.SortOrder})
+			}
 		}
 		findOpts.SetSort(sortDoc)
 	}
