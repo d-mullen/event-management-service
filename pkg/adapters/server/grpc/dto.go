@@ -50,7 +50,8 @@ func WithScopeProtoToDomainFilter(pb *eventquery.WithScope) (*event.Filter, erro
 		return &event.Filter{
 			Field: "entity",
 			Op:    event.FilterOpIn,
-			Value: v.EntityIds.Ids}, nil
+			Value: v.EntityIds.Ids,
+		}, nil
 	case *eventquery.WithScope_EntityScopeCursor:
 		return &event.Filter{
 			Field: "scope",

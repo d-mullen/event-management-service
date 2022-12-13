@@ -131,8 +131,8 @@ func UpsertCursor[R any](
 	cursorRepo event.CursorRepository,
 	pager Pager,
 	query *event.Query,
-	pageResults []R) (string, error) {
-
+	pageResults []R,
+) (string, error) {
 	var (
 		cursorInput *event.Cursor
 		direction   event.PageDirection

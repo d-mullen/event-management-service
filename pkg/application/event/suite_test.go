@@ -2,16 +2,13 @@ package event_test
 
 import (
 	"math/rand"
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
-var (
-	suiteTestingT *testing.T
-)
+var suiteTestingT *testing.T
 
 func TestEventQueryService(t *testing.T) {
 	suiteTestingT = t

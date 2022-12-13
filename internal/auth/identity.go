@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/zenoss/zenkit/v5"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

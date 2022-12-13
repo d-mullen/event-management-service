@@ -20,7 +20,8 @@ func Do[E any, R any](
 	batchSize int,
 	payload []E,
 	doOperation func(ctx context.Context, batch []E) (R, error),
-	processResults func(ctx context.Context, result R) (bool, error)) error {
+	processResults func(ctx context.Context, result R) (bool, error),
+) error {
 	for i := 0; i < len(payload); i += batchSize {
 		j := i + batchSize
 		if j > len(payload) {
@@ -54,7 +55,8 @@ func DoConcurrently[E any, R any](
 	batchSize, numRoutines int,
 	payload []E,
 	doOperation func(ctx context.Context, batch []E) (R, error),
-	processResults func(ctx context.Context, result R) (bool, error)) error {
+	processResults func(ctx context.Context, result R) (bool, error),
+) error {
 	return doConcurrently(ctx, false, batchSize, numRoutines, payload, doOperation, processResults)
 }
 
@@ -63,8 +65,8 @@ func DoConcurrentlyInOrder[E any, R any](
 	batchSize, numRoutines int,
 	payload []E,
 	doOperation func(ctx context.Context, batch []E) (R, error),
-	processResults func(ctx context.Context, result R) (bool, error)) error {
-
+	processResults func(ctx context.Context, result R) (bool, error),
+) error {
 	return doConcurrently(ctx, true, batchSize, numRoutines, payload, doOperation, processResults)
 }
 
@@ -79,7 +81,8 @@ func doConcurrently[E any, R any](
 	batchSize, numRoutines int,
 	payload []E,
 	doOperation func(ctx context.Context, batch []E) (R, error),
-	processResults func(ctx context.Context, result R) (bool, error)) error {
+	processResults func(ctx context.Context, result R) (bool, error),
+) error {
 	ctx, span := trace.StartSpan(ctx, "DoConcurrently")
 	defer span.End()
 	if batchSize == 0 {

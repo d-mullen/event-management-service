@@ -291,6 +291,5 @@ var _ = Describe("Management Service", func() {
 			Expect(err).Should(HaveOccurred())
 			Ω(resp).Should(BeNil())
 		})
-
 	})
 })

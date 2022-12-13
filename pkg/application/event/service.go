@@ -46,12 +46,14 @@ func NewService(
 	r event.Repository,
 	eventTSRepo eventts.Repository,
 	entityScopeProvider scopes.EntityScopeProvider,
-	activeEntityAdapter scopes.ActiveEntityRepository) Service {
+	activeEntityAdapter scopes.ActiveEntityRepository,
+) Service {
 	return &service{
 		eventContext:   r,
 		eventTS:        eventTSRepo,
 		entityScopes:   entityScopeProvider,
-		activeEntities: activeEntityAdapter}
+		activeEntities: activeEntityAdapter,
+	}
 }
 
 func (svc *service) Add(_ context.Context, _ *event.Event) (*event.Event, error) {
@@ -60,8 +62,8 @@ func (svc *service) Add(_ context.Context, _ *event.Event) (*event.Event, error)
 
 func eventResultsToOccurrenceMaps(
 	results []*event.Event) (map[string]*event.Occurrence,
-	map[string][]*eventts.OccurrenceInput, map[string]*event.Event) {
-
+	map[string][]*eventts.OccurrenceInput, map[string]*event.Event,
+) {
 	occurrenceMap := make(map[string]*event.Occurrence)
 	occInputMap := make(map[string][]*eventts.OccurrenceInput)
 	eventMap := make(map[string]*event.Event)
@@ -279,7 +281,8 @@ func getEventTSResults(ctx context.Context, results []*event.Event, eventTS even
 			tsFilters = append(tsFilters, &eventts.Filter{
 				Operation: eventts.Operation_OP_IN,
 				Field:     "_zv_severity",
-				Values:    tsSeverities})
+				Values:    tsSeverities,
+			})
 		}
 
 		if len(query.Statuses) > 0 { // status filter
@@ -290,7 +293,8 @@ func getEventTSResults(ctx context.Context, results []*event.Event, eventTS even
 			tsFilters = append(tsFilters, &eventts.Filter{
 				Operation: eventts.Operation_OP_IN,
 				Field:     "_zv_status",
-				Values:    tsStatuses})
+				Values:    tsStatuses,
+			})
 		}
 		shouldApplyOccurrenceIntervals = query.ShouldApplyOccurrenceIntervals
 	}
@@ -511,7 +515,6 @@ func (svc *service) Get(ctx context.Context, req *event.GetRequest) ([]*event.Ev
 }
 
 func shouldGetEventTSDetails(query *event.Query) bool {
-
 	for _, field := range query.Fields {
 		if len(field) > 0 && !event.IsSupportedField(field) {
 			return true
@@ -661,9 +664,7 @@ func incrementByCount(o *event.Occurrence) uint64 {
 }
 
 func (svc *service) Count(ctx context.Context, req *event.CountRequest) (*eventts.CountResponse, error) {
-	var (
-		countIncrementer CountIncrementer = incrementByOne
-	)
+	var countIncrementer CountIncrementer = incrementByOne
 	log := zenkit.ContextLogger(ctx)
 	// construct query with combined fields from query and count request
 	updatedQuery := countRequest2Query(ctx, req)

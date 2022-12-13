@@ -2,12 +2,11 @@ package mongo_test
 
 import (
 	"math/rand"
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
 func TestMongoDB(t *testing.T) {

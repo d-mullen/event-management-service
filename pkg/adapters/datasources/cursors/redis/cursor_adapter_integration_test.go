@@ -51,7 +51,6 @@ var _ = Describe("Redis Cursor Adapter Integration Tests", Ordered, func() {
 		cancel()
 	})
 	It("should create and retrieve query cursors", func() {
-
 		req := &event.Cursor{
 			ID: "c1",
 			Query: event.Query{
@@ -72,6 +71,5 @@ var _ = Describe("Redis Cursor Adapter Integration Tests", Ordered, func() {
 		actual, err := adapter.Get(testCtx, cursor)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(actual).To(BeEquivalentTo(req))
-
 	})
 })

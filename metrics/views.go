@@ -8,7 +8,7 @@ var AllViews = []*view.View{
 	// set status
 	SetStatusTimeMsView,
 	SetStatusCountView,
-	//annotate
+	// annotate
 	AnnotateTimeMsView,
 	AnnotateCountView,
 	DeleteAnnotationCountView,

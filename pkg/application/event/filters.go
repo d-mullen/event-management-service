@@ -7,28 +7,26 @@ import (
 	"github.com/zenoss/event-management-service/pkg/models/eventts"
 )
 
-var (
-	eventToEventTSFilterOpMap = map[event.FilterOp]eventts.Operation{
-		event.FilterOpLessThan:             eventts.Operation_OP_LESS,
-		event.FilterOpLessThanOrEqualTo:    eventts.Operation_OP_LESS_OR_EQ,
-		event.FilterOpGreaterThan:          eventts.Operation_OP_GREATER,
-		event.FilterOpGreaterThanOrEqualTo: eventts.Operation_OP_GREATER_OR_EQ,
-		event.FilterOpEqualTo:              eventts.Operation_OP_EQUALS,
-		event.FilterOpNotEqualTo:           eventts.Operation_OP_NOT_EQUALS,
-		event.FilterOpIn:                   eventts.Operation_OP_IN,
-		event.FilterOpNotIn:                eventts.Operation_OP_NOT_IN,
-		event.FilterOpExists:               eventts.Operation_OP_EXISTS,
-		event.FilterOpContains:             eventts.Operation_OP_CONTAINS,
-		event.FilterOpDoesNotContain:       eventts.Operation_OP_NOT_CONTAINS,
-		event.FilterOpPrefix:               eventts.Operation_OP_STARTS_WITH,
-		event.FilterOpSuffix:               eventts.Operation_OP_END_WITH,
-		event.FilterOpRegex:                eventts.Operation_OP_CONTAINS,
-		// not implemented in eventTS
-		// event.FilterOpOr
-		// event.FilterOpAnd
-		// event.FilterOpNot
-	}
-)
+var eventToEventTSFilterOpMap = map[event.FilterOp]eventts.Operation{
+	event.FilterOpLessThan:             eventts.Operation_OP_LESS,
+	event.FilterOpLessThanOrEqualTo:    eventts.Operation_OP_LESS_OR_EQ,
+	event.FilterOpGreaterThan:          eventts.Operation_OP_GREATER,
+	event.FilterOpGreaterThanOrEqualTo: eventts.Operation_OP_GREATER_OR_EQ,
+	event.FilterOpEqualTo:              eventts.Operation_OP_EQUALS,
+	event.FilterOpNotEqualTo:           eventts.Operation_OP_NOT_EQUALS,
+	event.FilterOpIn:                   eventts.Operation_OP_IN,
+	event.FilterOpNotIn:                eventts.Operation_OP_NOT_IN,
+	event.FilterOpExists:               eventts.Operation_OP_EXISTS,
+	event.FilterOpContains:             eventts.Operation_OP_CONTAINS,
+	event.FilterOpDoesNotContain:       eventts.Operation_OP_NOT_CONTAINS,
+	event.FilterOpPrefix:               eventts.Operation_OP_STARTS_WITH,
+	event.FilterOpSuffix:               eventts.Operation_OP_END_WITH,
+	event.FilterOpRegex:                eventts.Operation_OP_CONTAINS,
+	// not implemented in eventTS
+	// event.FilterOpOr
+	// event.FilterOpAnd
+	// event.FilterOpNot
+}
 
 func eventFilterToEventTSFilter(orig *event.Filter) ([]*eventts.Filter, error) {
 	if orig == nil {

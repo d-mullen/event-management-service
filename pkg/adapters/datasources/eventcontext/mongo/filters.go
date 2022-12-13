@@ -12,9 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var (
-	defaultTimeRange event.TimeRange
-)
+var defaultTimeRange event.TimeRange
 
 func getOccurrenceTemporalFilters(
 	applyIntervals bool,
@@ -50,7 +48,6 @@ func getOccurrenceTemporalFilters(
 				{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 				{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 			}, nil
-
 		}
 		return bson.D{
 			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
@@ -64,7 +61,8 @@ func getOccurrenceTemporalFilters(
 			}, nil
 		}
 		return bson.D{
-			{Key: "$or",
+			{
+				Key: "$or",
 				Value: bson.A{
 					bson.D{
 						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: int(event.StatusClosed)}}},
@@ -76,7 +74,8 @@ func getOccurrenceTemporalFilters(
 						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 						{Key: "lastSeen", Value: bson.D{{Key: "$gte", Value: start}}},
 					},
-				}},
+				},
+			},
 		}, nil
 	}
 }
@@ -160,9 +159,9 @@ func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
 			return nil, errors.New("invalid filter operation")
 		}
 		return bson.D{
-			{Key: otherFilter.Field, Value: bson.E{Key: OpNot, Value: bson.E{Key: otherOperator, Value: otherFilter.Value}}}}, nil
+			{Key: otherFilter.Field, Value: bson.E{Key: OpNot, Value: bson.E{Key: otherOperator, Value: otherFilter.Value}}},
+		}, nil
 	}
-
 }
 
 func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
@@ -384,5 +383,4 @@ func GeneratePaginationQuery(filter, sort, nextKey *bson.D) *bson.D {
 		}
 	}
 	return &paginatedQuery
-
 }

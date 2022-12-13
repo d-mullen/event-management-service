@@ -3,12 +3,13 @@ package activeents
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/event-management-service/pkg/models/scopes"
 	"github.com/zenoss/zenkit/v5"
-	"time"
 )
 
 func RunActiveEntitySpecs(offset int, factory func() scopes.ActiveEntityRepository) {
@@ -67,7 +68,8 @@ func RunActiveEntitySpecs(offset int, factory func() scopes.ActiveEntityReposito
 							TenantID:  testTenantId,
 							EntityID:  entityIDs[1],
 						},
-					}})
+					},
+				})
 		})
 		ginkgo.It("should return the expected entity IDs", func() {
 			for _, testCase := range []struct {
@@ -89,5 +91,4 @@ func RunActiveEntitySpecs(offset int, factory func() scopes.ActiveEntityReposito
 			}
 		})
 	})
-
 }

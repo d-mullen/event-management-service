@@ -114,9 +114,7 @@ var _ = Describe("FindWithRetryTest", func() {
 			cursorMock                   *mockedCursor
 		)
 		JustBeforeEach(func() {
-			var (
-				err error
-			)
+			var err error
 			docs := []any{doc{"e1:1"}, doc{"e1:2"}, doc{"e2:1"}}
 			backingCursor, err = mongo.NewCursorFromDocuments(docs[:2], nil, nil)
 			Expect(err).ToNot(HaveOccurred())
