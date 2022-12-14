@@ -18,9 +18,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-var (
-	errGrpcNotImplemented = status.Error(codes.Unimplemented, "unimplemented")
-)
+var errGrpcNotImplemented = status.Error(codes.Unimplemented, "unimplemented")
 
 type (
 	EventQueryService struct {
@@ -43,6 +41,7 @@ func sortOrderFromProto(order eventquery.SortOrder) event.SortOrder {
 	}
 	return event.SortOrderAscending
 }
+
 func fieldNameFromProto(byField *eventquery.SortBy_ByField) string {
 	switch v := byField.ByField.SortField.(type) {
 	case *eventquery.SortByField_Property:

@@ -17,7 +17,6 @@ package frequency
 import (
 	"bytes"
 	"io"
-
 	"math"
 
 	"github.com/zenoss/zingo/v4/rowkey"

@@ -1,9 +1,10 @@
 package event
 
 import (
+	"reflect"
+
 	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/pkg/models/event"
-	"reflect"
 )
 
 func SplitOutQueries(batchSize int, targetField string, origQuery *event.Query) []*event.Query {
@@ -75,9 +76,7 @@ func batchUpFilter[T any](batchSize int, fieldName string, op event.FilterOp, va
 }
 
 func anyToSlice(v any) []any {
-	var (
-		out []any
-	)
+	var out []any
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Slice {
 		for i := 0; i < rv.Len(); i++ {

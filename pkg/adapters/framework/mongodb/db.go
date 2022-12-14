@@ -29,7 +29,6 @@ type (
 )
 
 func (cfg Config) URI() string {
-
 	var (
 		urlWithParams = url.URL{Scheme: "mongodb"}
 		val           = url.Values{}

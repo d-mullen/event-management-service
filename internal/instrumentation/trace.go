@@ -12,9 +12,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var (
-	limiterTraceSpan = rate.NewLimiter(rate.Every(50*time.Millisecond), 100)
-)
+var limiterTraceSpan = rate.NewLimiter(rate.Every(50*time.Millisecond), 100)
 
 func mustMarshal(v any, errFunc func(error)) string {
 	b, err := json.Marshal(v)

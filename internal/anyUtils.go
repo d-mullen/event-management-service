@@ -5,9 +5,7 @@ import (
 )
 
 func AnyToSlice(v any) []any {
-	var (
-		out []any
-	)
+	var out []any
 	rv := reflect.ValueOf(v)
 	if k := rv.Kind(); k == reflect.Slice {
 		for i := 0; i < rv.Len(); i++ {

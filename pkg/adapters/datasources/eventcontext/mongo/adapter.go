@@ -43,7 +43,8 @@ var _ event.Repository = &Adapter{}
 func NewAdapter(_ context.Context,
 	cfg mongodb.Config,
 	database mongodb.Database,
-	queryCursors event.CursorRepository) (*Adapter, error) {
+	queryCursors event.CursorRepository,
+) (*Adapter, error) {
 	if database == nil {
 		return nil, errors.New("invalid argument: nil database")
 	}
@@ -212,9 +213,10 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 			err = mongodb.FindWithRetry(
 				ctx,
 				filters,
-				[]*options.FindOptions{findOpt.
-					SetSkip(int64(offset)).
-					SetLimit(int64(newLimit)),
+				[]*options.FindOptions{
+					findOpt.
+						SetSkip(int64(offset)).
+						SetLimit(int64(newLimit)),
 				},
 				db.collections[CollOccurrences].Find,
 				func(result *bson.M) (bool, string, error) {

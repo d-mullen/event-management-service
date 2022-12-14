@@ -85,7 +85,6 @@ func (repo *eventTSRepo) getStream(ctx context.Context, req *eventts.GetRequest,
 				"eventts.EventsWithCountsRequest": ewcReq,
 				"eventts.GetRequest":              req,
 			}, nil)
-
 	}
 	log.WithField("get_eventts_proto", mustMarshal(reqProto)).Trace("making event-ts request")
 	// stream, err := repo.client.GetEventsStream(ctx, reqProto)
@@ -293,7 +292,7 @@ func EventTSSeriesToOccurrence(msg *eventtsProto.EventTSSeries) ([]*eventts.Occu
 // remove ts-svc later.
 func eventTsFilter2eventProtoFilter(in []*eventts.Filter) ([]*eventtsProto.EventTSFilter, error) {
 	result := make([]*eventtsProto.EventTSFilter, 0)
-	var convErrs = &multierror.Error{}
+	convErrs := &multierror.Error{}
 	for _, filter := range in {
 		item := eventtsProto.EventTSFilter{}
 		item.FieldName = filter.Field

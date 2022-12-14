@@ -77,7 +77,6 @@ var _ = Describe("eventquery.Service", func() {
 						opt.ApplyOccurrenceProcessors(context.TODO(), []*eventContext.Occurrence{
 							{ID: "id1:1", StartTime: 0, EndTime: 10000, Status: eventContext.StatusClosed},
 						})
-
 					}).
 					Return(&eventContext.Page{
 						Results: []*eventContext.Event{
@@ -133,7 +132,6 @@ var _ = Describe("eventquery.Service", func() {
 						opt.ApplyOccurrenceProcessors(context.TODO(), []*eventContext.Occurrence{
 							{ID: "id1:1", StartTime: 0, EndTime: 10000, Status: eventContext.StatusClosed},
 						})
-
 					}).
 					Return(&eventContext.Page{
 						Results: []*eventContext.Event{
@@ -194,7 +192,6 @@ var _ = Describe("eventquery.Service", func() {
 						opt.ApplyOccurrenceProcessors(context.TODO(), []*eventContext.Occurrence{
 							{ID: "id1:1", StartTime: 0, EndTime: 10000, Status: eventContext.StatusClosed},
 						})
-
 					}).
 					Return(&eventContext.Page{
 						Results: []*eventContext.Event{
@@ -236,12 +233,14 @@ var _ = Describe("eventquery.Service", func() {
 					Severities: []eventContext.Severity{eventContext.SeverityDefault},
 					Statuses:   []eventContext.Status{eventContext.StatusClosed},
 					Fields:     []string{"summary", "acknowledged", "body", "UNSupportedField"},
-					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
+					Filter: &eventContext.Filter{
+						Op:    eventContext.FilterOpAnd,
 						Field: "",
 						Value: []*eventContext.Filter{
 							{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "Acme"},
 							{Op: eventContext.FilterOpNotEqualTo, Field: "status", Value: "1"},
-						}},
+						},
+					},
 				})
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(resp).ShouldNot(BeNil())
@@ -324,13 +323,15 @@ var _ = Describe("eventquery.Service", func() {
 					Severities: []eventContext.Severity{eventContext.SeverityDefault},
 					Statuses:   []eventContext.Status{eventContext.StatusClosed},
 					Fields:     []string{"summary", "acknowledged", "body", "newField"},
-					Filter: &eventContext.Filter{Op: eventContext.FilterOpAnd,
+					Filter: &eventContext.Filter{
+						Op: eventContext.FilterOpAnd,
 						// Field: string(eventContext.FilterOpAnd),
 						Value: []*eventContext.Filter{
 							{Op: eventContext.FilterOpEqualTo, Field: "tenant", Value: "acme"},
 							{Op: eventContext.FilterOpNotEqualTo, Field: "k1", Value: "v1"},
 							{Op: eventContext.FilterOpEqualTo, Field: "CZ_EVENT_DETAIL-zenoss.device.production_state", Value: 1000},
-						}},
+						},
+					},
 					PageInput: &eventContext.PageInput{
 						Limit: 1,
 					},
@@ -339,7 +340,6 @@ var _ = Describe("eventquery.Service", func() {
 				Ω(resp).ShouldNot(BeNil())
 			})
 		})
-
 	})
 	Context("Service.Get", func() {
 		var (

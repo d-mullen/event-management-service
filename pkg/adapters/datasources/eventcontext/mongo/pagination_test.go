@@ -47,10 +47,8 @@ func (fake *cursorRepoFake) Update(_ context.Context, _ string, _ *event.Cursor)
 }
 
 var _ = Describe("Pagination Unit-Tests", func() {
-	var (
-		pager mongo.Pager
-	)
-	var _ = DescribeTable("skip-limit Unit Tests", func(testCase testCaseType3) {
+	var pager mongo.Pager
+	_ = DescribeTable("skip-limit Unit Tests", func(testCase testCaseType3) {
 		cursorRepoFake := &cursorRepoFake{
 			data: map[string]*event.Cursor{
 				"q1": {

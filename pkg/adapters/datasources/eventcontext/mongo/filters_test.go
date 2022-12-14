@@ -68,7 +68,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			}
 		}
 	)
-	var _ = DescribeTable(
+	_ = DescribeTable(
 		"GeneratePaginationQuery Table-driven Tests",
 		func(tc testCase) {
 			query, sort, nextKey := tc.query, tc.sort, tc.nextKey
@@ -203,7 +203,7 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			},
 		}),
 	)
-	var _ = DescribeTable(
+	_ = DescribeTable(
 		"DomainFilterToMongoD Table-driven Tests",
 		func(tc testCase2) {
 			orig := tc.orig
@@ -424,5 +424,4 @@ var _ = Describe("Mongo Filter Helpers Tests", func() {
 			},
 		}),
 	)
-
 })

@@ -3,6 +3,7 @@ package yamr
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/zenoss/event-management-service/internal/auth"
 	"github.com/zenoss/event-management-service/pkg/models/event"
 	"github.com/zenoss/event-management-service/pkg/models/scopes"

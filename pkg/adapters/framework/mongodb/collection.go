@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -39,6 +40,7 @@ func (c *collectionHelper) Find(ctx context.Context, filter any, opts ...*option
 		return cur, nil
 	}
 }
+
 func (c *collectionHelper) Aggregate(ctx context.Context, pipeline any, opts ...*options.AggregateOptions) (Cursor, error) {
 	if cur, err := c.Collection.Aggregate(ctx, pipeline, opts...); err != nil {
 		return nil, err

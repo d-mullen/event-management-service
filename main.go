@@ -43,12 +43,10 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-var (
-	endpointHandlerRegistrationFuncs = map[string]zenkit.RegisterEndpointFunc{
-		config.EventManagementEnabledConfig: proto.RegisterEventManagementHandlerFromEndpoint,
-		config.EventQueryEnabled:            eventQueryProto.RegisterEventQueryServiceHandlerFromEndpoint,
-	}
-)
+var endpointHandlerRegistrationFuncs = map[string]zenkit.RegisterEndpointFunc{
+	config.EventManagementEnabledConfig: proto.RegisterEventManagementHandlerFromEndpoint,
+	config.EventQueryEnabled:            eventQueryProto.RegisterEventQueryServiceHandlerFromEndpoint,
+}
 
 func registerCombinedEndpointHandlers(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
 	for cfgKey, fn := range endpointHandlerRegistrationFuncs {
@@ -78,7 +76,6 @@ func main() {
 
 	// run
 	err := zenkit.RunGRPCServerWithEndpoint(ctx, ServiceName, func(svr *grpc.Server) error {
-
 		if viper.GetBool(config.EventManagementEnabledConfig) {
 			log.Debug("registering event management server")
 			svc, err := NewEventManagementService(ctx)
@@ -147,7 +144,6 @@ func main() {
 		}
 
 		return nil
-
 	}, registerCombinedEndpointHandlers)
 	if err != nil {
 		log.WithError(err).Fatal("error running gRPC server")

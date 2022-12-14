@@ -12,11 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var (
-	defaultTimeRange event.TimeRange
-)
+var defaultTimeRange event.TimeRange
 
-func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRange, apply_intervals bool) (bson.D, error) {
+func getOccurrenceTemporalFilters(
+	applyIntervals bool,
+	willSort bool,
+	activeEventsOnly StatusFlag,
+	tr event.TimeRange,
+) (bson.D, error) {
 	if tr.End < tr.Start {
 		return nil, errors.New("invalid time range")
 	}
@@ -24,7 +27,7 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 	// Set start interval to zero which is an open-ended search but enforced use the index.
 	interval_start := int64(0)
 
-	if apply_intervals {
+	if applyIntervals {
 		interval_start = tr.Start
 	}
 
@@ -40,9 +43,15 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
 		}, nil
 	case StatusFlagInactiveOnly:
+		if willSort {
+			return bson.D{
+				{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+				{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+			}, nil
+		}
 		return bson.D{
 			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+			{Key: "endTime", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 		}, nil
 	default:
 		if start == interval_start {
@@ -52,7 +61,8 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 			}, nil
 		}
 		return bson.D{
-			{Key: "$or",
+			{
+				Key: "$or",
 				Value: bson.A{
 					bson.D{
 						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: int(event.StatusClosed)}}},
@@ -64,7 +74,8 @@ func getOccurrenceTemporalFilters(activeEventsOnly StatusFlag, tr event.TimeRang
 						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 						{Key: "lastSeen", Value: bson.D{{Key: "$gte", Value: start}}},
 					},
-				}},
+				},
+			},
 		}, nil
 	}
 }
@@ -148,9 +159,9 @@ func ApplyNotFilterTransform(orig *event.Filter) (bson.D, error) {
 			return nil, errors.New("invalid filter operation")
 		}
 		return bson.D{
-			{Key: otherFilter.Field, Value: bson.E{Key: OpNot, Value: bson.E{Key: otherOperator, Value: otherFilter.Value}}}}, nil
+			{Key: otherFilter.Field, Value: bson.E{Key: OpNot, Value: bson.E{Key: otherOperator, Value: otherFilter.Value}}},
+		}, nil
 	}
-
 }
 
 func DomainFilterToMongoD(orig *event.Filter) (bson.D, error) {
@@ -231,6 +242,21 @@ func activeEventsOnlyFlag(q *event.Query) StatusFlag {
 }
 
 func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, error) {
+	willSort := false
+	findOpts := options.Find()
+	if query.PageInput != nil && len(query.PageInput.SortBy) > 0 {
+		sortDoc := bson.D{}
+		for _, sortBy := range query.PageInput.SortBy {
+			if event.IsSupportedField(sortBy.Field) {
+				sortDoc = append(sortDoc, bson.E{Key: sortBy.Field, Value: sortBy.SortOrder})
+				willSort = true
+			}
+		}
+		findOpts.SetSort(sortDoc)
+	}
+	if query.PageInput != nil && query.PageInput.Limit > 0 {
+		findOpts.SetLimit(int64(query.PageInput.Limit + 1))
+	}
 	filters := bson.D{{Key: "tenantId", Value: query.Tenant}}
 	if len(query.Statuses) > 0 {
 		if len(query.Statuses) == 1 {
@@ -246,7 +272,7 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 			filters = append(filters, bson.E{Key: "severity", Value: bson.D{{Key: OpIn, Value: query.Severities}}})
 		}
 	}
-	temporalFilters, err := getOccurrenceTemporalFilters(activeEventsOnlyFlag(query), query.TimeRange, !query.ShouldApplyOccurrenceIntervals)
+	temporalFilters, err := getOccurrenceTemporalFilters(!query.ShouldApplyOccurrenceIntervals, willSort, activeEventsOnlyFlag(query), query.TimeRange)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to make query plan")
 	}
@@ -258,19 +284,6 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 			return nil, nil, errors.Wrap(err, "failed to convert domain filter to mongo filter")
 		}
 		filters = append(filters, anotherFilter...)
-	}
-	findOpts := options.Find()
-	if query.PageInput != nil && len(query.PageInput.SortBy) > 0 {
-		sortDoc := bson.D{}
-		for _, sortBy := range query.PageInput.SortBy {
-			if event.IsSupportedField(sortBy.Field) {
-				sortDoc = append(sortDoc, bson.E{Key: sortBy.Field, Value: sortBy.SortOrder})
-			}
-		}
-		findOpts.SetSort(sortDoc)
-	}
-	if query.PageInput != nil && query.PageInput.Limit > 0 {
-		findOpts.SetLimit(int64(query.PageInput.Limit + 1))
 	}
 	return filters, findOpts, nil
 }
@@ -370,5 +383,4 @@ func GeneratePaginationQuery(filter, sort, nextKey *bson.D) *bson.D {
 		}
 	}
 	return &paginatedQuery
-
 }

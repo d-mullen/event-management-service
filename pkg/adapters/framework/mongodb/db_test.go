@@ -40,17 +40,19 @@ var _ = Describe("MongoDB Unit Tests", func() {
 		Expect(urlParsed.Host).Should(BeEquivalentTo(expectedURL.Host))
 		Expect(urlParsed.User).Should(BeEquivalentTo(expectedURL.User))
 		Expect(opts).Should(BeEquivalentTo(expectedOpts))
-
 	},
 		Entry(descrFunc, mongodb.Config{Address: "mongodb"}, "mongodb://mongodb/"),
 		Entry(descrFunc, mongodb.Config{Address: "mongodb", Username: "testUser", Password: "testPasswd"}, "mongodb://testUser:testPasswd@mongodb/?authMechanism=SCRAM-SHA-256"),
 		Entry(descrFunc, mongodb.Config{Address: "mongodb", CACert: "/testCA.crt", ClientCert: "/testClient.crt"}, "mongodb://mongodb/?authMechanism=MONGODB-X509&readPreference=secondary&tlsCAFile=/testCA.crt&tlsCertificateKeyFile=/testClient.crt"),
-		Entry(descrFunc, mongodb.Config{Address: "mongodb",
+		Entry(descrFunc, mongodb.Config{
+			Address:    "mongodb",
 			CACert:     "/testCA.crt",
 			ClientCert: "/testClient.crt",
-			Options: map[string]string{"tlsInsecure": "true",
+			Options: map[string]string{
+				"tlsInsecure":      "true",
 				"connectTimeoutMS": "30000",
-				"socketTimeoutMS":  "22222"},
+				"socketTimeoutMS":  "22222",
+			},
 		},
 			"mongodb://mongodb?authMechanism=MONGODB-X509&connectTimeoutMS=30000&readPreference=secondary&socketTimeoutMS=22222&tlsCAFile=%2FtestCA.crt&tlsCertificateKeyFile=%2FtestClient.crt&tlsInsecure=true"),
 	)

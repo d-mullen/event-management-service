@@ -30,7 +30,7 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest", zenkit.DefaultRetryOpts())
 		if err != nil {
 			log.WithError(err).Error("failed to connect to event-context-ingest-svc. Ignoring...")
-			//return nil, err
+			// return nil, err
 		} else {
 			svc.eventCtxClient = ecproto.NewEventContextIngestClient(ecConn)
 			log.Info("connected to event-context-ingest-svc")
@@ -40,7 +40,7 @@ func NewEventManagementService(ctx context.Context) (proto.EventManagementServer
 		ecConn, err := zenkit.NewClientConnWithRetry(ctx, "event-context-ingest-v2", zenkit.DefaultRetryOpts())
 		if err != nil {
 			log.WithError(err).Error("failed to connect to event-context-ingest-svc-v2")
-			//return nil, err
+			// return nil, err
 		} else {
 			svc.eventCtxClientv2 = ecproto.NewEventContextIngestClient(ecConn)
 			log.Info("connected to event-context-ingest-svc-v2")
@@ -196,7 +196,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				EventId:      item.EventId,
 			}
 
-			//firestore
+			// firestore
 			if svc.eventCtxClient != nil {
 				resp, err := svc.eventCtxClient.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
@@ -224,7 +224,7 @@ func (svc *EventManagementService) Annotate(ctx context.Context, request *proto.
 				Note:         item.Annotation,
 				EventId:      item.EventId,
 			}
-			//mongo store
+			// mongo store
 			if svc.eventCtxClientv2 != nil {
 				log.Debugf("request to mongo is %v", ecRequest)
 				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
@@ -292,7 +292,7 @@ func (svc *EventManagementService) DeleteAnnotations(ctx context.Context, reques
 				}
 			}
 
-			//mongo store
+			// mongo store
 			if svc.eventCtxClientv2 != nil {
 				resp, err := svc.eventCtxClientv2.UpdateEvent(ctx, &ecRequest)
 				if err == nil {
