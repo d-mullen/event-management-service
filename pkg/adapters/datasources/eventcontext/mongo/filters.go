@@ -43,21 +43,22 @@ func getOccurrenceTemporalFilters(
 			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
 		}, nil
 	case StatusFlagInactiveOnly:
-		if willSort {
-			return bson.D{
-				{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-				{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
-			}, nil
-		}
+		// Temporarily disable this condition
+		// if willSort {
+		// 	return bson.D{
+		// 		{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+		// 		{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+		// 	}, nil
+		// }
 		return bson.D{
 			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
 			{Key: "endTime", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 		}, nil
 	default:
 		if start == interval_start {
-			return bson.D{
-				{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-				{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+		return bson.D{
+			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
+			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
 			}, nil
 		}
 		return bson.D{
@@ -72,7 +73,7 @@ func getOccurrenceTemporalFilters(
 					bson.D{
 						{Key: "status", Value: int(event.StatusClosed)},
 						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-						{Key: "lastSeen", Value: bson.D{{Key: "$gte", Value: start}}},
+						{Key: "endTime", Value: bson.D{{Key: "$gte", Value: start}}},
 					},
 				},
 			},
