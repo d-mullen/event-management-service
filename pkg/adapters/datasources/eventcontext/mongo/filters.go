@@ -20,6 +20,7 @@ func getOccurrenceTemporalFilters(
 	activeEventsOnly StatusFlag,
 	tr event.TimeRange,
 ) (bson.D, error) {
+
 	if tr.End < tr.Start {
 		return nil, errors.New("invalid time range")
 	}
@@ -36,44 +37,43 @@ func getOccurrenceTemporalFilters(
 		end = now.UnixMilli()
 		start = now.Add(-24 * time.Hour).UnixMilli() // TODO: expose this as config
 	}
+
+	filter_StartTime := bson.E{Key: "startTime", Value: bson.D{{Key: OpLessThanOrEqualTo, Value: end}}}
+	filter_LastSeen := bson.E{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}}
+	filter_EndTime := bson.E{Key: "endTime", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}}
+
 	switch activeEventsOnly {
 	case StatusFlagActiveOnly:
+		// Occurrence Collection Index: occ_streaming_events
 		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
+			filter_StartTime,
+			filter_LastSeen,
 		}, nil
 	case StatusFlagInactiveOnly:
-		// Temporarily disable this condition
-		// if willSort {
-		// 	return bson.D{
-		// 		{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-		// 		{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
-		// 	}, nil
-		// }
+		// Occurrence Collection Index: occ_streaming_closed_events
 		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-			{Key: "endTime", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+			filter_StartTime,
+			filter_EndTime,
 		}, nil
 	default:
+		// Do not filter on Status to force selection of correct index.
+		// Occurrence Collection Index: streaming_all_status
 		if start == interval_start {
-		return bson.D{
-			{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-			{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: start}}},
+			return bson.D{
+				filter_StartTime,
+				filter_LastSeen,
 			}, nil
 		}
 		return bson.D{
+			filter_StartTime,
 			{
 				Key: "$or",
 				Value: bson.A{
 					bson.D{
-						{Key: "status", Value: bson.D{{Key: OpNotEqualTo, Value: int(event.StatusClosed)}}},
-						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-						{Key: "lastSeen", Value: bson.D{{Key: OpGreaterThanOrEqualTo, Value: interval_start}}},
+						filter_LastSeen,
 					},
 					bson.D{
-						{Key: "status", Value: int(event.StatusClosed)},
-						{Key: "startTime", Value: bson.D{{Key: "$lte", Value: end}}},
-						{Key: "endTime", Value: bson.D{{Key: "$gte", Value: start}}},
+						filter_EndTime,
 					},
 				},
 			},
