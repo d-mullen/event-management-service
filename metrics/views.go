@@ -12,4 +12,5 @@ var AllViews = []*view.View{
 	AnnotateTimeMsView,
 	AnnotateCountView,
 	DeleteAnnotationCountView,
+	CursorErrorCountView,
 }

@@ -21,6 +21,8 @@ var (
 	// MDeleteAnnotationCount count of event annotations deleted.
 	MDeleteAnnotationCount = stats.Int64("event_management/delete_annotation_count", "The count of annotations deleted", "By")
 
+	MCursorErrorCount = stats.Int64("event_management/cursor_error_count", "The number of cursor errors", "By")
+
 	// SetStatusTimeMsView  set status times taken
 	SetStatusTimeMsView = &view.View{
 		Name:        "setStatusTime",
@@ -65,4 +67,14 @@ var (
 		TagKeys:     []tag.Key{zenkit.TagKeyServiceLabel, zenkit.KeyTenant, KeyWorker},
 		Aggregation: view.Sum(),
 	}
+
+		// SetStatusCountView search average count of events returned
+		CursorErrorCountView = &view.View{
+			Name:        "cursorErrorCount",
+			Measure:     MCursorErrorCount,
+			Description: "The number of cursor errors during query operations",
+			TagKeys:     []tag.Key{zenkit.TagKeyServiceLabel, zenkit.KeyTenant, KeyWorker},
+			Aggregation: view.Sum(),
+		}
+	
 )

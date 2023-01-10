@@ -8,11 +8,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/zenoss/event-management-service/internal/instrumentation"
+	"github.com/zenoss/event-management-service/metrics"
 	"github.com/zenoss/zenkit/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opencensus.io/stats"
 	"go.opencensus.io/trace"
 )
 
@@ -41,19 +43,20 @@ func FindWithRetry[R any](
 	processResults func(r R) (bool, string, error),
 ) error {
 	var (
-		log          = zenkit.ContextLogger(ctx)
-		cursors      []Cursor
-		batchStartId = ""
-		limit, total int64
-		attempts     = new(uint32)
+		log                         = zenkit.ContextLogger(ctx)
+		cursors                     []Cursor
+		batchStartId                = ""
+		limit, total, cursor_errors int64
+		attempts                    = new(uint32)
 	)
 	ctx, span := instrumentation.StartSpan(ctx, "FindWithRetry")
-	defer span.End()
+
 	defer instrumentation.AnnotateSpan(
 		"FindWithRetry metrics",
 		"FindWithRetry completed",
 		span,
 		map[string]any{"numAttempts": attempts}, nil)
+
 	defer func() {
 		for _, cursor := range cursors {
 			if cursor == nil {
@@ -65,6 +68,12 @@ func FindWithRetry[R any](
 			}
 		}
 	}()
+
+	defer func() {
+		span.End()
+		stats.Record(ctx, metrics.MCursorErrorCount.M(cursor_errors))
+	}()
+
 	filterBytes, err := bson.MarshalExtJSON(filter, true, true)
 	if err == nil {
 		span.AddAttributes(trace.StringAttribute("mongoFilter", string(filterBytes)))
@@ -94,6 +103,7 @@ OuterLoop:
 			updatedFilter bson.D
 			updatedOpts   *options.FindOptions
 			count         int64
+			cursor_errors int64
 		)
 		if len(batchStartId) > 0 {
 			var startKey any
@@ -134,6 +144,7 @@ OuterLoop:
 		cursors = append(cursors, cursor)
 		for cursor.Next(ctx) {
 			if err = cursor.Err(); err != nil {
+				cursor_errors++
 				break
 			}
 			var result R
