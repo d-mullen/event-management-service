@@ -103,7 +103,6 @@ OuterLoop:
 			updatedFilter bson.D
 			updatedOpts   *options.FindOptions
 			count         int64
-			cursor_errors int64
 		)
 		if len(batchStartId) > 0 {
 			var startKey any
@@ -144,7 +143,6 @@ OuterLoop:
 		cursors = append(cursors, cursor)
 		for cursor.Next(ctx) {
 			if err = cursor.Err(); err != nil {
-				cursor_errors++
 				break
 			}
 			var result R
@@ -169,6 +167,7 @@ OuterLoop:
 			"currentCount": count,
 		}).Debug("got results during retrying-find operation")
 		if err := cursor.Err(); err != nil {
+			cursor_errors++
 			log.WithField(logrus.ErrorKey, err).Warn("got cursor error")
 			if !isRetryableError(err) {
 				log.WithField(logrus.ErrorKey, err).Error("failed to find documents with non-retryable error")
