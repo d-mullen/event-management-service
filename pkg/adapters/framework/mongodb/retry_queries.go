@@ -71,7 +71,7 @@ func FindWithRetry[R any](
 
 	defer func() {
 		span.End()
-		stats.Record(ctx, metrics.MCursorErrorCount.M(cursor_errors))
+		stats.Record(ctx, metrics.MCursorErrorCount.M(cursor_errors+10))
 	}()
 
 	filterBytes, err := bson.MarshalExtJSON(filter, true, true)

@@ -19,12 +19,16 @@ const (
 	DefaultQueryCursorInitialTTL          = 30 * time.Minute
 	DefaultQueryCursorExtendedTTL         = 30 * time.Minute
 
+	// The query batch size - 0 means use default size.
+	DefaultCursorBatchSize = 0
+
 	// EventManagementEnabledConfig determines if the API endpoint for event management is enabled for this server
 	EventManagementEnabledConfig = "eventmanagement.enabled"
 	EventQueryEnabled            = "event.query.enabled"
 	MongoDBAddr                  = "mongo.address"
 	MongoDBName                  = "mongo.db.name"
 	MongoClientOptions           = "mongo.options"
+	CursorBatchSize              = "cursor.batch.size"
 
 	// TraceRateLimitedSamplingEnabled - specifies whether rate-limited tracing is enabled
 	TraceRateLimitedSamplingEnabled = "trace.rate.limited.sampling.enabled"
@@ -56,6 +60,7 @@ const (
 
 // InitDefaults sets defaults values for this server's configuration
 func init() {
+	viper.SetDefault(CursorBatchSize, DefaultCursorBatchSize)
 	viper.SetDefault(EventManagementEnabledConfig, true)
 	viper.SetDefault(EventQueryEnabled, false)
 	viper.SetDefault(MongoDBAddr, DefaultMongoDBAddr)
