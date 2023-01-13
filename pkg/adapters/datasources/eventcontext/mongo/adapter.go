@@ -119,6 +119,48 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 	if len(sortDoc) > 0 {
 		opt.SetSort(sortDoc)
 	}
+
+	// fields not included in the default projection: createdAt, expireAt
+	opt = opt.SetProjection(bson.D{
+		{
+			Key:   "severity",
+			Value: 1,
+		}, {
+			Key:   "status",
+			Value: 1,
+		}, {
+			Key:   "acknowledged",
+			Value: 1,
+		}, {
+			Key:   "instanceCount",
+			Value: bson.M{"$max": []any{"$instanceCount", 1}},
+		}, {
+			Key:   "startTime",
+			Value: 1,
+		}, {
+			Key:   "endTime",
+			Value: 1,
+		}, {
+			Key:   "eventId",
+			Value: 1,
+		}, {
+			Key:   "entity",
+			Value: 1,
+		}, {
+			Key:   "lastSeen",
+			Value: 1,
+		}, {
+			Key:   "body",
+			Value: 1,
+		}, {
+			Key:   "summary",
+			Value: 1,
+		}, {
+			Key:   "tenantId",
+			Value: 1,
+		},
+	})
+
 	return opt
 }
 
