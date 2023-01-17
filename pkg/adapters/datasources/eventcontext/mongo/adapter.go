@@ -159,6 +159,10 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 			Key:   "tenantId",
 			Value: 1,
 		},
+		{
+			Key:   "updatedAt",
+			Value: 1,
+		},
 	})
 
 	return opt
