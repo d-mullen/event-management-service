@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/zenoss/event-management-service/config"
 	"github.com/zenoss/event-management-service/internal/batchops"
 	"github.com/zenoss/event-management-service/internal/instrumentation"
 	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
@@ -36,6 +37,7 @@ type Adapter struct {
 	ttlMap      map[string]time.Duration
 	cursorRepo  event.CursorRepository
 	pager       Pager
+	options     map[string]any
 }
 
 var _ event.Repository = &Adapter{}
@@ -60,6 +62,7 @@ func NewAdapter(_ context.Context,
 		CollNotes:       database.Collection(CollNotes),
 	}
 
+	options := map[string]any{}
 	return &Adapter{
 		db:          database,
 		collections: collections,
@@ -68,6 +71,7 @@ func NewAdapter(_ context.Context,
 		},
 		cursorRepo: queryCursors,
 		pager:      NewSkipLimitPager(),
+		options:    options,
 	}, nil
 }
 
@@ -77,6 +81,11 @@ func (db *Adapter) Create(_ context.Context, _ *event.Event) (*event.Event, erro
 
 func (db *Adapter) Get(_ context.Context, _ *event.GetRequest) ([]*event.Event, error) {
 	panic("not implemented") // TODO: Implement
+}
+
+func (db *Adapter) SetOption(option string, value any) *Adapter {
+	db.options[option] = value
+	return db
 }
 
 func min[N constraints.Ordered](a N, rest ...N) N {
@@ -107,15 +116,15 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 			sortDoc = append(sortDoc, doc...)
 		}
 	}
-	keyFound := false
-	for _, e := range sortDoc {
-		if e.Key == "_id" {
-			keyFound = true
-		}
-	}
-	if !keyFound {
-		sortDoc = append(sortDoc, bson.E{"_id", event.SortOrderAscending})
-	}
+	// keyFound := false
+	// for _, e := range sortDoc {
+	// 	if e.Key == "_id" {
+	// 		keyFound = true
+	// 	}
+	// }
+	// if !keyFound {
+	// 	sortDoc = append(sortDoc, bson.E{Key: "_id", Value: event.SortOrderAscending})
+	// }
 	if len(sortDoc) > 0 {
 		opt.SetSort(sortDoc)
 	}
@@ -186,6 +195,8 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get pagination parameters")
 	}
+
+	findOpt.SetBatchSize(db.options[config.CursorBatchSize].(int32))
 
 	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
 		limit = int(pi.Limit) + 1

@@ -79,7 +79,7 @@ func defaultSetQuery[T eventPb.Status | eventPb.Severity, E event.Status | event
 	)
 
 	if len(values) == 0 {
-		for e = 0; e <= max; e++ {
+		for e = 1; e <= max; e++ {
 			retval = append(retval, E(e))
 		}
 	} else {
@@ -100,7 +100,7 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 	result := &event.Query{
 		Tenant:     tenantID,
 		Severities: defaultSetQuery(query.Severities, event.SeverityMax),
-		Statuses:   defaultSetQuery(query.Statuses, event.StatusMax),
+		Statuses:   defaultSetQuery(query.Statuses, event.StatusDefault),
 		TimeRange: event.TimeRange{
 			Start: query.TimeRange.Start,
 			End:   query.TimeRange.End,

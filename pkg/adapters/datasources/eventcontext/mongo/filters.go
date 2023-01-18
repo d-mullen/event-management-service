@@ -261,9 +261,15 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 	filters := bson.D{{Key: "tenantId", Value: query.Tenant}}
 	if len(query.Statuses) > 0 {
 		if len(query.Statuses) == 1 {
+			// Filtering on a single status value, active flag is irrelevant.
 			filters = append(filters, bson.E{Key: "status", Value: query.Statuses[0]})
 		} else {
-			filters = append(filters, bson.E{Key: "status", Value: bson.D{{Key: OpIn, Value: query.Statuses}}})
+			// More then one status provided; determine if they are all active. (It cannot be inactive-only at this point)
+			if activeEventsOnlyFlag(query) == StatusFlagActiveOnly {
+				filters = append(filters, bson.E{Key: "status", Value: bson.D{{Key: OpIn, Value: query.Statuses}}})
+			}
+			// If none of the above conditions are true, the query contains both active and inactive events. Therefore,
+			// omit status for the filter expression. This will force use of all-status index.
 		}
 	}
 	if len(query.Severities) > 0 {

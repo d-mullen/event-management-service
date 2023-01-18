@@ -113,9 +113,10 @@ func main() {
 			cursorsAdapter := redisCursors.NewAdapter(redisClient)
 			eventContextAdapter, err := eventContextMongo.NewAdapter(ctx, cfg, db, cursorsAdapter)
 			if err != nil {
-				log.WithField(logrus.ErrorKey, err).Error("failed to connect to event-ts-svc")
+				log.WithField(logrus.ErrorKey, err).Error("Unable to initialize event context adapter")
 				return err
 			}
+			eventContextAdapter.SetOption(config.CursorBatchSize, viper.GetInt32(config.CursorBatchSize))
 			conn, err := zenkit.NewClientConnWithRetry(ctx, "event-ts-svc", zenkit.DefaultRetryOpts())
 			if err != nil {
 				log.Errorf("failed to get connection event-ts-svc: %q", err)
