@@ -79,7 +79,12 @@ var _ = Describe("Pagination Unit-Tests", func() {
 		fieldMatchers := Fields{}
 		if testCase.expected.findOpts != nil {
 			if testCase.expected.findOpts.Limit != nil {
-				fieldMatchers["Limit"] = Equal(testCase.expected.findOpts.Limit)
+				// Allow for negative limit
+				effective_limit := *testCase.expected.findOpts.Limit
+				if effective_limit < 0 {
+					effective_limit = int64(0) - effective_limit
+				}
+				fieldMatchers["Limit"] = Equal(&effective_limit)
 			}
 			if testCase.expected.findOpts.Skip != nil {
 				fieldMatchers["Skip"] = Equal(testCase.expected.findOpts.Skip)
