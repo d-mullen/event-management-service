@@ -116,15 +116,15 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 			sortDoc = append(sortDoc, doc...)
 		}
 	}
-	// keyFound := false
-	// for _, e := range sortDoc {
-	// 	if e.Key == "_id" {
-	// 		keyFound = true
-	// 	}
-	// }
-	// if !keyFound {
-	// 	sortDoc = append(sortDoc, bson.E{Key: "_id", Value: event.SortOrderAscending})
-	// }
+	keyFound := false
+	for _, e := range sortDoc {
+		if e.Key == "_id" {
+			keyFound = true
+		}
+	}
+	if !keyFound {
+		sortDoc = append(sortDoc, bson.E{Key: "_id", Value: event.SortOrderAscending})
+	}
 	if len(sortDoc) > 0 {
 		opt.SetSort(sortDoc)
 	}
@@ -196,13 +196,20 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		return nil, errors.Wrap(err, "failed to get pagination parameters")
 	}
 
-	findOpt.SetBatchSize(db.options[config.CursorBatchSize].(int32))
+	if batch_size, ok := db.options[config.CursorBatchSize]; ok {
+		findOpt.SetBatchSize(batch_size.(int32))
+	}
 
 	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
 		limit = int(pi.Limit) + 1
 	}
-	if findOpt.Limit != nil && *findOpt.Limit > 0 {
+	if findOpt.Limit != nil && *findOpt.Limit != 0 {
 		limit = int(*findOpt.Limit)
+	}
+
+	// make sure limit is postive
+	if limit < 0 {
+		limit = 0 - limit
 	}
 
 	defaultOpts := defaultFindOpts(findOpt)

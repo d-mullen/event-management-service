@@ -256,7 +256,7 @@ func QueryToFindArguments(query *event.Query) (bson.D, *options.FindOptions, err
 		findOpts.SetSort(sortDoc)
 	}
 	if query.PageInput != nil && query.PageInput.Limit > 0 {
-		findOpts.SetLimit(int64(query.PageInput.Limit + 1))
+		findOpts.SetLimit(int64(0 - query.PageInput.Limit - 1))
 	}
 	filters := bson.D{{Key: "tenantId", Value: query.Tenant}}
 	if len(query.Statuses) > 0 {
