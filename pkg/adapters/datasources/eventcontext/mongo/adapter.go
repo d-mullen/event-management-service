@@ -128,7 +128,7 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 	if len(sortDoc) > 0 {
 		opt.SetSort(sortDoc)
 	}
-
+	opt.SetAllowPartialResults(true)
 	// fields not included in the default projection: createdAt, expireAt
 	opt = opt.SetProjection(bson.D{
 		{
