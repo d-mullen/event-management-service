@@ -117,8 +117,9 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 	}
 	if len(query.Fields) > 0 {
 		fields := make([]string, 0)
-		for _, input := range query.Fields {
-			fields = append(fields, input.Field)
+		fields = append(fields, []string{"eventId", "entity", "endTime", "severity", "startTime"}...)
+		for _, field := range query.Fields {
+			fields = append(fields, field.Field)
 		}
 		result.Fields = fields
 	}

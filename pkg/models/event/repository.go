@@ -5,9 +5,19 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/internal"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type FilterOp string
+
+var (
+	CannedProjections map[string]bson.E = map[string]bson.E{
+		"instanceCount": {
+			Key:   "instanceCount",
+			Value: bson.M{"$max": []any{"$instanceCount", 1}},
+		},
+	}
+)
 
 // Filter operations
 const (
@@ -182,6 +192,16 @@ var supportedFields = map[string]bool{
 func IsSupportedField(field string) bool {
 	_, ok := supportedFields[field]
 	return ok
+}
+
+func FieldProjection(field string) bson.E {
+	if proj, ok := CannedProjections[field]; ok {
+		return proj
+	}
+	return bson.E{
+		Key:   field,
+		Value: 1,
+	}
 }
 
 func (f *Filter) Clone() *Filter {
