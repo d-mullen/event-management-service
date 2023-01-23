@@ -136,7 +136,11 @@ OuterLoop:
 			updatedOpts = options.MergeFindOptions(findOpts...)
 		}
 		atomic.AddUint32(attempts, 1)
-		cursor, err := find(ctx, updatedFilter, updatedOpts)
+
+		ctx_m, span_m := instrumentation.StartSpan(ctx, "MongoFind")
+		cursor, err := find(ctx_m, updatedFilter, updatedOpts)
+		span_m.End()
+
 		if err != nil {
 			return errors.Wrap(err, "failed to find documents with retry")
 		}

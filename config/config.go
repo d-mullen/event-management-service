@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ const (
 	DefaultActiveEntityStoreTTL           = 24 * time.Hour
 	DefaultQueryCursorInitialTTL          = 30 * time.Minute
 	DefaultQueryCursorExtendedTTL         = 30 * time.Minute
+	DefaultCursorBatchSize                = 102
 
 	// EventManagementEnabledConfig determines if the API endpoint for event management is enabled for this server
 	EventManagementEnabledConfig = "eventmanagement.enabled"
@@ -52,10 +54,14 @@ const (
 	QueryCursorIntialTTL = "query.cursor.initial.ttl"
 	// QueryCursorExtendedTTL - the duration used to extend the TTL for expiring query result cursors
 	QueryCursorExtendedTTL = "query.cursor.extended.ttl"
+	// Documents returned by GetMore operations - lower number means more network connections.
+	CursorBatchSize = "cursor.batch.size"
 )
 
 // InitDefaults sets defaults values for this server's configuration
 func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	viper.SetDefault(EventManagementEnabledConfig, true)
 	viper.SetDefault(EventQueryEnabled, false)
 	viper.SetDefault(MongoDBAddr, DefaultMongoDBAddr)
@@ -67,4 +73,5 @@ func init() {
 	viper.SetDefault(ActiveEntityStoreMinBucketSize, DefaultActiveEntityStoreMinBucketSize)
 	viper.SetDefault(QueryCursorIntialTTL, DefaultQueryCursorInitialTTL)
 	viper.SetDefault(QueryCursorExtendedTTL, DefaultQueryCursorExtendedTTL)
+	viper.SetDefault(CursorBatchSize, DefaultCursorBatchSize)
 }

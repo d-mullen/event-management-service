@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/zenoss/event-management-service/config"
 	"github.com/zenoss/event-management-service/internal/batchops"
 	"github.com/zenoss/event-management-service/internal/instrumentation"
 	"github.com/zenoss/event-management-service/pkg/adapters/framework/mongodb"
@@ -36,6 +37,7 @@ type Adapter struct {
 	ttlMap      map[string]time.Duration
 	cursorRepo  event.CursorRepository
 	pager       Pager
+	options     map[string]any
 }
 
 var _ event.Repository = &Adapter{}
@@ -60,6 +62,7 @@ func NewAdapter(_ context.Context,
 		CollNotes:       database.Collection(CollNotes),
 	}
 
+	options := map[string]any{}
 	return &Adapter{
 		db:          database,
 		collections: collections,
@@ -68,6 +71,7 @@ func NewAdapter(_ context.Context,
 		},
 		cursorRepo: queryCursors,
 		pager:      NewSkipLimitPager(),
+		options:    options,
 	}, nil
 }
 
@@ -77,6 +81,11 @@ func (db *Adapter) Create(_ context.Context, _ *event.Event) (*event.Event, erro
 
 func (db *Adapter) Get(_ context.Context, _ *event.GetRequest) ([]*event.Event, error) {
 	panic("not implemented") // TODO: Implement
+}
+
+func (db *Adapter) SetOption(option string, value any) *Adapter {
+	db.options[option] = value
+	return db
 }
 
 func min[N constraints.Ordered](a N, rest ...N) N {
@@ -114,12 +123,12 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 		}
 	}
 	if !keyFound {
-		sortDoc = append(sortDoc, bson.E{"_id", event.SortOrderAscending})
+		sortDoc = append(sortDoc, bson.E{Key: "_id", Value: event.SortOrderAscending})
 	}
 	if len(sortDoc) > 0 {
 		opt.SetSort(sortDoc)
 	}
-
+	opt.SetAllowPartialResults(true)
 	// fields not included in the default projection: createdAt, expireAt
 	opt = opt.SetProjection(bson.D{
 		{
@@ -187,11 +196,20 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 		return nil, errors.Wrap(err, "failed to get pagination parameters")
 	}
 
+	if batch_size, ok := db.options[config.CursorBatchSize]; ok {
+		findOpt.SetBatchSize(batch_size.(int32))
+	}
+
 	if pi := query.PageInput; pi != nil && pi.Limit > 0 {
 		limit = int(pi.Limit) + 1
 	}
-	if findOpt.Limit != nil && *findOpt.Limit > 0 {
+	if findOpt.Limit != nil && *findOpt.Limit != 0 {
 		limit = int(*findOpt.Limit)
+	}
+
+	// make sure limit is postive
+	if limit < 0 {
+		limit = 0 - limit
 	}
 
 	defaultOpts := defaultFindOpts(findOpt)
