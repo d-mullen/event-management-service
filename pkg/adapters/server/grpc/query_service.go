@@ -105,6 +105,7 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 			Start: query.TimeRange.Start,
 			End:   query.TimeRange.End,
 		},
+		Fields:     []string{"endTime", "startTime", "updatedAt", "lastSeen"},
 		ShouldApplyOccurrenceIntervals: query.ActiveCriteria == eventquery.TemporalFilterCriteria_BY_OCCURRENCES,
 	}
 
@@ -115,14 +116,11 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 		}
 		result.Filter = filter
 	}
-	if len(query.Fields) > 0 {
-		fields := make([]string, 0)
-		fields = append(fields, []string{"eventId", "entity", "endTime", "severity", "startTime"}...)
-		for _, field := range query.Fields {
-			fields = append(fields, field.Field)
-		}
-		result.Fields = fields
+
+	for _, f := range query.Fields {
+		result.AddField(f.Field)
 	}
+
 	if len(query.SortBy) > 0 {
 		pageInput := &event.PageInput{}
 		sortBys := make([]event.SortOpt, 0)

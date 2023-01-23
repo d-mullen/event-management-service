@@ -112,7 +112,7 @@ func getProjectionFromFields(ctx context.Context, query *event.Query) bson.D {
 	var projection bson.D
 
 	projection = bson.D{{
-		Key: "_id",
+		Key:   "_id",
 		Value: 1,
 	}}
 

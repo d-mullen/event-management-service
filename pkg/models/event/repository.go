@@ -150,6 +150,17 @@ func (tr TimeRange) IsValid() bool {
 	return tr.End >= tr.Start
 }
 
+// Add the named field to the query guaranting uniqueness
+func (q *Query) AddField(field_name string) *Query {
+	for _,f := range q.Fields {
+		if f == field_name {
+			return  q
+		}
+	}
+	q.Fields = append(q.Fields, field_name)
+	return q
+}
+
 func (q *Query) Validate() error {
 	if q == nil {
 		return errors.New("nil query")
