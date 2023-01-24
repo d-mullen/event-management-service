@@ -161,6 +161,13 @@ func (q *Query) AddField(field_name string) *Query {
 	return q
 }
 
+func (q *Query) AddFields(field_names []string) *Query {
+	for _, fname := range field_names {
+		q.AddField(fname)
+	}
+	return q
+}
+
 func (q *Query) Validate() error {
 	if q == nil {
 		return errors.New("nil query")
