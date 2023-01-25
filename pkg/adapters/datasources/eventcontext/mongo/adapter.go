@@ -108,6 +108,9 @@ func max[N constraints.Ordered](a N, rest ...N) N {
 	return result
 }
 
+// Return a mongoDB projection list based on the requested fields.  Note that
+// _id is added automatically even thought its not strictly necessary from a
+// mongodb perspective. This just insures that the return value is always valid.
 func getProjectionFromFields(ctx context.Context, query *event.Query) bson.D {
 	var projection bson.D
 

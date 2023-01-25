@@ -570,8 +570,7 @@ func frequenceRequest2Query(ctx context.Context, req *event.FrequencyRequest) *e
 		PageInput:  req.Query.PageInput,
 		Latest:     latest,
 	}
-	retval.AddFields(defaultFields).
-		AddFields(req.Fields).
+	retval.AddFields(req.Fields).
 		AddFields(req.GroupBy).
 		AddFields(req.Query.Fields)
 	return retval
