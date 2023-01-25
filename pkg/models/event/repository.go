@@ -150,7 +150,8 @@ func (tr TimeRange) IsValid() bool {
 	return tr.End >= tr.Start
 }
 
-// Add the named field to the query guaranting uniqueness
+// Add the named field to the query guaranting uniqueness. Only the fields supported by the store will
+// be used for the projection.  See adapter.getProjectionFromFields()
 func (q *Query) AddField(field_name string) *Query {
 	for _,f := range q.Fields {
 		if f == field_name {
