@@ -107,7 +107,7 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 		},
 		// Minimum list if fields to support the current business logic. These may need to be revised if queries change.
 		// TODO: May consider storing this list somewhere else rather then buried in the code.
-		Fields:                         []string{"endTime", "startTime", "lastSeen", "eventId"},
+		Fields:                         []string{"endTime", "startTime", "lastSeen", "eventId", "status", "severity"},
 		ShouldApplyOccurrenceIntervals: query.ActiveCriteria == eventquery.TemporalFilterCriteria_BY_OCCURRENCES,
 	}
 
