@@ -105,6 +105,9 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 			Start: query.TimeRange.Start,
 			End:   query.TimeRange.End,
 		},
+		// Minimum list if fields to support the current business logic. These may need to be revised if queries change.
+		// TODO: May consider storing this list somewhere else rather then buried in the code.
+		Fields:                         []string{"endTime", "startTime", "lastSeen", "eventId", "status", "severity"},
 		ShouldApplyOccurrenceIntervals: query.ActiveCriteria == eventquery.TemporalFilterCriteria_BY_OCCURRENCES,
 	}
 
@@ -115,13 +118,11 @@ func QueryProtoToEventQuery(tenantID string, query *eventquery.Query) (*event.Qu
 		}
 		result.Filter = filter
 	}
-	if len(query.Fields) > 0 {
-		fields := make([]string, 0)
-		for _, input := range query.Fields {
-			fields = append(fields, input.Field)
-		}
-		result.Fields = fields
+
+	for _, f := range query.Fields {
+		result.AddField(f.Field)
 	}
+
 	if len(query.SortBy) > 0 {
 		pageInput := &event.PageInput{}
 		sortBys := make([]event.SortOpt, 0)

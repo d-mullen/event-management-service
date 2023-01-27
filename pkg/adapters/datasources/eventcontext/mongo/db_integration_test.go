@@ -257,6 +257,8 @@ var _ = Describe("MongoDB Integration Test", func() {
 				Expect(insertManyResult).ToNot(BeNil())
 
 				cursor := ""
+				defaultFields := []string{"eventId", "status", "severity", "startTime", "entity"}
+
 				for i := 0; i < len(testEvents); i += pageSize {
 					input := &event.Query{
 						Tenant: integrationTestTenant,
@@ -266,7 +268,7 @@ var _ = Describe("MongoDB Integration Test", func() {
 						},
 						Statuses:   []event.Status{event.StatusOpen},
 						Severities: []event.Severity{event.SeverityInfo},
-						Fields:     []string{"dimensions", "notes", "metadata"},
+						Fields:     defaultFields,
 						Filter: &event.Filter{
 							Op:    event.FilterOpAnd,
 							Field: string(event.FilterOpAnd),
@@ -322,6 +324,8 @@ var _ = Describe("MongoDB Integration Test", func() {
 							Start: now.Add(-8 * 24 * time.Hour).UnixMilli(),
 							End:   now.UnixMilli(),
 						},
+						Fields: defaultFields,
+
 						Statuses:   []event.Status{event.StatusOpen},
 						Severities: []event.Severity{event.SeverityInfo},
 						Filter: &event.Filter{

@@ -552,24 +552,28 @@ func bucketsToFrequencyResult(buckets []*frequency.Bucket) []*eventts.FrequencyR
 
 func frequenceRequest2Query(ctx context.Context, req *event.FrequencyRequest) *event.Query {
 	// construct query with combined fields from query and frequency request
-	requestedFields := make([]string, 0)
-	requestedFields = append(requestedFields, req.Fields...)
-	requestedFields = append(requestedFields, req.GroupBy...)
-	requestedFields = append(requestedFields, req.Query.Fields...)
+	defaultFields := make([]string, 0)
+	defaultFields = append(defaultFields, []string{"lastSeen", "startTime", "endTime", "status", "severity"}...)
+
+	// requestedFields = append(requestedFields, req.Fields...)
 	latest := event.CountFlagLatest
 	if req.CountInstances {
 		latest = event.CountFlagAll
 	}
-	return &event.Query{
+	retval := &event.Query{
 		Tenant:     req.Query.Tenant,
 		TimeRange:  req.TimeRange,
 		Severities: req.Severities,
 		Statuses:   req.Statuses,
-		Fields:     requestedFields,
+		Fields:     defaultFields,
 		Filter:     req.Query.Filter,
 		PageInput:  req.Query.PageInput,
 		Latest:     latest,
 	}
+	retval.AddFields(req.Fields).
+		AddFields(req.GroupBy).
+		AddFields(req.Query.Fields)
+	return retval
 }
 
 func countRequest2Query(ctx context.Context, req *event.CountRequest) *event.Query {
@@ -577,16 +581,18 @@ func countRequest2Query(ctx context.Context, req *event.CountRequest) *event.Que
 	if req.CountInstances {
 		latest = event.CountFlagAll
 	}
-	return &event.Query{
+	retval := &event.Query{
 		Tenant:     req.Query.Tenant,
 		TimeRange:  req.TimeRange,
 		Severities: req.Severities,
 		Statuses:   req.Statuses,
-		Fields:     append(req.Fields, req.Query.Fields...),
+		Fields:     req.Fields,
 		Filter:     req.Query.Filter,
 		PageInput:  req.Query.PageInput,
 		Latest:     latest,
 	}
+	retval.AddFields(req.Query.Fields)
+	return retval
 }
 
 func (svc *service) Frequency(ctx context.Context, req *event.FrequencyRequest) (*eventts.FrequencyResponse, error) {

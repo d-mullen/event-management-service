@@ -40,6 +40,15 @@ type Adapter struct {
 	options     map[string]any
 }
 
+var (
+	CannedProjections map[string]bson.E = map[string]bson.E{
+		"instanceCount": {
+			Key:   "instanceCount",
+			Value: bson.M{"$max": []any{"$instanceCount", 1}},
+		},
+	}
+)
+
 var _ event.Repository = &Adapter{}
 
 func NewAdapter(_ context.Context,
@@ -108,6 +117,35 @@ func max[N constraints.Ordered](a N, rest ...N) N {
 	return result
 }
 
+func FieldProjection(field string) bson.E {
+	if proj, ok := CannedProjections[field]; ok {
+		return proj
+	}
+	return bson.E{
+		Key:   field,
+		Value: 1,
+	}
+}
+
+// Return a mongoDB projection list based on the requested fields.  Note that
+// _id is added automatically even thought its not strictly necessary from a
+// mongodb perspective. This just insures that the return value is always valid.
+func getProjectionFromFields(ctx context.Context, query *event.Query) bson.D {
+	var projection bson.D
+
+	projection = bson.D{{
+		Key:   "_id",
+		Value: 1,
+	}}
+
+	for _, f := range query.Fields {
+		if event.IsSupportedField(f) {
+			projection = append(projection, FieldProjection(f))
+		}
+	}
+	return projection
+}
+
 func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 	opt := options.MergeFindOptions(opts...)
 	sortDoc := bson.D{}
@@ -129,49 +167,6 @@ func defaultFindOpts(opts ...*options.FindOptions) *options.FindOptions {
 		opt.SetSort(sortDoc)
 	}
 	opt.SetAllowPartialResults(true)
-	// fields not included in the default projection: createdAt, expireAt
-	opt = opt.SetProjection(bson.D{
-		{
-			Key:   "severity",
-			Value: 1,
-		}, {
-			Key:   "status",
-			Value: 1,
-		}, {
-			Key:   "acknowledged",
-			Value: 1,
-		}, {
-			Key:   "instanceCount",
-			Value: bson.M{"$max": []any{"$instanceCount", 1}},
-		}, {
-			Key:   "startTime",
-			Value: 1,
-		}, {
-			Key:   "endTime",
-			Value: 1,
-		}, {
-			Key:   "eventId",
-			Value: 1,
-		}, {
-			Key:   "entity",
-			Value: 1,
-		}, {
-			Key:   "lastSeen",
-			Value: 1,
-		}, {
-			Key:   "body",
-			Value: 1,
-		}, {
-			Key:   "summary",
-			Value: 1,
-		}, {
-			Key:   "tenantId",
-			Value: 1,
-		}, {
-			Key:   "updatedAt",
-			Value: 1,
-		},
-	})
 
 	return opt
 }
@@ -192,6 +187,9 @@ func (db *Adapter) Find(ctx context.Context, query *event.Query, opts ...*event.
 	}
 
 	filters, findOpt, err = db.pager.GetPaginationQuery(ctx, query, db.cursorRepo)
+
+	findOpt.SetProjection(getProjectionFromFields(ctx, query))
+
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get pagination parameters")
 	}
