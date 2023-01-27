@@ -40,6 +40,15 @@ type Adapter struct {
 	options     map[string]any
 }
 
+var (
+	CannedProjections map[string]bson.E = map[string]bson.E{
+		"instanceCount": {
+			Key:   "instanceCount",
+			Value: bson.M{"$max": []any{"$instanceCount", 1}},
+		},
+	}
+)
+
 var _ event.Repository = &Adapter{}
 
 func NewAdapter(_ context.Context,
@@ -108,6 +117,16 @@ func max[N constraints.Ordered](a N, rest ...N) N {
 	return result
 }
 
+func FieldProjection(field string) bson.E {
+	if proj, ok := CannedProjections[field]; ok {
+		return proj
+	}
+	return bson.E{
+		Key:   field,
+		Value: 1,
+	}
+}
+
 // Return a mongoDB projection list based on the requested fields.  Note that
 // _id is added automatically even thought its not strictly necessary from a
 // mongodb perspective. This just insures that the return value is always valid.
@@ -121,7 +140,7 @@ func getProjectionFromFields(ctx context.Context, query *event.Query) bson.D {
 
 	for _, f := range query.Fields {
 		if event.IsSupportedField(f) {
-			projection = append(projection, event.FieldProjection(f))
+			projection = append(projection, FieldProjection(f))
 		}
 	}
 	return projection

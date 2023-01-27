@@ -5,19 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/zenoss/event-management-service/internal"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type FilterOp string
-
-var (
-	CannedProjections map[string]bson.E = map[string]bson.E{
-		"instanceCount": {
-			Key:   "instanceCount",
-			Value: bson.M{"$max": []any{"$instanceCount", 1}},
-		},
-	}
-)
 
 // Filter operations
 const (
@@ -152,18 +142,18 @@ func (tr TimeRange) IsValid() bool {
 
 // Add the named field to the query guaranting uniqueness. Only the fields supported by the store will
 // be used for the projection.  See adapter.getProjectionFromFields()
-func (q *Query) AddField(field_name string) *Query {
+func (q *Query) AddField(fieldName string) *Query {
 	for _,f := range q.Fields {
-		if f == field_name {
+		if f == fieldName {
 			return  q
 		}
 	}
-	q.Fields = append(q.Fields, field_name)
+	q.Fields = append(q.Fields, fieldName)
 	return q
 }
 
-func (q *Query) AddFields(field_names []string) *Query {
-	for _, fname := range field_names {
+func (q *Query) AddFields(fieldNames []string) *Query {
+	for _, fname := range fieldNames {
 		q.AddField(fname)
 	}
 	return q
@@ -211,16 +201,6 @@ var supportedFields = map[string]bool{
 func IsSupportedField(field string) bool {
 	_, ok := supportedFields[field]
 	return ok
-}
-
-func FieldProjection(field string) bson.E {
-	if proj, ok := CannedProjections[field]; ok {
-		return proj
-	}
-	return bson.E{
-		Key:   field,
-		Value: 1,
-	}
 }
 
 func (f *Filter) Clone() *Filter {
